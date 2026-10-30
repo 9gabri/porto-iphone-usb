@@ -1,6 +1,11 @@
 using System.Security.Cryptography;
 using Porto.Core;
 
+if(args.Length>0&&args[0]=="--crash")return IntegrationTests.CrashChild(args[1],args[2]);
+if(args.Length>0&&args[0]=="--hang"){Thread.Sleep(30000);return 0;}
+if(args.Length>0&&args[0]=="--partial")
+{using var output=new BinaryWriter(Console.OpenStandardOutput());output.Write((byte)0);output.Write(100);output.Write((byte)1);output.Flush();Thread.Sleep(30000);return 0;}
+
 var tests = new List<(string, Action)>
 {
     ("copy and independently reread SHA256", () => {
@@ -15,6 +20,8 @@ var tests = new List<(string, Action)>
     ("corruption rejected", () => Throws<InvalidDataException>(() => VerifiedCopy.Verify(new(10,"A"),new(10,"B")))),
     ("pause interrupts before write", () => Throws<OperationCanceledException>(() => VerifiedCopy.Copy(new MemoryStream([1]), Stream.Null, null, null, null, new CancellationToken(true))))
 };
+IntegrationTests.Add(tests);
+if(args.Contains("--large"))LargeTests.Add(tests);
 int failures = 0;
 foreach (var (name, test) in tests)
 {
