@@ -9,4 +9,4 @@
 - [x] Scala: 50.000 elementi, oltre 4 GB letti, volume virtuale 250 GB; tempi e RAM documentati.
 - [x] Revisione: sicurezza, correttezza, licenze, dipendenze e mutazione di un controllo d'integrità.
 - [x] Pacchetto: self-contained x64, hash, istruzioni e limiti, avvio pacchetto.
-- [ ] Pubblicazione: repo/release/Pages e download con hash identico.
+- [x] Pubblicazione: repo/release/Pages e download con hash identico; vedi docs/RELEASE-VERIFICATION.md.
