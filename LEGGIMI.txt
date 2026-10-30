@@ -1,0 +1,36 @@
+PORTO 0.1.0-rc.1 — CANDIDATA WINDOWS 11 x64
+
+1. Estrai tutta la cartella dello ZIP e apri Porto.exe.
+2. Collega l'iPhone via USB, sbloccalo e autorizza il PC.
+3. Verifica sul telefono: Impostazioni > App > Foto > Trasferisci su Mac o PC > Mantieni originali.
+4. Scegli una cartella locale NTFS e premi Avvia importazione.
+
+Non servono compilatori o un'installazione .NET: il runtime è incluso.
+Se l'iPhone non compare, verifica cavo/autorizzazione e i componenti ufficiali Dispositivi Apple:
+https://support.apple.com/en-us/120267
+Porto non installa driver e non richiede privilegi amministrativi.
+
+Pausa interrompe in sicurezza; Riprendi rilegge l'inventario e verifica le copie già fatte.
+Per riconnessioni che cambiano il dispositivo visibile, premi Cerca iPhone.
+La verifica approfondita rilegge anche la sorgente e richiede più tempo.
+
+File: Video Porto. Catalogo/temporanei: .porto. Report: Report Porto (TXT e JSON).
+Conserva .porto insieme ai video. Non vengono cancellati automaticamente neppure i temporanei interrotti: possono occupare spazio dopo pause/errori. Usa una cartella distinta per ogni telefono/libreria.
+
+LIMITI DELLA CANDIDATA
+- Nessun iPhone fisico o iOS è stato usato per validarla; implementazione USB WPD reale, prove sintetiche.
+- Funziona offline, senza Apple ID. Non scarica da iCloud. Il numero degli originali solo cloud può essere sconosciuto.
+- Completare l'inventario USB NON certifica l'intera libreria Foto.
+- SHA-256 dimostra la corrispondenza con i byte ricevuti, non un originale Foto certificato.
+- Possibili Live Photos e versioni modificate sono segnalate come ambigue e non pubblicate tra i video autonomi; senza indizi non ogni caso è riconoscibile.
+- Windows ARM, exFAT, rete e cartelle con collegamenti/junction non supportati; percorso destinazione fino a 120 caratteri.
+- Non firmata con certificato commerciale. Windows può mostrare avvisi o bloccare l'avvio. Non disattivare antivirus, SmartScreen o altre protezioni.
+
+Nessuna funzione di modifica/eliminazione sul telefono. Nessuna conversione, upload, telemetria o servizio a pagamento nell'app.
+La riproduzione HEVC richiede supporto codec sul PC, ma la copia no.
+
+Istruzioni complete, risultati delle prove e sorgenti:
+https://9gabri.github.io/porto-iphone-usb/
+https://github.com/9gabri/porto-iphone-usb
+
+Licenza MIT. Avvisi di licenza inclusi nella cartella. Progetto indipendente, non affiliato ad Apple o Microsoft.

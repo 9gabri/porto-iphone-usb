@@ -119,6 +119,33 @@ internal static class IntegrationTests
             var failed=new EnumerationGuard(2,10);failed.Visit("1");failed.Visit("2");Fixtures.Throws<EnumerationStoppedException>(()=>failed.Visit("3"));
             var errors=new EnumerationGuard(10,1);errors.Error();Fixtures.Throws<EnumerationStoppedException>(errors.Error);
         }));
+        tests.Add(("missing copies remain visible across empty inventories",()=>{
+            using var d=new Destination(Root());new ImportEngine(FakeSource.One(),d).Run(false,default);
+            var path=Directory.GetFiles(d.Videos).Single();File.Move(path,path+".synthetic-moved");
+            for(int i=0;i<2;i++){var r=new ImportEngine(new FakeSource([],[]),d).Run(false,default);Fixtures.Check(r.Count(Outcome.Missing)==1);Fixtures.Check(r.Status.Contains("incompleta"));}
+            var repaired=new ImportEngine(FakeSource.One(),d).Run(false,default);Fixtures.Check(repaired.Count(Outcome.Imported)==1&&repaired.Count(Outcome.Missing)==0);
+            Fixtures.Check(new ImportEngine(FakeSource.One(),d).Run(false,default).Count(Outcome.Missing)==0);
+        }));
+        tests.Add(("Ready without either file is reported missing immediately",()=>{
+            string root=Root();Crash(root,"after-ready");using var d=new Destination(root);
+            using(var c=new Catalog(d)){string path=d.Resolve(c.Entries().Single().Temp);File.Move(path,path+".synthetic-moved");}
+            var r=new ImportEngine(new FakeSource([],[]),d).Run(false,default);Fixtures.Check(r.Count(Outcome.Missing)==1);
+        }));
+        foreach(string repairPhase in new[]{"after-ready","after-rename","after-complete"})
+        tests.Add(($"crash during repair at {repairPhase} keeps missing resolution atomic",()=>{
+            string root=Root();using(var d=new Destination(root)){new ImportEngine(FakeSource.One(),d).Run(false,default);var path=Directory.GetFiles(d.Videos).Single();File.Move(path,path+".synthetic-moved");}
+            Crash(root,repairPhase);using var recovered=new Destination(root);var r=new ImportEngine(FakeSource.One(),recovered).Run(false,default);
+            Fixtures.Check(r.Count(Outcome.Missing)==0&&r.Count(Outcome.AlreadyPresent)==1);
+        }));
+        foreach(bool corrupt in new[]{false,true})
+        tests.Add(($"failed replacement attempt does not duplicate missing debt (corrupt={corrupt})",()=>{
+            string root=Root();using(var d=new Destination(root)){new ImportEngine(FakeSource.One(),d).Run(false,default);string old=Directory.GetFiles(d.Videos).Single();File.Move(old,old+".synthetic-moved");}
+            Crash(root,"after-ready");using var recovered=new Destination(root);
+            using(var catalog=new Catalog(recovered))
+            {string part=recovered.Resolve(catalog.Entries().Single(e=>e.State=="Ready").Temp);if(corrupt)File.WriteAllText(part,"synthetic corruption");else File.Move(part,part+".synthetic-moved");}
+            var r=new ImportEngine(FakeSource.One(),recovered).Run(false,default);Fixtures.Check(r.Count(Outcome.Missing)==0);Fixtures.Check(r.Count(Outcome.Imported)==1);
+            Fixtures.Check(Directory.GetFiles(recovered.Videos,"*.mov").Length==1);
+        }));
     }
     public static int CrashChild(string root,string phase)
     {using var d=new Destination(root);new ImportEngine(FakeSource.One(),d){FaultPoint=p=>{if(p==phase)Environment.Exit(77);}}.Run(false,default);return 2;}

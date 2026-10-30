@@ -38,7 +38,10 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
             for(int index=0;index<entries.Count;index++)
             {
                 var prior=entries[index];
-                if(prior.State=="Complete"&&!File.Exists(destination.Resolve(prior.Final)))
+                if(prior.State=="Missing"&&!string.IsNullOrEmpty(prior.Final)&&File.Exists(destination.Resolve(prior.Final))&&
+                    new CopyResult(prior.Length,prior.Hash!)==VerifiedCopy.HashFile(destination.Resolve(prior.Final),cancel))
+                {prior=prior with{State="Complete"};entries[index]=prior;catalog.Save(prior);}
+                if(prior.State=="Missing" || prior.State=="Complete"&&!File.Exists(destination.Resolve(prior.Final)))
                 {
                     entries[index]=prior with{State="Missing"};catalog.Save(entries[index]);
                     report.Items.Add(new(prior.Source.Id,prior.Source.Name,Outcome.Missing,"Una copia registrata non è più presente nella destinazione. Se la sorgente è disponibile verrà ricopiata.",prior.Final));
@@ -46,6 +49,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                 else if(prior.State=="Damaged")report.Items.Add(new(prior.Source.Id,prior.Source.Name,Outcome.Error,"Copia precedente danneggiata o collisionante; conservata. Recupero tramite nuova copia se disponibile.",prior.Final));
             }
             var known=entries.Where(e=>e.State is "Complete" or "Quarantined").ToList();
+            var missing=entries.Where(e=>e.State=="Missing").ToList();
             var byHash=known.GroupBy(e=>e.Hash!).ToDictionary(g=>g.Key,g=>g.ToList(),StringComparer.Ordinal);
             var knownLengths=known.Select(e=>e.Length).ToHashSet();
             var claimed=new HashSet<string>(StringComparer.Ordinal);
@@ -133,7 +137,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                     var media=MediaInspector.Inspect(temp,cancel);
                     if(media.LivePhoto||media.Ambiguous||!media.IsVideo)
                     {
-                        entry=entry with{State="Quarantined",Hash=received.Hash,Length=received.Length};catalog.Save(entry);
+                        entry=entry with{State="Quarantined",Hash=received.Hash,Length=received.Length};SaveFinalEntry(entry);
                         knownLengths.Add(entry.Length);
                         if(!byHash.TryGetValue(entry.Hash!,out var quarantined))byHash[entry.Hash!]=quarantined=[];
                         quarantined.Add(entry);claimed.Add(entry.Id);
@@ -144,10 +148,11 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                     string ext=Path.GetExtension(item.Name);
                     if(!MediaInspector.VideoExtensions.Contains(ext))ext=media.Extension;
                     entry=entry with{State="Ready",Hash=received.Hash,Length=received.Length,
+                        Replaces=missing.FirstOrDefault(e=>e.Hash==received.Hash&&e.Length==received.Length)?.Id,
                         Final=Path.Combine("Video Porto",Destination.SafeStem(item.Name)+"_"+id+ext.ToLowerInvariant())};
                     catalog.Save(entry);FaultPoint?.Invoke("after-ready");
                     Destination.Publish(temp,destination.Resolve(entry.Final));FaultPoint?.Invoke("after-rename");
-                    entry=entry with{State="Complete"};catalog.Save(entry);FaultPoint?.Invoke("after-complete");
+                    entry=entry with{State="Complete"};SaveFinalEntry(entry);FaultPoint?.Invoke("after-complete");
                     knownLengths.Add(entry.Length);
                     if(!byHash.TryGetValue(entry.Hash!,out var bucket))byHash[entry.Hash!]=bucket=[];
                     bucket.Add(entry);claimed.Add(entry.Id);
@@ -168,6 +173,13 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                 :"Importazione incompleta o con elementi non verificabili. Consulta il report.";
             return report;
             void SaveProgress()=>catalog.AppendResult(runId,report.Items[^1]);
+            void SaveFinalEntry(CatalogEntry replacement)
+            {
+                var old=missing.FirstOrDefault(e=>e.Hash==replacement.Hash&&e.Length==replacement.Length);
+                if(old==null){catalog.Save(replacement);return;}
+                catalog.SaveAll(replacement with{Replaces=old.Id},old with{State="Replaced"});missing.Remove(old);
+                report.Items.RemoveAll(i=>i.Outcome==Outcome.Missing&&i.File==old.Final);
+            }
         }
         catch(OperationCanceledException){report.Status="In pausa. I file incompleti saranno ricopiati dall'inizio.";return report;}
         catch(Exception ex) when(ex is IOException or UnauthorizedAccessException or InvalidDataException or OverflowException)
@@ -185,29 +197,40 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
 
     public void Recover(Catalog catalog,CancellationToken cancel)
     {
-        foreach(var entry in catalog.Entries().Where(e=>e.State=="Ready"))
+        var entries=catalog.Entries().ToDictionary(e=>e.Id);
+        void Complete(CatalogEntry entry)
+        {
+            if(entry.Replaces!=null)
+            {
+                if(!entries.TryGetValue(entry.Replaces,out var old)||old.Hash!=entry.Hash||old.Length!=entry.Length)
+                    throw new InvalidDataException("Relazione di recupero nel catalogo non valida.");
+                catalog.SaveAll(entry with{State="Complete"},old with{State="Replaced"});
+            }
+            else catalog.Save(entry with{State="Complete"});
+        }
+        foreach(var entry in entries.Values.Where(e=>e.State=="Ready"))
         {
             cancel.ThrowIfCancellationRequested();
             string final=destination.Resolve(entry.Final),temp=destination.Resolve(entry.Temp);
             var expected=new CopyResult(entry.Length,entry.Hash!);
             if(File.Exists(final))
             {
-                if(expected==VerifiedCopy.HashFile(final,cancel))catalog.Save(entry with{State="Complete"});
+                if(expected==VerifiedCopy.HashFile(final,cancel))Complete(entry);
                 else if(File.Exists(temp)&&expected==VerifiedCopy.HashFile(temp,cancel))
                 {
                     var alternate=entry with{Final=Path.Combine("Video Porto",Destination.SafeStem(entry.Source.Name)+"_"+Guid.NewGuid().ToString("N")+Path.GetExtension(entry.Final))};
                     catalog.Save(alternate);
-                    Destination.Publish(temp,destination.Resolve(alternate.Final));catalog.Save(alternate with{State="Complete"});
+                    Destination.Publish(temp,destination.Resolve(alternate.Final));Complete(alternate);
                 }
-                else catalog.Save(entry with{State="Damaged"});
+                else catalog.Save(entry with{State=entry.Replaces==null?"Damaged":"Abandoned"});
             }
             else if(File.Exists(temp))
             {
                 if(expected==VerifiedCopy.HashFile(temp,cancel))
-                {Destination.Publish(temp,final);catalog.Save(entry with{State="Complete"});}
-                else catalog.Save(entry with{State="Damaged"});
+                {Destination.Publish(temp,final);Complete(entry);}
+                else catalog.Save(entry with{State=entry.Replaces==null?"Damaged":"Abandoned"});
             }
-            else catalog.Save(entry with{State="Missing"});
+            else catalog.Save(entry with{State=entry.Replaces==null?"Missing":"Abandoned"});
         }
     }
     private void EnsureSpace(long required)

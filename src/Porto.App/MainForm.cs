@@ -23,6 +23,7 @@ public sealed class MainForm:Form
     {
         this.smokePath=smokePath;Text="Porto · Importa video da iPhone";
         ClientSize=new(980,770);MinimumSize=new(880,790);StartPosition=FormStartPosition.CenterScreen;
+        if(smokePath!=null){StartPosition=FormStartPosition.Manual;Location=new(-20000,-20000);ShowInTaskbar=false;}
         BackColor=Color.FromArgb(244,247,246);ForeColor=Ink;Font=new("Segoe UI",10);AutoScaleMode=AutoScaleMode.Dpi;
         var layout=new TableLayoutPanel{Dock=DockStyle.Fill,Padding=new(32,24,32,20),ColumnCount=1,RowCount=8};
         layout.RowStyles.Add(new(SizeType.Absolute,80));layout.RowStyles.Add(new(SizeType.Absolute,72));
@@ -58,10 +59,12 @@ public sealed class MainForm:Form
         {
             if(smokePath!=null)
             {
+                WindowState=FormWindowState.Normal;ClientSize=new(980,770);Location=new(-20000,-20000);
                 phones.Items.Add(new DeviceInfo("synthetic-no-device-access","iPhone · esempio per verifica UI"));phones.SelectedIndex=0;
                 if(phones.SelectedItem is not DeviceInfo||string.IsNullOrEmpty(phones.Text))throw new InvalidOperationException("Selettore telefono non funzionante.");
                 folder.Text=@"C:\Video\Archivio";bytes.Text="Spazio richiesto: dopo l’inventario   ·   Disponibile: 114,6 GiB";
-                await Task.Delay(350);using var bitmap=new Bitmap(Width,Height);DrawToBitmap(bitmap,new(0,0,Width,Height));bitmap.Save(smokePath);Close();
+                await Task.Delay(350);if(Width<900||Height<750)throw new InvalidOperationException("UI smoke dimensions invalid");
+                using var bitmap=new Bitmap(Width,Height);DrawToBitmap(bitmap,new(0,0,Width,Height));bitmap.Save(smokePath);Close();
             }
             else await Discover();
         };

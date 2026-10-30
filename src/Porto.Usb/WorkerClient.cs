@@ -22,6 +22,7 @@ public sealed class WorkerClient : IVideoSource
         output=process.StandardOutput.BaseStream;input=process.StandardInput;input.AutoFlush=true;
     }
     public List<DeviceInfo> Devices(CancellationToken cancel)=>Json<List<DeviceInfo>>(new("devices"),cancel);
+    public void ValidateTransportWithoutDevices()=>Json<bool>(new("smoke"),default);
     public void Connect(string id,CancellationToken cancel)=>Json<bool>(new("connect",Device:id),cancel);
     public Inventory Inventory(CancellationToken cancel)=>Json<Inventory>(new("inventory"),cancel);
     public Stream OpenRead(SourceItem item,CancellationToken cancel)

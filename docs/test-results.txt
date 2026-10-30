@@ -1,0 +1,47 @@
+PASS copy and independently reread SHA256
+PASS truncation rejected
+PASS unexpected extra bytes rejected
+PASS corruption rejected
+PASS pause interrupts before write
+PASS real SQLite roundtrip, copy, changed IDs and verified resume
+PASS source duplicate multiplicity is preserved across ID changes
+PASS source filename collisions do not overwrite
+PASS missing completed file gets recopied
+PASS corrupt completed copy is preserved and reported
+PASS truncation reports error and no final filename
+PASS deep source corruption prevents publication
+PASS disk full before transfer pauses without reading
+PASS disk fills during copy and stops safely
+PASS read disconnect then reconnect
+PASS malicious names and catalog path escape rejected
+PASS concurrent importer is excluded
+PASS live photo hint and edited variants are ambiguous, not success
+PASS paired photo ambiguity, photos excluded
+PASS MOV MP4 M4V containers accepted; extension alone rejected
+PASS incomplete inventory and offline missing never claim full library
+PASS process termination and recovery at after-intent
+PASS process termination and recovery at after-flush
+PASS process termination and recovery at after-verification
+PASS process termination and recovery at after-ready
+PASS process termination and recovery at after-rename
+PASS process termination and recovery at after-complete
+PASS crash Ready collision preserves foreign file and recovers
+PASS crash Ready temporary corruption can be recopied
+PASS COM ABI and class registration, no device enumeration
+PASS unresponsive worker times out and is terminated
+PASS paused worker cancels pending read and is terminated
+PASS partial IPC payload timeout terminates worker
+PASS ambiguous verified files are reused without duplicate temporary copies
+PASS repeated and unbounded failing enumeration is stopped
+PASS missing copies remain visible across empty inventories
+PASS Ready without either file is reported missing immediately
+PASS crash during repair at after-ready keeps missing resolution atomic
+PASS crash during repair at after-rename keeps missing resolution atomic
+PASS crash during repair at after-complete keeps missing resolution atomic
+PASS failed replacement attempt does not duplicate missing debt (corrupt=False)
+PASS failed replacement attempt does not duplicate missing debt (corrupt=True)
+  LARGE stream: 4294967313 bytes, 2,55s, working set 59 MiB
+PASS stream beyond 4 GiB: 4 GiB + 17 bytes actually read and hashed without disk allocation
+  LARGE inventory: 50000 items, 250 GB logical, 0,11s, working set 72 MiB
+PASS 50000-item inventory and 250 GB logical capacity without writing payload
+44/44 passed

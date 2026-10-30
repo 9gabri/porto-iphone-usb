@@ -24,6 +24,7 @@ public static class WorkerProtocol
                     var command=JsonSerializer.Deserialize<Command>(line)??throw new IOException("Comando vuoto.");
                     switch(command.Op)
                     {
+                        case "smoke":WpdSource.SmokeWithoutDevices();Json(true);break;
                         case "devices":Json(WpdSource.Devices());break;
                         case "connect":stream?.Dispose();stream=null;source?.Dispose();source=new(command.Device??throw new IOException("Dispositivo assente"));
                             source.InventoryProgress=n=>Frame(1,JsonSerializer.SerializeToUtf8Bytes(n));Json(true);break;
