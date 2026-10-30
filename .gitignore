@@ -1,0 +1,11 @@
+.tools/
+**/bin/
+**/obj/
+artifacts/
+test-output/
+.vs/
+*.user
+*.pfx
+*.pem
+.env*
+*.dmp
