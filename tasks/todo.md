@@ -18,5 +18,5 @@
 - [x] Recupero: debiti storici visibili, verifica finale inventario e regressioni crash.
 - [x] Sessione: retry automatici limitati, cancellazione immediata, nessun cambio telefono.
 - [x] UI: diagnostica, DPI e avanzamento, cartella ricordata, versione visibile.
-- [ ] Verifica: suite estesa, stress, mutazione, revisione e smoke pacchetto senza USB.
-- [ ] Release: codice/tag coerenti, ZIP, checksum, sito e download verificato.
+- [x] Verifica: suite estesa, stress, mutazione, revisione e smoke pacchetto senza USB.
+- [x] Release: codice/tag coerenti, ZIP, checksum, sito e download verificato.
