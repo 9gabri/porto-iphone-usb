@@ -42,3 +42,39 @@ invariato. Nessun costo, nuovo servizio o riduzione delle protezioni. Eseguibile
 ancora non firmato; nessuna prova con iPhone fisico. Non è una certificazione di
 assenza di bug o della completezza della libreria Foto/iCloud. Questo resoconto è
 un aggiornamento di documentazione successivo al tag; il pacchetto rimane immutato.
+
+## rc.3 — 31 ottobre 2026
+
+- Release candidata: https://github.com/9gabri/porto-iphone-usb/releases/tag/v0.1.0-rc.3
+- Sorgente distribuita: commit `ec906caadb299af14aa074fd14a0b1e316e97f6c`, tag `v0.1.0-rc.3`.
+- ZIP: `Porto-0.1.0-rc.3-win-x64.zip`, 51.591.969 byte, 283 voci; runtime 10.0.14 incluso.
+- SHA-256: `9680d86d6949d4934f3af64310908b73c71a1874499e5144b7a0caa25195dd23`.
+- Pubblicazione GitHub: 2026-10-31 16:39:12 UTC, candidata pubblica con ZIP e checksum.
+
+Suite finale unica: **124/124**, di cui 120 prove ordinarie e quattro estese.
+Build senza avvisi o errori. Le prove negative sulla baseline e la mutazione
+isolata sono documentate in TESTS.md e REVIEW-RC3.md.
+
+Staging nuovo e vuoto per questa release. Una sentinella sintetica lasciata
+appositamente nella vecchia cartella di build non compare nello ZIP. CRC di
+tutte le voci valido, manifesto coerente con tag/versione, percorsi controllati.
+Nessun SDK, test privato, credenziale, allegato della cliente o configurazione
+personale incluso; nessun marcatore del percorso privato nelle quattro binarie Porto.
+
+ZIP e SHA256SUMS.txt riscaricati dai collegamenti pubblici senza autenticazione,
+entrambi HTTP 200. Coincidono con gli artefatti locali. Anche GitHub espone il
+medesimo digest SHA-256. Archivio riscaricato verificato ed estratto in una nuova
+cartella dedicata: smoke COM, worker e UI normale/ridotta tutti superati, senza
+enumerare dispositivi. Le due immagini del pacchetto scaricato sono state
+ispezionate visivamente; versione rc.3 e pulsanti visibili.
+
+GitHub Pages ha completato senza errori la build del commit della release.
+Pagina e anteprima rispondono HTTP 200 e coincidono byte per byte con il sorgente.
+I collegamenti puntano a ZIP, checksum e note rc.3. Non è stato ripetuto il
+controllo interattivo del browser eseguito per rc.1.
+
+Release e ZIP rc.1/rc.2 conservati; entrambi gli hash locali precedenti invariati.
+Nessun costo, nuovo servizio o modifica alle protezioni. Eseguibile non firmato.
+Nessuna validazione con iPhone fisico: la compatibilità con telefono, driver e
+cavo della cliente resta da provare. Non è una certificazione di zero bug o di
+copertura Foto/iCloud. Questo resoconto è successivo al tag; il pacchetto resta immutato.

@@ -28,5 +28,5 @@
 - [x] Hard link, cataloghi/journal, report e gerarchia media.
 - [x] Clip codificate generate localmente, mutazione isolata e build UI.
 - [x] Suite finale ordinaria e scala, risultati consolidati: 124/124.
-- [ ] Pacchetto con staging nuovo, ZIP e codice coerenti.
-- [ ] Pubblicazione, download indipendente e verifica finale.
+- [x] Pacchetto con staging nuovo, ZIP e codice coerenti.
+- [x] Pubblicazione, download indipendente e verifica finale.
