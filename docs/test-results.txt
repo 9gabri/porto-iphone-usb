@@ -1,6 +1,9 @@
-PORTO rc.3: synthetic verification only; no hardware enumeration
-FINAL SUITE: 120 ordinary + 4 extended tests
+PORTO rc.4: synthetic verification only; no hardware enumeration
+192 distinct tests verified: 188 ordinary + 4 extended, in separate executions.
+The initial combined run had one outdated hard-link assertion; only the assertion was updated.
+All 188 ordinary tests were then rerun and passed. Production logic was unchanged.
 
+ORDINARY FINAL SUITE:
 PASS copy and independently reread SHA256
 PASS truncation rejected
 PASS unexpected extra bytes rejected
@@ -77,6 +80,10 @@ PASS ledger legacy pending debt without inventory provenance cannot disappear
 PASS ledger multiplicity recovery at after-ready reuses each copy once
 PASS ledger multiplicity recovery at after-rename reuses each copy once
 PASS ledger multiplicity recovery at after-complete reuses each copy once
+PASS final ledger historical corruption stays visible without its source
+PASS final ledger unknown initial observation survives a later absent item
+PASS final ledger unknown final observation survives a later absent item
+PASS final ledger reclassified metadata cannot settle an unread unknown observation
 PASS blocked stdin write respects timeout and disposes promptly
 PASS blocked stdin write respects pause and disposes promptly
 PASS failed WPD session requires a new inventory before any further object read
@@ -84,6 +91,36 @@ PASS remote per-file errors do not starve healthy videos in a full import sessio
 PASS remote stream disposal preserves the primary copy error
 PASS remote stream disposal preserves the primary cancellation
 PASS repeated zero inventory progress is throttled and each inventory starts immediately
+PASS final USB native session HRESULT 8007048F is preserved and invalidates the session
+PASS final USB native session HRESULT 802A0002 is preserved and invalidates the session
+PASS final USB native session HRESULT 802A0006 is preserved and invalidates the session
+PASS final USB native session HRESULT 80070015 is preserved and invalidates the session
+PASS final USB native session HRESULT 80042003 is preserved and invalidates the session
+PASS final USB native session HRESULT 80042009 is preserved and invalidates the session
+PASS final USB native session HRESULT 80010108 is preserved and invalidates the session
+PASS final USB native session HRESULT 80010006 is preserved and invalidates the session
+PASS final USB native session HRESULT 80010007 is preserved and invalidates the session
+PASS final USB native session HRESULT 80010012 is preserved and invalidates the session
+PASS final USB native session HRESULT 800401FD is preserved and invalidates the session
+PASS final USB per-file HRESULT 80070002 does not terminate a healthy session
+PASS final USB per-file HRESULT 80070005 does not terminate a healthy session
+PASS final USB per-file HRESULT 8007138E does not terminate a healthy session
+PASS final USB per-file HRESULT 80004005 does not terminate a healthy session
+PASS final USB missing WPD registration reports the Windows component instead of phone trust
+PASS final USB optional name property does not hide a lost native session
+PASS final USB optional kind property does not hide a lost native session
+PASS final USB optional length property does not hide a lost native session
+PASS final USB native disconnect escapes folder inventory recovery
+PASS final USB native disconnect escapes metadata inventory recovery
+PASS final USB eof during Read reports session loss before blaming the next healthy file
+PASS final USB native-session during Read reports session loss before blaming the next healthy file
+PASS final USB hanging first open does not starve later healthy videos across bounded attempts
+PASS final USB hanging first read does not starve later healthy videos across bounded attempts
+PASS final USB tied metadata first failures rotate past the failed original occurrence
+PASS final USB tied metadata middle failures rotate past the failed original occurrence
+PASS final USB tied metadata siblings failures rotate past the failed original occurrence
+PASS final USB tied metadata mixed-singleton failures rotate past the failed original occurrence
+PASS final USB tied metadata mixed-pairs failures rotate past the failed original occurrence
 PASS state hard links are rejected without changing unrelated files
 PASS a resumed hard-linked partial never appends to the unrelated file
 PASS foreign SQLite database is rejected before any mutation
@@ -109,6 +146,40 @@ PASS failed atomic report writes expose no partial final file
 PASS process termination during report write leaves only a temporary file
 PASS report JSON and text are published complete
 PASS handler depth cannot impersonate the moov trak mdia hierarchy
+PASS final storage Ready cannot relocate an unrelated file in the destination
+PASS final storage Ready final path must be an immediate generated video name: unrelated-output.mov
+PASS final storage Ready final path must be an immediate generated video name: Video Porto\unowned-name.mov
+PASS final storage Ready final path must be an immediate generated video name: Video Porto\nested\V_clip_11111111111111111111111111111111.mov
+PASS final storage Copying traversal ID cannot append to an unrelated prefix
+PASS final storage Complete cannot adopt an unrelated in-root file
+PASS final storage invalid catalog source is rejected deliberately: null
+PASS final storage invalid catalog source is rejected deliberately: {
+PASS final storage invalid catalog source is rejected deliberately: {}
+PASS final storage invalid catalog source is rejected deliberately: {"Id":"1","ParentId":"dcim","Name":"clip.mov"}
+PASS final storage invalid catalog source is rejected deliberately: {"Id":"1","ParentId":"dcim","Name":"clip.mov","Kind":99}
+PASS final storage invalid catalog source is rejected deliberately: {"Id":"1","ParentId":"dcim","Name":"clip.mov","Kind":0,"Unknown":true}
+PASS final storage invalid catalog source is rejected deliberately: {"Id":"1","Id":"2","ParentId":"dcim","Name":"clip.mov","Kind":0}
+PASS final storage validates every row before recovering an earlier valid row
+PASS final storage preflights every physical path before recovery: journal=False
+PASS final storage preflights every physical path before recovery: journal=True
+PASS final storage replacement cycles are rejected before any recovery writes
+PASS final storage acyclic replacement history remains recoverable
+PASS final storage NUL suffixes cannot be hidden by SQLite string marshaling
+PASS final storage two catalog IDs cannot adopt the same final path
+PASS final storage foreign index semantics are rejected without mutation: unique
+PASS final storage foreign index semantics are rejected without mutation: partial
+PASS final storage foreign index semantics are rejected without mutation: collation
+PASS final storage foreign index semantics are rejected without mutation: descending
+PASS final storage an added CHECK constraint is not an owned legacy schema
+PASS final storage actual generated legacy paths and schema remain readable: replacement=False
+PASS final storage actual generated legacy paths and schema remain readable: replacement=True
+PASS final storage collision recovery keeps a fresh generated UUID suffix readable
+PASS final storage verified source rename preserves the original published filename
+PASS final storage journal validation leaves no redundant database snapshots: foreign=False
+PASS final storage journal validation leaves no redundant database snapshots: foreign=True
+PASS final preferences normal settings remain optional and readable
+PASS final preferences a hard link cannot overwrite an unrelated file
+PASS final preferences linked settings are ignored on load
 PASS encoded synthetic media is copied byte for byte: synthetic-h264.mov
 PASS encoded synthetic media is copied byte for byte: synthetic-h264.m4v
 PASS encoded synthetic media is copied byte for byte: synthetic-hevc.mp4
@@ -121,19 +192,22 @@ PASS native discovery ABI propagates 00000000 and releases allocated strings
 PASS native discovery ABI propagates 00000001 and releases allocated strings
 PASS native discovery ABI propagates 80004005 and releases allocated strings
 PASS native inventory emits progress between metadata calls and ends on S_FALSE
-  LARGE stream: 4294967313 bytes, 2,40s, working set 73 MiB
-PASS stream beyond 4 GiB: 4 GiB + 17 bytes actually read and hashed without disk allocation
-  LARGE inventory: 50000 items, 250 GB logical, 3,48s, working set 221 MiB
-PASS 50000-item inventory and 250 GB logical capacity without writing payload
-  STRESS full loop: 2000 physical files twice verified, 50000 entries, 296,07s, working set 184 MiB
-PASS 50000 inventory entries with 2000 actual copies and verified second pass
-  LARGE NTFS: 4294971392 bytes written and reread, 8,47s, working set 113 MiB
-PASS video over 4 GiB actually written verified and published on NTFS
-124/124 passed
+188/188 passed
 
-NEGATIVE CONTROLS (separate isolated source copies)
-EXPECTED FAIL: 3/3 reproduced regressions on rc.2 baseline
-EXPECTED FAIL: 1/1 focused multiplicity test on intentionally mutated comparison
-No mutated source is included in the release.
-App build: 0 warnings, 0 errors.
-Encoded synthetic fixtures were also decoded locally with FFmpeg.
+EXTENDED TESTS ON THE SAME PRODUCTION LOGIC:
+  LARGE stream: 4294967313 bytes, 2,42s, working set 71 MiB
+PASS stream beyond 4 GiB: 4 GiB + 17 bytes actually read and hashed without disk allocation
+  LARGE inventory: 50000 items, 250 GB logical, 3,84s, working set 209 MiB
+PASS 50000-item inventory and 250 GB logical capacity without writing payload
+  STRESS full loop: 2000 physical files twice verified, 50000 entries, 316,11s, working set 189 MiB
+PASS 50000 inventory entries with 2000 actual copies and verified second pass
+  LARGE NTFS: 4294971392 bytes written and reread, 12,47s, working set 126 MiB
+PASS video over 4 GiB actually written verified and published on NTFS
+4/4 extended passed
+
+BUILD: 0 warnings, 0 errors.
+MUTATION: isolated reversed retry priority caused both target assertions to fail (expected 0/2).
+PACKAGING SCRIPT: 4/4 synthetic probes passed; separate from the 192 app cases.
+UI: normal, compact retry, compact paused smoke checks and visual inspection passed.
+Public package verification is recorded separately in docs/RELEASE-VERIFICATION.md.
+No physical iPhone, real power loss, or real 250 GB USB transfer has been tested.

@@ -2,6 +2,11 @@
 
 Consultazione: 30 ottobre 2026. Nessun codice Rollport, AFC/libimobiledevice o DLL Apple non ufficiale riutilizzato.
 
+Verifiche aggiuntive rc.4, 31 ottobre 2026:
+- [Microsoft errori WPD](https://learn.microsoft.com/en-us/windows/win32/wpd_sdk/error-constants), [errori COM/RPC](https://learn.microsoft.com/en-us/windows/win32/com/com-error-codes-3) e [errori COM generali](https://learn.microsoft.com/en-us/windows/win32/com/com-error-codes-1): distinzione dei codici che richiedono una nuova sessione dagli errori del singolo elemento.
+- [Microsoft CoCreateInstance](https://learn.microsoft.com/en-us/windows/win32/api/combaseapi/nf-combaseapi-cocreateinstance): diagnostica del componente COM non registrato.
+- [SQLite schema table](https://www.sqlite.org/schematab.html): definizioni SQL delle strutture riconosciute, oltre ai metadati delle colonne e degli indici.
+
 Verifiche aggiuntive rc.3, 31 ottobre 2026:
 - [Microsoft BY_HANDLE_FILE_INFORMATION](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/ns-fileapi-by_handle_file_information) e [GetFileInformationByHandle](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfileinformationbyhandle): numero di collegamenti NTFS prima di scritture sui file di stato.
 - [SQLite PRAGMA](https://www.sqlite.org/pragma.html): application_id, user_version e schema; sono controlli di compatibilità, non firme di autenticità.

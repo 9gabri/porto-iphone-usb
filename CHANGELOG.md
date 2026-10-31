@@ -1,5 +1,18 @@
 # Novità
 
+## 0.1.0-rc.4 — verifica conclusiva e recupero dei file bloccati
+
+- Un video che blocca la sessione viene rimandato dopo gli altri nei passaggi successivi. Il riordino gestisce anche nomi e dimensioni uguali, senza usarli come prova di identità; restano tre tentativi massimi.
+- Gli errori nativi di connessione persa conservano il codice diagnostico e obbligano a un inventario nuovo. Un timeout durante la lettura non viene più attribuito al video successivo.
+- Verificate anche le copie storiche il cui video non appare più sul telefono. Le osservazioni di tipo ignoto restano esplicite anche se scompaiono dagli inventari successivi.
+- Cataloghi: controllati dati, percorsi, collegamenti, relazioni di sostituzione e definizioni SQL prima delle scritture; mantenuta la compatibilità con le strutture generate dalle candidate precedenti.
+- Le copie temporanee usate per validare un journal vengono rimosse dopo l'uso, preservando sorgenti e file estranei.
+- Le impostazioni non seguono collegamenti verso altri file. La stima del tempo viene rimossa quando il trasferimento si ferma.
+- ZIP preparato e controllato nello staging prima di assegnargli il nome definitivo. Checksum separato per ogni tentativo, senza sovrascrivere gli artefatti precedenti.
+
+La candidata resta non firmata e non validata con un iPhone fisico. Intera libreria
+Foto/iCloud e originalità delle risorse USB non sono certificabili.
+
 ## 0.1.0-rc.3 — revisione avversaria
 
 - Conservata la molteplicità storica dei video identici attraverso pause, cambi di ID, alias che ricompaiono insieme e variazioni dell'inventario finale.

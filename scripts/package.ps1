@@ -31,14 +31,29 @@ foreach($mode in @('--interop-smoke','--worker-smoke')){
     if($p.ExitCode -ne 0){throw "$mode failed"}
 }
 $image=Join-Path $root 'artifacts/package-ui.png'
-foreach($imageName in @('package-ui.png','package-ui-compact-retry.png')){
+foreach($imageName in @('package-ui.png','package-ui-compact-retry.png','package-ui-compact-paused.png')){
     $image=Join-Path $root ('artifacts/'+$imageName)
     $p=Start-Process -FilePath $exe -ArgumentList @('--ui-smoke',('"'+$image+'"')) -WindowStyle Hidden -PassThru
     if(!$p.WaitForExit(15000)){Stop-Process -Id $p.Id;throw 'UI timeout'}
     if($p.ExitCode -ne 0){throw 'UI failed'}
 }
-Compress-Archive -LiteralPath $output -DestinationPath $archive -CompressionLevel Optimal
-$hash=(Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
-"$hash  $(Split-Path $archive -Leaf)" | Set-Content -LiteralPath 'artifacts/SHA256SUMS.txt' -Encoding ascii
+# A failed compression stays inside this attempt's staging directory. It must not
+# occupy the immutable release filename and prevent a subsequent clean attempt.
+$stagedArchive=Join-Path $stage (Split-Path $archive -Leaf)
+Compress-Archive -LiteralPath $output -DestinationPath $stagedArchive -CompressionLevel Optimal
+$zip=[System.IO.Compression.ZipFile]::OpenRead($stagedArchive)
+try {
+    $entry=$zip.GetEntry('Porto-win-x64/build-info.json')
+    if(!$entry){throw 'Missing package manifest'}
+    $reader=[System.IO.StreamReader]::new($entry.Open())
+    try {$packed=$reader.ReadToEnd() | ConvertFrom-Json} finally {$reader.Dispose()}
+    if($packed.version -ne $version -or $packed.source_commit -ne $manifest.source_commit){throw 'Package manifest mismatch'}
+    foreach($entry in $zip.Entries){$stream=$entry.Open();try{$stream.CopyTo([System.IO.Stream]::Null)}finally{$stream.Dispose()}}
+} finally {$zip.Dispose()}
+$hash=(Get-FileHash -LiteralPath $stagedArchive -Algorithm SHA256).Hash.ToLowerInvariant()
+$checksum=Join-Path $stage 'SHA256SUMS.txt'
+"$hash  $(Split-Path $archive -Leaf)" | Set-Content -LiteralPath $checksum -Encoding ascii
+[System.IO.File]::Move($stagedArchive,$archive)
 Write-Output "Packaged $(Split-Path $archive -Leaf)"
 Write-Output "SHA256 $hash"
+Write-Output "Checksum file: $checksum"

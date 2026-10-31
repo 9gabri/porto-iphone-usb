@@ -30,3 +30,12 @@
 - [x] Suite finale ordinaria e scala, risultati consolidati: 124/124.
 - [x] Pacchetto con staging nuovo, ZIP e codice coerenti.
 - [x] Pubblicazione, download indipendente e verifica finale.
+
+## rc.4 — ultimo ciclo richiesto dall'utente
+- [x] Baseline 120/120, tre revisori indipendenti e massimo tre cicli per area.
+- [x] Copie storiche, Unknown persistenti e priorità globale dopo blocchi USB.
+- [x] Errori nativi di sessione, nuovo inventario e video omonimi distinti.
+- [x] Cataloghi, preflight, percorsi, preferenze, snapshot e compatibilità legacy.
+- [x] 188 test ordinari e quattro estesi; mutazione isolata e tre stati UI.
+- [x] Confezionamento con pubblicazione atomica dello ZIP, quattro prove sintetiche.
+- [ ] Nuovo pacchetto, tag, pubblicazione e download pubblico verificato.

@@ -1,4 +1,4 @@
-PORTO 0.1.0-rc.3 — CANDIDATA WINDOWS 11 x64
+PORTO 0.1.0-rc.4 — CANDIDATA WINDOWS 11 x64
 
 1. Estrai tutta la cartella dello ZIP e apri Porto.exe.
 2. Collega l'iPhone via USB, sbloccalo e autorizza il PC.
@@ -13,8 +13,10 @@ Porto non installa driver e non richiede privilegi amministrativi.
 Pausa interrompe anche l'attesa automatica; Riprendi rilegge l'inventario e verifica le copie già fatte.
 Porto tenta fino a tre passaggi, con attesa di 15 secondi, sullo stesso telefono.
 Gli errori di singoli video lasciano proseguire gli altri. Spazio insufficiente richiede una pausa.
+Se un video blocca la sessione, nei passaggi successivi vengono provati prima gli altri, anche con nomi e dimensioni uguali. Il limite resta di tre tentativi; i blocchi irrisolti rimangono nel report.
 I temporanei associabili vengono confrontati con la sorgente dall'inizio, poi completati senza sovrascrivere il prefisso.
 Il controllo finale confronta due inventari USB. Pendenti, ambigui ed errori restano espliciti nel report.
+Vengono ricontrollate anche le copie storiche. Un elemento già osservato ma mai classificato o letto non scompare dai conteggi solo perché manca nell'inventario successivo.
 Per riconnessioni che cambiano il dispositivo visibile, premi Cerca iPhone.
 La verifica approfondita rilegge anche la sorgente e richiede più tempo.
 
@@ -26,9 +28,9 @@ SE L'IPHONE NON COMPARE
 Sbloccalo, ricollega un cavo dati e autorizza il PC. Verifica che sia riconosciuto da Dispositivi Apple, poi chiudi quell'app e premi Cerca iPhone.
 Porto distingue assenza di dispositivi Windows, dispositivo non riconosciuto Apple e metadati non leggibili. Non modifica driver o protezioni.
 
-AGGIORNAMENTO DA rc.1 / rc.2
+AGGIORNAMENTO DA rc.1 / rc.2 / rc.3
 Chiudi la vecchia app ed estrai questo ZIP in una nuova cartella. Riutilizza la destinazione dei video conservando .porto. Non mescolare i file dei due pacchetti.
-I cataloghi Porto riconosciuti vengono migrati. I vecchi lavori pendenti senza una storia sufficiente restano esplicitamente non verificabili: non vengono cancellati per supposizione. Usa rc.3 per le importazioni successive in quella destinazione.
+I cataloghi Porto riconosciuti vengono migrati. I vecchi lavori pendenti senza una storia sufficiente restano esplicitamente non verificabili: non vengono cancellati per supposizione. Usa rc.4 per le importazioni successive in quella destinazione.
 
 LIMITI DELLA CANDIDATA
 - Nessun iPhone fisico o iOS è stato usato per validarla; implementazione USB WPD reale, prove sintetiche.

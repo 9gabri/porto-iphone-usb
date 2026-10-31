@@ -1,8 +1,8 @@
 # Porto
 
-App locale italiana per importare via USB i video accessibili di un iPhone su Windows 11 x64. Versione **0.1.0-rc.3**, candidata sperimentale: il collegamento WPD è reale, ma **nessun iPhone fisico è stato utilizzato per validarla**.
+App locale italiana per importare via USB i video accessibili di un iPhone su Windows 11 x64. Versione **0.1.0-rc.4**, candidata sperimentale: il collegamento WPD è reale, ma **nessun iPhone fisico è stato utilizzato per validarla**.
 
-[Pagina e istruzioni](https://9gabri.github.io/porto-iphone-usb/) · [Download Windows](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.3/Porto-0.1.0-rc.3-win-x64.zip) · [Checksum SHA-256](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.3/SHA256SUMS.txt)
+[Pagina e istruzioni](https://9gabri.github.io/porto-iphone-usb/) · [Download Windows](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.4/Porto-0.1.0-rc.4-win-x64.zip) · [Checksum SHA-256](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.4/SHA256SUMS.txt)
 
 ## Provala
 
@@ -17,6 +17,8 @@ Gli errori di singoli video lasciano proseguire gli altri. Errori di connessione
 Al termine viene riletto l'inventario USB: se cambia o rimane incompleto, il risultato non è dichiarato completo. Le osservazioni precedenti ancora pendenti restano visibili. Se gli identificatori cambiano prima che un contenuto sia verificato, può restare un debito storico non riconciliabile: non viene cancellato per ottenere un risultato verde. Il confronto non è uno snapshot atomico della libreria Foto.
 
 La rc.3 conserva anche il numero minimo storico di copie identiche provato dagli inventari: pause e successivi cambi di ID non possono azzerare un duplicato ancora dovuto. Dopo la perdita della sessione USB è obbligatorio un inventario nuovo; gli errori del singolo file non bloccano quelli successivi. Report e inventari vengono pubblicati dopo scrittura e flush completi. Cataloghi estranei e file con hard link vengono rifiutati senza modificarli.
+
+La rc.4 rimanda i video che hanno interrotto una sessione dopo gli altri, anche quando nomi e dimensioni coincidono. I suggerimenti servono solo all'ordine: ogni video richiede comunque la verifica del contenuto. Le copie storiche vengono ricontrollate anche se la sorgente non ricompare; elementi di tipo ignoto rimangono esplicitamente non verificati. Cataloghi, percorsi e impostazioni hanno controlli aggiuntivi prima delle scritture.
 
 Per aggiornare, chiudi la versione precedente ed estrai il nuovo ZIP separatamente. Conserva la destinazione con `.porto`. I lavori pendenti delle vecchie versioni privi di storia sufficiente restano segnalati come non verificabili anche dopo nuove copie; non vengono dichiarati risolti per supposizione. Dopo la migrazione usa la nuova versione per quella destinazione.
 
