@@ -30,7 +30,7 @@ public static partial class MediaInspector
         using var f=new FileStream(path,FileMode.Open,FileAccess.Read,FileShare.Read);
         bool video=false,mdat=false,moov=false,live=false,identifier=false;
         string extension=".mp4"; int atoms=0;
-        void Walk(long start,long end,int depth)
+        void Walk(long start,long end,int depth,string parentPath)
         {
             if(depth>20) throw new InvalidDataException("Struttura video troppo complessa.");
             byte[] head=new byte[16];
@@ -46,20 +46,23 @@ public static partial class MediaInspector
                 if(size<(ulong)header || size>(ulong)(end-p)) throw new InvalidDataException("Dimensioni contenitore non valide.");
                 long next=checked(p+(long)size),data=p+header;
                 if(type=="ftyp" && size>=(ulong)header+8){f.Position=data;f.ReadExactly(head.AsSpan(0,4)); string brand=Encoding.ASCII.GetString(head,0,4); if(brand=="qt  ")extension=".mov";if(brand=="M4V ")extension=".m4v";}
-                if(type=="mdat" && size>(ulong)header)mdat=true;
+                if(type=="mdat" && parentPath=="" && size>(ulong)header)mdat=true;
                 if(type=="moov")
                 {
+                    if(parentPath!="")throw new InvalidDataException("Atomo moov fuori dalla radice del contenitore.");
                     moov=true;
                     if(size>256UL*1024*1024) throw new InvalidDataException("Metadati oltre il limite prudenziale di 256 MiB.");
                     var marks=ScanMetadata(f,data,next,cancel);live|=marks.Live;identifier|=marks.Identifier;
                 }
-                if(type is "moov" or "trak" or "mdia") Walk(data,next,depth+1);
-                if(type=="hdlr" && depth>=3 && size>=(ulong)header+12)
+                if(type=="trak"&&parentPath!="moov" || type=="mdia"&&parentPath!="moov/trak")
+                    throw new InvalidDataException("Gerarchia della traccia video non valida.");
+                if(type is "moov" or "trak" or "mdia") Walk(data,next,depth+1,parentPath.Length==0?type:parentPath+"/"+type);
+                if(type=="hdlr" && parentPath=="moov/trak/mdia" && size>=(ulong)header+12)
                 {f.Position=data+8;f.ReadExactly(head.AsSpan(0,4));video|=Encoding.ASCII.GetString(head,0,4)=="vide";}
                 p=next;
             }
         }
-        try {Walk(0,f.Length,0);}
+        try {Walk(0,f.Length,0,"");}
         catch(InvalidDataException ex){return new(false,false,true,extension,ex.Message);}
         catch(EndOfStreamException){return new(false,false,true,extension,"Contenitore troncato.");}
         if(!moov||!mdat||!video)return new(false,false,true,extension,"Non è stato riconosciuto un contenitore MOV/MP4/M4V con traccia video.");

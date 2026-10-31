@@ -4,17 +4,44 @@ using System.Runtime.InteropServices;
 
 namespace Porto.Core;
 
+internal enum SqliteDatabaseKind { Catalog, Work }
+
 // SQLite supplied and serviced by Windows. All filenames and values use bound parameters.
 internal sealed class Sqlite : IDisposable
 {
     private nint db;
-    public Sqlite(string path)
+    public Sqlite(string path,SqliteDatabaseKind kind)
     {
-        int rc = Native.sqlite3_open_v2(path, out db, 2 | 4, 0);
-        if (rc != 0) { Dispose(); throw new IOException($"Catalogo non apribile (SQLite {rc})."); }
+        bool existing=SqliteOwnership.Validate(path,kind);
+        try
+        {
+            if(!existing)
+            {
+                // Publish the ownership header before exposing the database name.
+                // A crash during first initialization cannot leave an unmarked file.
+                string temporary=Path.Combine(Path.GetDirectoryName(path)!,".porto-database-"+Guid.NewGuid().ToString("N")+".tmp");
+                Destination.CheckAncestors(temporary);
+                Open(temporary,2|4);Configure(kind);Dispose();
+                Destination.Publish(temporary,path);
+            }
+            Open(path,2);Configure(kind);
+        }
+        catch {Dispose();throw;}
+    }
+    // Only ownership validation uses this constructor; it never changes settings.
+    internal Sqlite(string path,bool readOnly)=>Open(path,readOnly?1:2);
+    private void Open(string path,int flags)
+    {
+        int rc=Native.sqlite3_open_v2(path,out db,flags,0);
+        if(rc!=0){Dispose();throw new IOException($"Catalogo non apribile (SQLite {rc}).");}
+    }
+    private void Configure(SqliteDatabaseKind kind)
+    {
         Execute("PRAGMA journal_mode=DELETE");
         Execute("PRAGMA synchronous=FULL");
         Execute("PRAGMA busy_timeout=3000");
+        Execute($"PRAGMA application_id={SqliteOwnership.ApplicationId(kind)}");
+        Execute("PRAGMA user_version=1");
     }
     public void Execute(string sql, params object?[] values) => Query(sql, values);
     public List<string?[]> Query(string sql, params object?[] values)

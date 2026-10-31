@@ -9,6 +9,7 @@ public static class ReportWriter
     public static readonly JsonSerializerOptions JsonOptions=new(){WriteIndented=true,Converters={new JsonStringEnumConverter()}};
     public static void Write(string directory,string id,ImportReport report)
     {
+        Destination.CheckAncestors(directory);
         Directory.CreateDirectory(directory);
         WriteNew(Path.Combine(directory,$"report-{id}.json"),JsonSerializer.Serialize(report,JsonOptions));
         StringBuilder text=new();text.AppendLine("PORTO — REPORT DI IMPORTAZIONE").AppendLine(report.Status)
@@ -25,9 +26,11 @@ public static class ReportWriter
     }
     private static void WriteNew(string path,string contents)
     {
-        Destination.CheckAncestors(path);
-        using var stream=new FileStream(path,FileMode.CreateNew,FileAccess.Write,FileShare.Read);
-        using var writer=new StreamWriter(stream,new UTF8Encoding(false));writer.Write(contents);writer.Flush();stream.Flush(true);
+        AtomicFile.WriteNew(path,stream=>
+        {
+            using var writer=new StreamWriter(stream,new UTF8Encoding(false),leaveOpen:true);
+            writer.Write(contents);writer.Flush();
+        });
     }
     public static string Label(Outcome outcome)=>outcome switch{
         Outcome.Imported=>"Importati",Outcome.AlreadyPresent=>"Già presenti verificati",Outcome.Excluded=>"Esclusi",

@@ -8,7 +8,7 @@ public sealed class Catalog : IDisposable
     private readonly Sqlite db;
     public Catalog(Destination destination)
     {
-        db=new Sqlite(Path.Combine(destination.State,"catalog.db"));
+        db=new Sqlite(Path.Combine(destination.State,"catalog.db"),SqliteDatabaseKind.Catalog);
         db.Execute("CREATE TABLE IF NOT EXISTS files(id TEXT PRIMARY KEY,state TEXT NOT NULL,temp TEXT NOT NULL,final TEXT NOT NULL,hash TEXT,length INTEGER NOT NULL,source TEXT NOT NULL,replacement TEXT)");
         if(!db.Query("PRAGMA table_info(files)").Any(r=>r[1]=="replacement"))db.Execute("ALTER TABLE files ADD COLUMN replacement TEXT");
         db.Execute("CREATE INDEX IF NOT EXISTS ix_hash ON files(hash,length)");

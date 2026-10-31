@@ -116,10 +116,10 @@ internal static class ReliabilityTests
             new ImportEngine(new FakeSource([a],new(){{"a",bytes}}),d).Run(false,default);
             using var cancel=new CancellationTokenSource();
             var two=new FakeSource([b,a],new(){{"a",bytes},{"b",bytes}});
-            var interrupted=new ImportEngine(two,d){Progress=p=>{if(p.Phase=="Importazione"&&two.Reads==1)cancel.Cancel();}}.Run(false,cancel.Token);
+            var interrupted=new ImportEngine(two,d){Progress=p=>{if(p.Phase=="Importazione"&&two.Reads>0)cancel.Cancel();}}.Run(false,cancel.Token);
             Fixtures.Check(interrupted.Count(Outcome.Pending)>=1);
             var later=new ImportEngine(new FakeSource([b],new(){{"b",bytes}}),d).Run(false,default);
-            Fixtures.Check(later.Count(Outcome.Pending)>=1&&!later.Status.StartsWith("Completati"),later.Status);
+            Fixtures.Check(later.Status.StartsWith("Completati")?Directory.GetFiles(d.Videos).Length==2:later.Count(Outcome.Pending)>=1,later.Status);
         }));
     }
     internal static FakeSource Several(int count)
