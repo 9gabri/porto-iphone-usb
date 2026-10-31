@@ -13,6 +13,7 @@ public static class ReportWriter
         WriteNew(Path.Combine(directory,$"report-{id}.json"),JsonSerializer.Serialize(report,JsonOptions));
         StringBuilder text=new();text.AppendLine("PORTO — REPORT DI IMPORTAZIONE").AppendLine(report.Status)
             .AppendLine($"Inventario USB terminato: {(report.UsbEnumerationComplete ? "sì" : "no")}")
+            .AppendLine($"Controllo finale inventario: {(report.FinalInventoryChecked ? "stabile" : "non verificato o cambiato")}; candidati: {report.CandidateCount}; tentativo: {report.Attempt}")
             .AppendLine("Copertura dell'intera libreria: NON VERIFICABILE via USB; elementi solo iCloud potrebbero non essere enumerati.")
             .AppendLine("Originalità: byte ricevuti conservati senza conversioni; originale Foto non verificato indipendentemente.")
             .AppendLine($"Seconda lettura sorgente richiesta: {(report.SecondSourceRead?"sì":"no")}")
@@ -30,5 +31,5 @@ public static class ReportWriter
     }
     public static string Label(Outcome outcome)=>outcome switch{
         Outcome.Imported=>"Importati",Outcome.AlreadyPresent=>"Già presenti verificati",Outcome.Excluded=>"Esclusi",
-        Outcome.Ambiguous=>"Ambigui",Outcome.Missing=>"Mancanti noti",_=>"Errori"};
+        Outcome.Ambiguous=>"Ambigui",Outcome.Missing=>"Mancanti noti",Outcome.Pending=>"Da completare",_=>"Errori"};
 }

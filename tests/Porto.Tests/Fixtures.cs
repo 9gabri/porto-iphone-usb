@@ -30,7 +30,8 @@ internal sealed class FakeSource(List<SourceItem> items,Dictionary<string,byte[]
     public int Reads {get;private set;}
     public List<string> Errors {get;set;}=[];
     public Inventory Inventory(CancellationToken cancel)=>new(items,Errors,Errors.Count==0);
-    public Stream OpenRead(SourceItem item,CancellationToken cancel)=>Reader?.Invoke(item,++Reads)??new MemoryStream(data[item.Id],false);
+    public Stream OpenRead(SourceItem item,CancellationToken cancel)
+    {Reads++;return Reader?.Invoke(item,Reads)??new MemoryStream(data[item.Id],false);}
     public void Dispose(){}
     public static FakeSource One(byte[]? video=null,string id="1",string name="IMG_0001.MOV",long? size=null)
     {video??=Fixtures.Video();return new([new(id,"dcim",name,MediaKind.Video,size??video.LongLength) ],new(){{id,video}});}

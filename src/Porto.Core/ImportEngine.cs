@@ -8,6 +8,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
     public Action<string>? FaultPoint { get; set; }
     public Action<ImportProgress>? Progress { get; set; }
     public string? ReportPath { get; private set; }
+    public int Attempt { get; set; } = 1;
     private long? totalBytes;
     private long copied;
     private int done,total;
@@ -17,13 +18,21 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
     public ImportReport Run(bool deep,CancellationToken cancel)
     {
         using var catalog=new Catalog(destination);
+        using var ledger=new WorkLedger(destination);
         string runId=DateTime.UtcNow.ToString("yyyyMMdd-HHmmss")+"-"+Guid.NewGuid().ToString("N")[..8];
-        var report=new ImportReport{SecondSourceRead=deep};
+        var report=new ImportReport{SecondSourceRead=deep,Attempt=Attempt};
+        var processed=new HashSet<string>(StringComparer.Ordinal);
+        int consecutiveErrors=0;
+        List<SourceItem> observed=[];
+        copied=0;done=0;total=0;totalBytes=null;lastNotify=0;
         timer.Restart();
+        ledger.Migrate(catalog.Entries());
         try
         {
             Notify("Inventario USB", "Lettura dell'elenco, prima di copiare",true);
             var inventory=source.Inventory(cancel);
+            observed=inventory.Items;
+            ledger.Observe(observed.Where(MediaInspector.Candidate));
             report.UsbEnumerationComplete=inventory.EnumerationComplete;
             report.InventoryErrors=inventory.Errors;
             // Save the inventory result before any transfer. Each item has an explicit pending category.
@@ -50,16 +59,26 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
             }
             var known=entries.Where(e=>e.State is "Complete" or "Quarantined").ToList();
             var missing=entries.Where(e=>e.State=="Missing").ToList();
-            var byHash=known.GroupBy(e=>e.Hash!).ToDictionary(g=>g.Key,g=>g.ToList(),StringComparer.Ordinal);
+            var byHash=known.GroupBy(e=>e.Hash!).ToDictionary(g=>g.Key,g=>new Queue<CatalogEntry>(g),StringComparer.Ordinal);
             var knownLengths=known.Select(e=>e.Length).ToHashSet();
-            var claimed=new HashSet<string>(StringComparer.Ordinal);
+            var availableLengths=known.GroupBy(e=>e.Length).ToDictionary(g=>g.Key,g=>g.Count());
+            int availableCount=known.Count;
+            var partials=entries.Where(e=>e.State=="Copying"&&e.Temp==Path.Combine(".porto",e.Id+".part")&&File.Exists(destination.Resolve(e.Temp)))
+                .GroupBy(e=>WorkLedger.Key(e.Source)).ToDictionary(g=>g.Key,g=>g.OrderByDescending(e=>new FileInfo(destination.Resolve(e.Temp)).Length).First());
+            long Remaining(SourceItem item)
+            {
+                if(!item.Size.HasValue)return 0;
+                long prefix=partials.TryGetValue(WorkLedger.Key(item),out var part)?new FileInfo(destination.Resolve(part.Temp)).Length:0;
+                return Math.Max(0,item.Size.Value-prefix);
+            }
             var companions=MediaInspector.SuspectedCompanions(inventory.Items);
             var candidates=inventory.Items.Where(MediaInspector.Candidate).ToList();
             total=candidates.Count;
+            report.CandidateCount=total;
             totalBytes=candidates.All(i=>i.Size.HasValue)?candidates.Aggregate(0L,(n,i)=>checked(n+i.Size!.Value)):null;
             // Reserve only a lower-bound estimate for genuinely unknown lengths; repeated content is hashed before writing.
-            long required=candidates.Where(i=>i.Size.HasValue&&!knownLengths.Contains(i.Size.Value)&&!companions.ContainsKey(i.Id))
-                .Aggregate(VerifiedCopy.ReserveBytes,(n,i)=>checked(n+i.Size!.Value));
+            long required=candidates.Where(i=>!i.Offline&&i.Size.HasValue&&!knownLengths.Contains(i.Size.Value)&&!companions.ContainsKey(i.Id))
+                .Aggregate(VerifiedCopy.ReserveBytes,(n,i)=>checked(n+Remaining(i)));
             Notify("Inventario pronto",$"{total:N0} video candidati; spazio prudenziale {required:N0} byte",true);
             EnsureSpace(required);
             foreach(var item in inventory.Items)
@@ -75,16 +94,16 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                     }
                     continue;
                 }
-                if(item.Offline){report.Items.Add(new(item.Id,item.Name,Outcome.Missing,"Originale segnalato non disponibile offline."));done++;continue;}
+                if(item.Offline){report.Items.Add(new(item.Id,item.Name,Outcome.Missing,"Originale segnalato non disponibile offline."));done++;SaveProgress(item);continue;}
                 if(companions.ContainsKey(item.Id))
                 {
-                    report.Items.Add(new(item.Id,item.Name,Outcome.Ambiguous,"Possibile Live Photo o versione modificata: non importato automaticamente."));done++;continue;
+                    report.Items.Add(new(item.Id,item.Name,Outcome.Ambiguous,"Possibile Live Photo o versione modificata: non importato automaticamente."));done++;SaveProgress(item);continue;
                 }
                 Notify("Importazione",item.Name,true);
                 try
                 {
                     CopyResult? fingerprint=null;
-                    if(!item.Size.HasValue||knownLengths.Contains(item.Size.Value))
+                    if(item.Size.HasValue?availableLengths.GetValueOrDefault(item.Size.Value)>0:availableCount>0)
                     {
                         using var input=source.OpenRead(item,cancel);
                         fingerprint=VerifiedCopy.Hash(input,cancel,n=>Notify("Confronto contenuto USB",item.Name,false,n));
@@ -92,8 +111,10 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                         CatalogEntry? match=null;
                         if(byHash.TryGetValue(fingerprint.Hash,out var matching))
                         {
-                            foreach(var old in matching.Where(e=>!claimed.Contains(e.Id)&&e.Length==fingerprint.Length))
+                            while(matching.TryDequeue(out var old))
                             {
+                                availableCount--;availableLengths[old.Length]--;
+                                if(old.Length!=fingerprint.Length)continue;
                                 string oldPath=destination.Resolve(old.State=="Quarantined"?old.Temp:old.Final);
                                 if(!File.Exists(oldPath)){catalog.Save(old with{State="Missing"});continue;}
                                 var saved=VerifiedCopy.HashFile(oldPath,cancel,n=>Notify("Verifica file già presente",item.Name,false,n));
@@ -105,25 +126,33 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                         if(match!=null)
                         {
                             if(deep){using var second=source.OpenRead(item,cancel);VerifiedCopy.Verify(fingerprint,VerifiedCopy.Hash(second,cancel,n=>Notify("Seconda lettura USB",item.Name,false,n)));}
-                            claimed.Add(match.Id);
+                            ledger.Reconcile(match.Source,item);
                             report.Items.Add(match.State=="Quarantined"
                                 ?new(item.Id,item.Name,Outcome.Ambiguous,"Elemento ambiguo già conservato in .porto, verificato senza creare altre copie.",match.Temp,fingerprint.Length,fingerprint.Hash)
                                 :new(item.Id,item.Name,Outcome.AlreadyPresent,"Sorgente e copia locale rilette: SHA-256 identico.",match.Final,fingerprint.Length,fingerprint.Hash));
-                            done++;SaveProgress();continue;
+                            done++;consecutiveErrors=0;SaveProgress(item);continue;
                         }
                     }
-                    EnsureSpace(checked((item.Size??0)+VerifiedCopy.ReserveBytes));
+                    EnsureSpace(checked(Remaining(item)+VerifiedCopy.ReserveBytes));
                     string id=Guid.NewGuid().ToString("N");
-                    var entry=new CatalogEntry(id,"Copying",Path.Combine(".porto",id+".part"),"",null,0,item);
+                    bool resuming=partials.TryGetValue(WorkLedger.Key(item),out var partial);
+                    var entry=resuming?partial!:new CatalogEntry(id,"Copying",Path.Combine(".porto",id+".part"),"",null,0,item);
+                    id=entry.Id;
                     catalog.Save(entry);FaultPoint?.Invoke("after-intent");
                     string temp=destination.Resolve(entry.Temp);
                     CopyResult received;
                     using(var input=source.OpenRead(item,cancel))
-                    using(var output=new FileStream(temp,FileMode.CreateNew,FileAccess.Write,FileShare.None,VerifiedCopy.BufferSize,FileOptions.SequentialScan))
+                    using(var output=new FileStream(temp,resuming?FileMode.Open:FileMode.CreateNew,resuming?FileAccess.ReadWrite:FileAccess.Write,FileShare.None,VerifiedCopy.BufferSize,FileOptions.SequentialScan))
                     {
                         long start=copied;
-                        received=VerifiedCopy.Copy(input,output,item.Size,n=>{copied=start+n;Notify("Copia",item.Name,false);},
-                            ()=>EnsureSpace(VerifiedCopy.ReserveBytes+VerifiedCopy.BufferSize),cancel);
+                        try
+                        {
+                            received=resuming?VerifiedCopy.Resume(input,output,item.Size,n=>{copied=start+n;Notify("Ripresa verificata",item.Name,false);},
+                                ()=>EnsureSpace(VerifiedCopy.ReserveBytes+VerifiedCopy.BufferSize),cancel)
+                                :VerifiedCopy.Copy(input,output,item.Size,n=>{copied=start+n;Notify("Copia",item.Name,false);},
+                                ()=>EnsureSpace(VerifiedCopy.ReserveBytes+VerifiedCopy.BufferSize),cancel);
+                        }
+                        catch(PartialMismatchException){catalog.Save(entry with{State="Abandoned"});throw;}
                         output.Flush(true);FaultPoint?.Invoke("after-flush");
                     }
                     VerifiedCopy.Verify(received,VerifiedCopy.HashFile(temp,cancel,n=>Notify("Verifica locale SHA-256",item.Name,false,n)));
@@ -138,12 +167,9 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                     if(media.LivePhoto||media.Ambiguous||!media.IsVideo)
                     {
                         entry=entry with{State="Quarantined",Hash=received.Hash,Length=received.Length};SaveFinalEntry(entry);
-                        knownLengths.Add(entry.Length);
-                        if(!byHash.TryGetValue(entry.Hash!,out var quarantined))byHash[entry.Hash!]=quarantined=[];
-                        quarantined.Add(entry);claimed.Add(entry.Id);
                         report.Items.Add(new(item.Id,item.Name,media.LivePhoto?Outcome.Excluded:Outcome.Ambiguous,
                             media.Detail+" Temporaneo conservato in .porto.",entry.Temp,received.Length,received.Hash));
-                        done++;SaveProgress();continue;
+                        done++;consecutiveErrors=0;SaveProgress(item);continue;
                     }
                     string ext=Path.GetExtension(item.Name);
                     if(!MediaInspector.VideoExtensions.Contains(ext))ext=media.Extension;
@@ -153,26 +179,44 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                     catalog.Save(entry);FaultPoint?.Invoke("after-ready");
                     Destination.Publish(temp,destination.Resolve(entry.Final));FaultPoint?.Invoke("after-rename");
                     entry=entry with{State="Complete"};SaveFinalEntry(entry);FaultPoint?.Invoke("after-complete");
-                    knownLengths.Add(entry.Length);
-                    if(!byHash.TryGetValue(entry.Hash!,out var bucket))byHash[entry.Hash!]=bucket=[];
-                    bucket.Add(entry);claimed.Add(entry.Id);
                     report.Items.Add(new(item.Id,item.Name,Outcome.Imported,media.Detail,entry.Final,entry.Length,entry.Hash));
-                    done++;SaveProgress();
+                    done++;consecutiveErrors=0;SaveProgress(item);
                 }
                 catch(OperationCanceledException){throw;}
                 catch(Exception ex) when(ex is IOException or UnauthorizedAccessException or InvalidDataException)
                 {
                     report.Items.Add(new(item.Id,item.Name,Outcome.Error,ex.Message));
-                    report.Status="Importazione in pausa per errore. Correggi la causa e premi Riprendi.";
-                    return report; // bounded attempts: one attempt per user resume, no unattended retry storm.
+                    done++;SaveProgress(item);report.RetryRecommended=true;
+                    if(ex is SpaceException || ex is UnauthorizedAccessException || ++consecutiveErrors>=3)
+                    {
+                        report.StoppedForCapacity=ex is SpaceException;
+                        if(report.StoppedForCapacity||ex is UnauthorizedAccessException)report.RetryRecommended=false;
+                        report.Status="Importazione in pausa: collegamento o destinazione da verificare.";
+                        return report;
+                    }
                 }
             }
-            report.Status=report.UsbEnumerationComplete && report.InventoryErrors.Count==0 &&
-                !report.Items.Any(i=>i.Outcome is Outcome.Error or Outcome.Ambiguous or Outcome.Missing)
+            Notify("Controllo finale", "Verifico che l'elenco dei video USB non sia cambiato",true);
+            var finalInventory=source.Inventory(cancel);
+            report.FinalInventoryChecked=finalInventory.EnumerationComplete&&finalInventory.Errors.Count==0&&
+                inventory.Items.Select(WorkLedger.Key).Order(StringComparer.Ordinal).SequenceEqual(finalInventory.Items.Select(WorkLedger.Key).Order(StringComparer.Ordinal));
+            if(!report.FinalInventoryChecked)
+            {
+                report.InventoryErrors.Add("L'inventario finale è cambiato o incompleto. È necessario un altro passaggio.");
+                report.InventoryErrors.AddRange(finalInventory.Errors);report.RetryRecommended=true;
+                var initialKeys=inventory.Items.Select(WorkLedger.Key).ToHashSet(StringComparer.Ordinal);
+                ledger.Observe(finalInventory.Items.Where(MediaInspector.Candidate).Where(i=>!initialKeys.Contains(WorkLedger.Key(i))));
+            }
+            if(!report.UsbEnumerationComplete||report.InventoryErrors.Count>0)report.RetryRecommended=true;
+            AddOutstanding();
+            report.Status=total>0 && report.FinalInventoryChecked && report.UsbEnumerationComplete && report.InventoryErrors.Count==0 &&
+                !report.Items.Any(i=>i.Outcome is Outcome.Error or Outcome.Ambiguous or Outcome.Missing or Outcome.Pending)
                 ?"Completati tutti i video individuati tramite USB. Intera libreria non verificabile."
                 :"Importazione incompleta o con elementi non verificabili. Consulta il report.";
+            if(total==0&&report.Items.Count==0&&report.InventoryErrors.Count==0)report.Status="Nessun video individuato via USB. Verifica telefono e contenuti disponibili localmente.";
             return report;
-            void SaveProgress()=>catalog.AppendResult(runId,report.Items[^1]);
+            void SaveProgress(SourceItem item)
+            {catalog.AppendResult(runId,report.Items[^1]);ledger.Record(item,report.Items[^1]);processed.Add(WorkLedger.Key(item));}
             void SaveFinalEntry(CatalogEntry replacement)
             {
                 var old=missing.FirstOrDefault(e=>e.Hash==replacement.Hash&&e.Length==replacement.Length);
@@ -181,17 +225,25 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                 report.Items.RemoveAll(i=>i.Outcome==Outcome.Missing&&i.File==old.Final);
             }
         }
-        catch(OperationCanceledException){report.Status="In pausa. I file incompleti saranno ricopiati dall'inizio.";return report;}
+        catch(OperationCanceledException){report.RetryRecommended=false;report.Status="In pausa. I temporanei saranno confrontati con la sorgente prima di riprendere.";return report;}
         catch(Exception ex) when(ex is IOException or UnauthorizedAccessException or InvalidDataException or OverflowException)
-        {report.InventoryErrors.Add(ex.Message);report.Status="Importazione in pausa: "+ex.Message;return report;}
+        {report.InventoryErrors.Add(ex.Message);report.StoppedForCapacity=ex is SpaceException;
+            report.RetryRecommended=ex is IOException&&!report.StoppedForCapacity;report.Status="Importazione in pausa: "+ex.Message;return report;}
         finally
         {
             report.EndedUtc=DateTimeOffset.UtcNow;
+            AddOutstanding();
             // If persistence fails (e.g. disk completely full), surface it instead of claiming success.
             catalog.SaveReport(runId,report);
             string reports=destination.Resolve("Report Porto");ReportWriter.Write(reports,runId,report);
             ReportPath=Path.Combine(reports,$"report-{runId}.txt");
             Notify(report.Status,"Report salvato",true);
+        }
+        void AddOutstanding()
+        {
+            foreach(var work in ledger.Unresolved())
+                if(processed.Add(WorkLedger.Key(work.Source)))report.Items.Add(new(work.Source.Id,work.Source.Name,work.Outcome,
+                    "Da completare o verificare (anche da un inventario precedente): "+work.Detail));
         }
     }
 

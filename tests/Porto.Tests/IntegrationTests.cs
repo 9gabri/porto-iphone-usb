@@ -37,7 +37,7 @@ internal static class IntegrationTests
         }));
         tests.Add(("truncation reports error and no final filename",()=>{
             using var d=new Destination(Root());var r=new ImportEngine(FakeSource.One(size:999999),d).Run(false,default);
-            Fixtures.Check(r.Count(Outcome.Error)==1);Fixtures.Check(Directory.GetFiles(d.Videos).Length==0);Fixtures.Check(r.Status.Contains("pausa"));
+            Fixtures.Check(r.Count(Outcome.Error)==1);Fixtures.Check(Directory.GetFiles(d.Videos).Length==0);Fixtures.Check(r.Status.Contains("incompleta"));
         }));
         tests.Add(("deep source corruption prevents publication",()=>{
             using var d=new Destination(Root());var s=FakeSource.One();int reads=0;s.Reader=(_,_)=>new MemoryStream(Video(++reads));
@@ -66,7 +66,7 @@ internal static class IntegrationTests
         tests.Add(("live photo hint and edited variants are ambiguous, not success",()=>{
             using var d=new Destination(Root());var r=new ImportEngine(FakeSource.One(Video(marker:"com.apple.quicktime.still-image-time")),d).Run(false,default);
             Fixtures.Check(r.Count(Outcome.Ambiguous)==1);Fixtures.Check(r.Status.Contains("incompleta"));Fixtures.Check(Directory.GetFiles(d.Videos).Length==0);
-            var edited=new ImportEngine(FakeSource.One(name:"IMG_E1234.MOV"),d).Run(false,default);Fixtures.Check(edited.Count(Outcome.Ambiguous)==1);
+            var edited=new ImportEngine(FakeSource.One(name:"IMG_E1234.MOV"),d).Run(false,default);Fixtures.Check(edited.Count(Outcome.Ambiguous)==2,"Historical ambiguity must remain visible");
         }));
         tests.Add(("paired photo ambiguity, photos excluded",()=>{
             byte[] video=Video();using var d=new Destination(Root());

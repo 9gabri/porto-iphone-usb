@@ -24,8 +24,12 @@ public sealed class Destination : IDisposable
         Directory.CreateDirectory(State); Directory.CreateDirectory(Videos);
         CheckAncestors(Path.Combine(State,"import.lock"));
         gate = new FileStream(Path.Combine(State,"import.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
-        foreach (string name in new[]{"catalog.db","catalog.db-journal","catalog.db-wal","catalog.db-shm"})
-            CheckAncestors(Path.Combine(State,name));
+        try
+        {
+            foreach (string database in new[]{"catalog.db","work.db"})
+                foreach(string suffix in new[]{"","-journal","-wal","-shm"})CheckAncestors(Path.Combine(State,database+suffix));
+        }
+        catch { gate.Dispose(); throw; }
     }
     public string Resolve(string relative)
     {

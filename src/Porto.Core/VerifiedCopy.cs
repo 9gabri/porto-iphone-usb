@@ -8,6 +8,44 @@ public static class VerifiedCopy
     public const int BufferSize = 1024 * 1024;
     public const long ReserveBytes = 64L * 1024 * 1024;
 
+    // Existing bytes are compared, never overwritten or truncated. Only the missing suffix is appended.
+    public static CopyResult Resume(Stream input, Stream partial, long? expected, Action<long>? progress,
+        Action? checkSpace, CancellationToken cancel)
+    {
+        long prefix = partial.Length, total = 0;
+        if (expected.HasValue && prefix > expected.Value) throw new PartialMismatchException();
+        partial.Position = 0;
+        byte[] received = ArrayPool<byte>.Shared.Rent(BufferSize), existing = ArrayPool<byte>.Shared.Rent(BufferSize);
+        using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+        try
+        {
+            while (true)
+            {
+                cancel.ThrowIfCancellationRequested();
+                int count = input.Read(received, 0, BufferSize);
+                if (count == 0) break;
+                long next = checked(total + count);
+                if (expected.HasValue && next > expected.Value) throw new InvalidDataException("Dimensione USB incoerente.");
+                int compare = (int)Math.Min(count, Math.Max(0, prefix - total));
+                if (compare > 0)
+                {
+                    partial.ReadExactly(existing.AsSpan(0, compare));
+                    if (!received.AsSpan(0, compare).SequenceEqual(existing.AsSpan(0, compare))) throw new PartialMismatchException();
+                }
+                if (compare < count)
+                {
+                    checkSpace?.Invoke();
+                    partial.Write(received, compare, count - compare);
+                }
+                hash.AppendData(received, 0, count); total = next; progress?.Invoke(total);
+            }
+            if (total < prefix) throw new PartialMismatchException();
+            if (expected.HasValue && total != expected.Value) throw new InvalidDataException("Sorgente interrotta: copia non pubblicata.");
+            return new(total, Convert.ToHexString(hash.GetHashAndReset()));
+        }
+        finally { ArrayPool<byte>.Shared.Return(received); ArrayPool<byte>.Shared.Return(existing); }
+    }
+
     public static CopyResult Copy(Stream input, Stream output, long? expected, Action<long>? progress,
         Action? checkSpace, CancellationToken cancel)
     {
@@ -51,3 +89,5 @@ public static class VerifiedCopy
         if (received != saved) throw new InvalidDataException("Verifica SHA-256 fallita. Il file non viene pubblicato.");
     }
 }
+
+public sealed class PartialMismatchException() : IOException("Il temporaneo non coincide con la sorgente: conservato, sarà creata una nuova copia.");

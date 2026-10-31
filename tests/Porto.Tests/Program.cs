@@ -21,6 +21,7 @@ var tests = new List<(string, Action)>
     ("pause interrupts before write", () => Throws<OperationCanceledException>(() => VerifiedCopy.Copy(new MemoryStream([1]), Stream.Null, null, null, null, new CancellationToken(true))))
 };
 IntegrationTests.Add(tests);
+ReliabilityTests.Add(tests);
 if(args.Contains("--large"))LargeTests.Add(tests);
 int failures = 0;
 foreach (var (name, test) in tests)

@@ -1,7 +1,7 @@
 namespace Porto.Core;
 
 public enum MediaKind { Video, Image, Container, Other, Unknown }
-public enum Outcome { Imported, AlreadyPresent, Excluded, Ambiguous, Missing, Error }
+public enum Outcome { Imported, AlreadyPresent, Excluded, Ambiguous, Missing, Error, Pending }
 public sealed record DeviceInfo(string Id, string Name);
 public sealed record SourceItem(string Id, string ParentId, string Name, MediaKind Kind,
     long? Size = null, string? PersistentId = null, string? Format = null, bool Offline = false);
@@ -21,6 +21,11 @@ public sealed class ImportReport
     public bool EntireLibraryVerified => false;
     public bool OriginalityIndependentlyVerified => false;
     public bool SecondSourceRead { get; set; }
+    public bool FinalInventoryChecked { get; set; }
+    public bool RetryRecommended { get; set; }
+    public bool StoppedForCapacity { get; set; }
+    public int CandidateCount { get; set; }
+    public int Attempt { get; set; } = 1;
     public List<string> InventoryErrors { get; set; } = [];
     public List<ReportItem> Items { get; } = [];
     public string Status { get; set; } = "In corso";
