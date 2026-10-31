@@ -10,3 +10,13 @@
 - [x] Revisione: sicurezza, correttezza, licenze, dipendenze e mutazione di un controllo d'integrità.
 - [x] Pacchetto: self-contained x64, hash, istruzioni e limiti, avvio pacchetto.
 - [x] Pubblicazione: repo/release/Pages e download con hash identico; vedi docs/RELEASE-VERIFICATION.md.
+
+## rc.2 — revisione richiesta dall'utente
+- [ ] Audit e baseline: riproduzioni sintetiche dei difetti, piano e prompt salvati.
+- [ ] Discovery: elenco variabile, heartbeat metadati, diagnostica, ABI e test.
+- [ ] Copia: errori isolati non bloccano i successivi; pendenti e zero falsi successi.
+- [ ] Recupero: debiti storici visibili, verifica finale inventario e regressioni crash.
+- [ ] Sessione: retry automatici limitati, cancellazione immediata, nessun cambio telefono.
+- [ ] UI: diagnostica, DPI e avanzamento, cartella ricordata, versione visibile.
+- [ ] Verifica: suite estesa, stress, mutazione, revisione e smoke pacchetto senza USB.
+- [ ] Release: codice/tag coerenti, ZIP, checksum, sito e download verificato.

@@ -28,3 +28,20 @@ Nessun accesso ai dati dell'utente durante lo sviluppo. Nessun servizio a pagame
 - ARM, exFAT, rete non supportati nella candidata; blocco conservativo.
 
 L'utente ha già autorizzato tutte le fasi reversibili e la pubblicazione del nuovo progetto; nessuna approvazione intermedia ordinaria.
+
+## Revisione rc.2
+
+Mandato: `HARDENING-PROMPT.md`. Conservare tutte le protezioni esistenti.
+La prova del cliente dimostra avvio UI e lista vuota, non dimostra che Windows
+riconoscesse l'iPhone. Il problema hardware resta non riproducibile senza dispositivo.
+
+Sequenza verificabile:
+1. Baseline e audit indipendenti USB/core; esclusione allegati privati dal repository.
+2. Correzioni discovery/heartbeat con fixture sintetiche e errori diagnostici.
+3. Report pendenti, recupero e copia oltre errori isolati, controllo finale inventario.
+4. Coordinatore con tentativi limitati e cancellabili, UI di riconnessione e DPI.
+5. Regressioni, stress, mutazione, revisione finale; build e pubblicazione rc.2.
+
+Non inserire download iCloud, upload, scritture al telefono, driver, privilegi,
+pulizia automatica dei temporanei, deduplicazione per soli metadati o retry infiniti.
+L'inventario finale confrontato conferma solo stabilità della vista USB, non Foto.
