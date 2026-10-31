@@ -6,11 +6,15 @@ using Porto.Core;
 
 namespace Porto.Usb;
 
+// A complete error response rejects one operation without invalidating the transport or its object IDs.
+internal sealed class RemoteOperationException(string message):IOException(message);
+
 public sealed class WorkerClient : IVideoSource
 {
     private readonly Process process;
     private readonly Stream output;
     private readonly StreamWriter input;
+    private Task? pendingWrite;
     private bool disposed;
     public bool IsDisposed=>disposed;
     public TimeSpan Timeout {get;set;}=TimeSpan.FromSeconds(60);
@@ -43,7 +47,10 @@ public sealed class WorkerClient : IVideoSource
         ObjectDisposedException.ThrowIf(disposed,this);
         try
         {
-            cancel.ThrowIfCancellationRequested();input.WriteLine(JsonSerializer.Serialize(command));
+            cancel.ThrowIfCancellationRequested();
+            pendingWrite=input.WriteLineAsync(JsonSerializer.Serialize(command).AsMemory(),cancel);
+            pendingWrite.WaitAsync(Timeout,cancel).GetAwaiter().GetResult();
+            pendingWrite=null;
             while(true)
             {
                 byte[] header=new byte[5];Read(header,cancel);
@@ -52,10 +59,11 @@ public sealed class WorkerClient : IVideoSource
                 if(size<0||size>limit)throw new IOException("Risposta USB oltre i limiti.");
                 byte[] data=new byte[size];Read(data,cancel);
                 if(header[0]==1){int progress=JsonSerializer.Deserialize<int>(data);InventoryProgress?.Invoke(progress);continue;}
-                if(header[0]==3)throw new IOException(Encoding.UTF8.GetString(data));
+                if(header[0]==3)throw new RemoteOperationException(Encoding.UTF8.GetString(data));
                 return(header[0],data);
             }
         }
+        catch(RemoteOperationException){throw;}
         catch(OperationCanceledException){Dispose();throw;}
         catch(TimeoutException){Dispose();throw new IOException($"Il telefono non risponde da {Timeout.TotalSeconds:0} secondi. Sbloccalo o ricollegalo; Porto tenterà il recupero.");}
         catch(JsonException ex){Dispose();throw new IOException("Risposta USB non valida.",ex);}
@@ -70,12 +78,29 @@ public sealed class WorkerClient : IVideoSource
     {
         if(disposed)return;disposed=true;
         try{if(!process.HasExited)process.Kill(entireProcessTree:false);}catch(InvalidOperationException){}
-        input.Dispose();output.Dispose();process.Dispose();
+        finally
+        {
+            // A timed-out write may still own the writer. Do not flush or wait for it on the caller.
+            // Killing the child releases the pipe; observe the write before disposing its wrappers.
+            if(pendingWrite is { } write)_=Task.Run(async()=>
+            {
+                try{await write.ConfigureAwait(false);}catch(Exception ex)when(ex is IOException or OperationCanceledException or ObjectDisposedException){}
+                finally{DisposeHandles();}
+            });
+            else DisposeHandles();
+        }
+    }
+    private void DisposeHandles()
+    {
+        try{input.Dispose();}catch(IOException){}
+        finally{try{output.Dispose();}catch(IOException){}finally{process.Dispose();}}
     }
     private sealed class RemoteStream(WorkerClient client,CancellationToken cancel):Stream
     {
+        private bool disposed;
         public override int Read(byte[] buffer,int offset,int count)
         {
+            ObjectDisposedException.ThrowIf(disposed,this);
             if(offset<0||count<0||offset>buffer.Length-count)throw new ArgumentOutOfRangeException(nameof(count));
             if(count==0)return 0;
             var response=client.Exchange(new("read",Count:Math.Min(count,VerifiedCopy.BufferSize)),cancel);
@@ -84,10 +109,12 @@ public sealed class WorkerClient : IVideoSource
         }
         protected override void Dispose(bool disposing)
         {
-            if(disposing&&!client.disposed&&!cancel.IsCancellationRequested)client.Json<bool>(new("close"),cancel);
+            // The worker releases its one stream before the next open/inventory, or when it exits.
+            // Cleanup must not issue an RPC that replaces an exception already unwinding this scope.
+            disposed=true;
             base.Dispose(disposing);
         }
-        public override bool CanRead=>true;public override bool CanSeek=>false;public override bool CanWrite=>false;
+        public override bool CanRead=>!disposed;public override bool CanSeek=>false;public override bool CanWrite=>false;
         public override long Length=>throw new NotSupportedException();public override long Position{get=>throw new NotSupportedException();set=>throw new NotSupportedException();}
         public override void Flush(){}public override long Seek(long o,SeekOrigin s)=>throw new NotSupportedException();
         public override void SetLength(long v)=>throw new NotSupportedException();public override void Write(byte[] b,int o,int c)=>throw new NotSupportedException();

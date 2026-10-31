@@ -13,6 +13,7 @@ public static class WorkerProtocol
         using var writer=new BinaryWriter(Console.OpenStandardOutput(),Encoding.UTF8,true);
         using var reader=new StreamReader(Console.OpenStandardInput(),Encoding.UTF8);
         WpdSource? source=null;Stream? stream=null;
+        var heartbeat=new InventoryProgressThrottle(n=>Frame(1,JsonSerializer.SerializeToUtf8Bytes(n)));
         try
         {
             string? line;
@@ -28,11 +29,9 @@ public static class WorkerProtocol
                         case "devices":Json(WpdSource.Devices());break;
                         case "discover":Json(WpdSource.Discover());break;
                         case "connect":stream?.Dispose();stream=null;source?.Dispose();source=new(command.Device??throw new IOException("Dispositivo assente"));
-                            long lastHeartbeat=0;
-                            source.InventoryProgress=n=>
-                            {long now=Environment.TickCount64;if(n==0||now-lastHeartbeat>=250){lastHeartbeat=now;Frame(1,JsonSerializer.SerializeToUtf8Bytes(n));}};
+                            source.InventoryProgress=heartbeat.Report;
                             Json(true);break;
-                        case "inventory":Json((source??throw new IOException("Non connesso")).Inventory(default));break;
+                        case "inventory":stream?.Dispose();stream=null;heartbeat.Reset();Json((source??throw new IOException("Non connesso")).Inventory(default));break;
                         case "open":stream?.Dispose();stream=null;stream=(source??throw new IOException("Non connesso")).OpenRead(new(command.Object!,"","",MediaKind.Video),default);Json(true);break;
                         case "read":
                             if(command.Count<0||command.Count>VerifiedCopy.BufferSize)throw new IOException("Lettura non valida");

@@ -6,6 +6,8 @@ if(args.Length>0&&args[0]=="--hang"){Thread.Sleep(30000);return 0;}
 if(args.Length>0&&args[0]=="--partial")
 {using var output=new BinaryWriter(Console.OpenStandardOutput());output.Write((byte)0);output.Write(100);output.Write((byte)1);output.Flush();Thread.Sleep(30000);return 0;}
 if(args.Length>0&&args[0].StartsWith("--protocol-",StringComparison.Ordinal))return ProtocolTests.Child(args[0]);
+if(args.Length>0&&args[0].StartsWith("--adversarial-usb-",StringComparison.Ordinal))return AdversarialUsbTests.Child(args[0]);
+if(args.Length>0&&args[0]=="--storage-crash")return AdversarialStorageTests.Child(args[1],args[2]);
 
 var tests = new List<(string, Action)>
 {
@@ -23,6 +25,10 @@ var tests = new List<(string, Action)>
 };
 IntegrationTests.Add(tests);
 ReliabilityTests.Add(tests);
+AdversarialLedgerTests.Add(tests);
+AdversarialUsbTests.Add(tests);
+AdversarialStorageTests.Add(tests);
+EncodedMediaTests.Add(tests);
 ProtocolTests.Add(tests);
 NativeUsbTests.Add(tests);
 if(args.Contains("--large"))LargeTests.Add(tests);
