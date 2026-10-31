@@ -26,6 +26,7 @@ public static class WorkerProtocol
                     {
                         case "smoke":WpdSource.SmokeWithoutDevices();Json(true);break;
                         case "devices":Json(WpdSource.Devices());break;
+                        case "discover":Json(WpdSource.Discover());break;
                         case "connect":stream?.Dispose();stream=null;source?.Dispose();source=new(command.Device??throw new IOException("Dispositivo assente"));
                             source.InventoryProgress=n=>Frame(1,JsonSerializer.SerializeToUtf8Bytes(n));Json(true);break;
                         case "inventory":Json((source??throw new IOException("Non connesso")).Inventory(default));break;

@@ -28,31 +28,34 @@ public sealed unsafe class WpdSource : IVideoSource
         }
         catch{resources?.Dispose();properties?.Dispose();content?.Dispose();device.Dispose();throw;}
     }
-    public static List<DeviceInfo> Devices()
+    public static List<DeviceInfo> Devices()=>Discover().Devices;
+    public static DiscoveryResult Discover()=>DeviceDiscovery.Read(ReadDeviceBatch);
+    private static DeviceBatch ReadDeviceBatch()
     {
         using var manager=Manager();uint count=0;
         Com.Check(((delegate* unmanaged[Stdcall]<nint,nint*,uint*,int>)manager.Slot(3))(manager.Pointer,null,&count));
         if(count>1024)throw new IOException("Numero dispositivi non valido.");
-        if(count==0)return [];
-        var pointers=new nint[count];List<DeviceInfo> devices=[];
+        if(count==0)return new(0,[]);
+        var pointers=new nint[count];List<DeviceDescriptor> devices=[];
         fixed(nint* ids=pointers)
         {
             uint capacity=count;
             try
             {
-                Com.Check(((delegate* unmanaged[Stdcall]<nint,nint*,uint*,int>)manager.Slot(3))(manager.Pointer,ids,&count));
+                int hr=((delegate* unmanaged[Stdcall]<nint,nint*,uint*,int>)manager.Slot(3))(manager.Pointer,ids,&count);
+                Com.Check(hr);
+                if(hr==1)return new(1,[]);
                 if(count>capacity)throw new IOException("Elenco dispositivi cambiato: riprova.");
                 for(int i=0;i<count;i++)
                 {
                     string id=Marshal.PtrToStringUni(ids[i])??"";
                     string name=DeviceText(manager,id,5),manufacturer=DeviceText(manager,id,7);
-                    if(id.Contains("vid_05ac",StringComparison.OrdinalIgnoreCase)||manufacturer.Contains("Apple",StringComparison.OrdinalIgnoreCase))
-                        devices.Add(new(id,string.IsNullOrWhiteSpace(name)?"Dispositivo Apple USB":name));
+                    devices.Add(new(id,name,manufacturer,string.IsNullOrWhiteSpace(name)||string.IsNullOrWhiteSpace(manufacturer)));
                 }
             }
             finally{foreach(var p in pointers)if(p!=0)Marshal.FreeCoTaskMem(p);}
         }
-        return devices;
+        return new(0,devices);
     }
     private static string DeviceText(Com manager,string id,int slot)
     {
@@ -60,7 +63,7 @@ public sealed unsafe class WpdSource : IVideoSource
         {
             uint length=0;var call=(delegate* unmanaged[Stdcall]<nint,char*,char*,uint*,int>)manager.Slot(slot);
             if(call(manager.Pointer,device,null,&length)<0||length==0||length>32768)return "";
-            var chars=new char[length];fixed(char* text=chars){if(call(manager.Pointer,device,text,&length)<0)return "";return new string(text).Trim();}
+            var chars=new char[length];fixed(char* text=chars){if(call(manager.Pointer,device,text,&length)<0)return "";return new string(chars).TrimEnd('\0').Trim();}
         }
     }
     private Com ReadProperties(string objectId)
@@ -111,11 +114,12 @@ public sealed unsafe class WpdSource : IVideoSource
                                     Error($"Tipo USB non riconosciuto per {name}; contenuto non esplorato.");
                             }
                             catch(IOException ex){Error($"Metadati elemento {items.Count+1}: {ex.Message}");}
+                            InventoryProgress?.Invoke(items.Count);
                         }
                     }
                     finally{foreach(var id in batch)if(id!=0)Marshal.FreeCoTaskMem(id);}
                     InventoryProgress?.Invoke(items.Count);
-                    if(fetched==0)break;
+                    if(fetched==0||hr==1)break;
                 }
             }
             catch(IOException ex){Error("Enumerazione cartella USB: "+ex.Message);}

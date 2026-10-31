@@ -12,6 +12,7 @@ public sealed class WorkerClient : IVideoSource
     private readonly Stream output;
     private readonly StreamWriter input;
     private bool disposed;
+    public bool IsDisposed=>disposed;
     public TimeSpan Timeout {get;set;}=TimeSpan.FromSeconds(60);
     public Action<int>? InventoryProgress {get;set;}
     public WorkerClient(string executable,string mode="--usb-worker")
@@ -22,6 +23,7 @@ public sealed class WorkerClient : IVideoSource
         output=process.StandardOutput.BaseStream;input=process.StandardInput;input.AutoFlush=true;
     }
     public List<DeviceInfo> Devices(CancellationToken cancel)=>Json<List<DeviceInfo>>(new("devices"),cancel);
+    public DiscoveryResult Discover(CancellationToken cancel)=>Json<DiscoveryResult>(new("discover"),cancel);
     public void ValidateTransportWithoutDevices()=>Json<bool>(new("smoke"),default);
     public void Connect(string id,CancellationToken cancel)=>Json<bool>(new("connect",Device:id),cancel);
     public Inventory Inventory(CancellationToken cancel)=>Json<Inventory>(new("inventory"),cancel);
@@ -31,7 +33,8 @@ public sealed class WorkerClient : IVideoSource
     {
         var response=Exchange(command,cancel);
         if(response.Kind!=0)throw new IOException("Risposta USB inattesa.");
-        return JsonSerializer.Deserialize<T>(response.Data)??throw new IOException("Risposta USB vuota.");
+        try{return JsonSerializer.Deserialize<T>(response.Data)??throw new IOException("Risposta USB vuota.");}
+        catch(JsonException ex){Dispose();throw new IOException("Risposta USB non leggibile.",ex);}
     }
     private (byte Kind,byte[] Data) Exchange(Command command,CancellationToken cancel)
     {
@@ -43,7 +46,8 @@ public sealed class WorkerClient : IVideoSource
             {
                 byte[] header=new byte[5];Read(header,cancel);
                 int size=BinaryPrimitives.ReadInt32LittleEndian(header.AsSpan(1));
-                if(size<0||size>256*1024*1024)throw new IOException("Risposta USB oltre i limiti.");
+                int limit=header[0]==2?VerifiedCopy.BufferSize:header[0]==1?64:256*1024*1024;
+                if(size<0||size>limit)throw new IOException("Risposta USB oltre i limiti.");
                 byte[] data=new byte[size];Read(data,cancel);
                 if(header[0]==1){InventoryProgress?.Invoke(JsonSerializer.Deserialize<int>(data));continue;}
                 if(header[0]==3)throw new IOException(Encoding.UTF8.GetString(data));
@@ -51,7 +55,8 @@ public sealed class WorkerClient : IVideoSource
             }
         }
         catch(OperationCanceledException){Dispose();throw;}
-        catch(TimeoutException){Dispose();throw new IOException("Il telefono non risponde da 60 secondi. Importazione in pausa; sbloccalo o ricollegalo, poi premi Riprendi.");}
+        catch(TimeoutException){Dispose();throw new IOException($"Il telefono non risponde da {Timeout.TotalSeconds:0} secondi. Sbloccalo o ricollegalo; Porto tenterà il recupero.");}
+        catch(JsonException ex){Dispose();throw new IOException("Risposta USB non valida.",ex);}
         catch(Exception ex) when(ex is IOException or InvalidDataException){Dispose();throw;}
     }
     private void Read(byte[] data,CancellationToken cancel)
