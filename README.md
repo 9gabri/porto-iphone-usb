@@ -1,8 +1,8 @@
 # Porto
 
-App locale italiana per importare via USB i video accessibili di un iPhone su Windows 11 x64. Versione **0.1.0-rc.1**, candidata sperimentale: il collegamento WPD è reale, ma **nessun iPhone fisico è stato utilizzato per validarla**.
+App locale italiana per importare via USB i video accessibili di un iPhone su Windows 11 x64. Versione **0.1.0-rc.2**, candidata sperimentale: il collegamento WPD è reale, ma **nessun iPhone fisico è stato utilizzato per validarla**.
 
-[Pagina e istruzioni](https://9gabri.github.io/porto-iphone-usb/) · [Download Windows](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.1/Porto-0.1.0-rc.1-win-x64.zip) · [Checksum SHA-256](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.1/SHA256SUMS.txt)
+[Pagina e istruzioni](https://9gabri.github.io/porto-iphone-usb/) · [Download Windows](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.2/Porto-0.1.0-rc.2-win-x64.zip) · [Checksum SHA-256](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.2/SHA256SUMS.txt)
 
 ## Provala
 
@@ -10,7 +10,13 @@ App locale italiana per importare via USB i video accessibili di un iPhone su Wi
 2. Collega l'iPhone via USB, sbloccalo e autorizza il PC. Apple indica l'app ufficiale **Dispositivi Apple** come prerequisito Windows: se mancano i relativi componenti, installala dal Microsoft Store seguendo [Apple](https://support.apple.com/en-us/120267). Porto non installa driver.
 3. Sul telefono verifica **Impostazioni → App → Foto → Trasferisci su Mac o PC → Mantieni originali**. Scegli una cartella locale NTFS e premi **Avvia importazione**.
 
-L'app inventaria prima di copiare e non richiede selezioni di file o lotti. **Pausa** interrompe in sicurezza. **Riprendi** esegue un nuovo inventario e confronta i contenuti già copiati. Un file interrotto viene ricopiato dall'inizio. Se il telefono non compare dopo una riconnessione, premi **Cerca iPhone**.
+L'app inventaria prima di copiare e non richiede selezioni di file o lotti. **Pausa** interrompe anche l'attesa di riconnessione. **Riprendi** esegue un nuovo inventario e confronta i contenuti già copiati. Un temporaneo appartenente allo stesso elemento viene confrontato integralmente con il prefisso USB: solo se coincide viene aggiunta la parte mancante. Nessun byte esistente viene sovrascritto o troncato. Se non è associabile o diverge, viene conservato e si prepara una nuova copia.
+
+Gli errori di singoli video lasciano proseguire gli altri. Errori di connessione o inventario attivano fino a **tre passaggi automatici**, con attese cancellabili di 15 secondi. Ogni passaggio usa un collegamento nuovo allo stesso dispositivo. Disco pieno o permessi insufficienti sulla destinazione richiedono una pausa. Gli errori permanenti restano nel report: nessun retry infinito.
+
+Al termine viene riletto l'inventario USB: se cambia o rimane incompleto, il risultato non è dichiarato completo. Le osservazioni precedenti ancora pendenti restano visibili. Se gli identificatori cambiano prima che un contenuto sia verificato, può restare un debito storico non riconciliabile: non viene cancellato per ottenere un risultato verde. Il confronto non è uno snapshot atomico della libreria Foto.
+
+Se il telefono non compare, **Cerca iPhone** distingue nessun dispositivo portatile esposto da Windows, nessun dispositivo identificato Apple e metadati non leggibili. Verifica prima il riconoscimento in **Dispositivi Apple**. Una lista vuota può richiedere ulteriore diagnosi di Porto/driver.
 
 Il pacchetto non è firmato con un certificato commerciale: Windows può mostrare un avviso o impedirne l'avvio secondo le proprie policy. Non disattivare SmartScreen, antivirus o altre protezioni. La riproduzione HEVC dipende dai codec disponibili sul PC; la copia non richiede decoder o acquisti.
 
@@ -22,7 +28,9 @@ Il pacchetto non è firmato con un certificato commerciale: Windows può mostrar
 - SHA-256 calcolato sui byte ricevuti e confrontato con la rilettura locale. La verifica approfondita ripete anche la lettura USB e richiede più tempo; se fallisce, il nuovo file non viene pubblicato.
 - Identificatori USB, nome, data e dimensioni **non bastano** per saltare un file. Il confronto è sul contenuto completo, mantenendo la molteplicità degli elementi identici dell'inventario. Le importazioni ripetute rileggono quindi la sorgente.
 
-Nessuna funzione di cancellazione, modifica, rinomina o sincronizzazione sull'iPhone. Nessuna cancellazione automatica nella destinazione, neppure dei temporanei interrotti. Questi ultimi possono occupare spazio aggiuntivo dopo pause/errori; gli elementi ambigui già verificati vengono riutilizzati. Conserva `.porto` insieme ai video per mantenere la ripresa senza duplicati. Un catalogo perso o rimosso non può riconoscere automaticamente copie precedenti.
+Nessuna funzione di cancellazione, modifica, rinomina o sincronizzazione sull'iPhone. Nessuna cancellazione automatica nella destinazione, neppure dei temporanei interrotti. Temporanei divergenti o non associabili possono occupare spazio aggiuntivo; quelli associabili vengono ripresi dopo confronto e gli ambigui verificati vengono riutilizzati. Conserva `.porto` insieme ai video per mantenere la ripresa senza duplicati. Un catalogo perso o rimosso non può riconoscere automaticamente copie precedenti.
+
+La cartella scelta viene ricordata in `%LOCALAPPDATA%\Porto\destination.txt`, solo sul PC. Durante il trasferimento Porto richiede a Windows di evitare la sospensione per inattività; non impedisce blocco schermo, sospensione manuale o chiusura del coperchio. I pulsanti restano visibili ridimensionando la finestra; il contenuto può scorrere.
 
 ## Limiti da conoscere prima della prova
 

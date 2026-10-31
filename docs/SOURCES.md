@@ -16,4 +16,10 @@ Consultazione: 30 ottobre 2026. Nessun codice Rollport, AFC/libimobiledevice o D
 
 ## Inferenze e aspetti non dimostrati
 
+Verifiche aggiuntive rc.2:
+- [Microsoft GetDevices](https://learn.microsoft.com/en-us/windows/win32/api/portabledeviceapi/nf-portabledeviceapi-iportabledevicemanager-getdevices): S_FALSE indica buffer troncato; count indica gli elementi scritti; CoTaskMemFree per gli identificatori.
+- [Microsoft IEnumPortableDeviceObjectIDs.Next](https://learn.microsoft.com/en-us/windows/win32/api/portabledeviceapi/nf-portabledeviceapi-ienumportabledeviceobjectids-next): elaborare il batch finale e poi terminare su S_FALSE.
+- [Microsoft SetThreadExecutionState](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-setthreadexecutionstate): richiesta ES_CONTINUOUS | ES_SYSTEM_REQUIRED per sospensione inattiva, ripristinata alla fine sullo stesso thread. Non impedisce sospensione manuale o blocco schermo.
+- [Apple accessori USB](https://support.apple.com/en-in/111806): sblocco prima del collegamento e riconnessione se necessario; non viene modificata l'impostazione di sicurezza degli accessori.
+
 WPD è la scelta minima per utilizzare lo stack già presente su Windows. La presenza di un'interfaccia e la correttezza ABI non dimostrano compatibilità con uno specifico iPhone o iOS. Originalità, associazione a Live Photo, risorse modificate e quantità degli originali solo cloud non sono certificabili con i soli dati generici usati qui. Per questo la UI non dichiara mai la libreria intera verificata.

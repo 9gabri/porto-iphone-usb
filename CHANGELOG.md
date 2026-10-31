@@ -1,5 +1,27 @@
 # Novità
 
+## 0.1.0-rc.2 — revisione di affidabilità
+
+### Corretto
+- Ricerca USB: un elenco troncato non viene più accettato come completo; diagnosi distinta dei motivi di lista vuota.
+- Inventario: progressi per singolo elemento evitano falsi timeout su telefoni lenti ma ancora responsivi.
+- Errori di singoli video non impediscono la copia di quelli sani successivi.
+- Video non ancora raggiunti e ambiguità precedenti non spariscono dai report successivi.
+- Corretta la contabilità di elementi byte-identici dopo una pausa durante la riconciliazione.
+- Evitate letture USB preventive inutili e ricerche quadratiche sulle copie riparabili.
+
+### Aggiunto
+- Fino a tre passaggi automatici con 15 secondi d'attesa cancellabile e collegamento allo stesso telefono.
+- Ripresa con confronto integrale del prefisso e append, senza cancellare o sovrascrivere temporanei.
+- Secondo inventario a fine passaggio e registro persistente dei candidati ancora da completare.
+- Cartella ricordata localmente, richiesta temporanea contro la sospensione inattiva del PC e pulsanti sempre visibili.
+- Test nativi con COM simulato, errori di protocollo, tentativi automatici, scala e file oltre 4 GB realmente scritto.
+
+### Limiti
+Nessuna validazione di trasferimento con iPhone fisico. Nessuna promessa di zero bug o intera libreria iCloud copiata.
+La causa della lista vuota della prima prova non è dimostrata: il riconoscimento da parte di Windows era sconosciuto.
+Eseguibile non firmato. La vecchia candidata resta disponibile; estrarre rc.2 separatamente e conservare la destinazione con `.porto`.
+
 ## 0.1.0-rc.1 — 30 ottobre 2026
 
 Prima candidata Windows 11 x64. Importazione USB WPD in sola lettura, inventario, copia verificata, recupero dopo interruzioni, confronto contenuti con molteplicità, pausa/ripresa e report italiani. Distribuzione portabile con runtime incluso.

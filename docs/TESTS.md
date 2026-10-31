@@ -1,40 +1,81 @@
-# Prove della candidata 0.1.0-rc.1
+# Prove della candidata 0.1.0-rc.2
 
-Ambiente: Windows 11 x64, build OS 26200; .NET SDK 10.0.403, runtime Microsoft 10.0.14; destinazione sintetica locale NTFS. Nessun iPhone è stato cercato, aperto o usato durante lo sviluppo. Nessun file personale è stato letto. Data: 30 ottobre 2026.
+Windows 11 x64, .NET SDK 10.0.403 e runtime Microsoft 10.0.14; destinazioni locali NTFS.
+Dati generati nel progetto. Nessun iPhone enumerato, aperto o letto durante lo sviluppo.
+Nessun video o dato personale incluso nei test.
 
-## Prove automatiche
+## Risultati
 
-**Esito finale: 44/44 test superati**, più avvio UI e smoke del worker sull'eseguibile self-contained. I test includono anche riparazioni interrotte con perdita o corruzione del nuovo temporaneo, senza duplicare i mancanti logici.
+**74 casi verificati: 70 ordinari e 4 estesi**, eseguiti in passaggi separati.
+La suite estesa iniziale era 72/72; aggiunti due casi di crash con inventario vuoto,
+sono stati rieseguiti tutti i 70 ordinari dopo l'ultima correzione del protocollo.
+Le quattro prove di scala esercitano il medesimo core. Log in test-results.txt.
+Comando riproducibile: scripts/dev.ps1 test -Large.
 
-La suite console non richiede pacchetti di test esterni. `scripts/dev.ps1 test` compila ed esegue i test ordinari. `dotnet run --project tests/Porto.Tests -c Release -- --large` aggiunge le prove di scala. Esito dettagliato in [test-results.txt](test-results.txt).
+Coperti: SHA-256 e rilettura locale, troncamento, dimensione incoerente, corruzione,
+seconda lettura divergente, collisioni, percorsi ostili, lock concorrenti, foto
+abbinate/Live Photos ambigue, copie mancanti o alterate, disco pieno, inventari
+parziali, errori isolati, disconnessioni, tentativi limitati, cancellazione,
+inventario finale cambiato, ID variabili e molteplicità degli elementi byte-identici.
 
-Coperti: SHA-256 e rilettura, sorgente troncata/estesa, cancellazione, SQLite reale, cambiamento degli ID, molteplicità di tre video identici, nomi collisionanti, copie rimosse o corrotte, seconda lettura USB differente, spazio iniziale insufficiente e riempimento durante copia, disconnessione/riconnessione, percorsi ostili, lock concorrente, Live Photo/varianti ambigue, foto abbinate, MOV/MP4/M4V, finta estensione senza video, inventario incompleto e mancante offline sintetico.
+Il test di molteplicità riproduce una pausa dopo che B ha reclamato la copia di A,
+quando A è ancora nell'inventario corrente. Un successivo elenco ridotto non può
+cancellare l'obbligo di conservare la seconda copia.
 
-Arresti **reali del processo di test** tramite Environment.Exit prima/dopo sei confini: intento, flush, verifica, Ready, rinomina, Complete. Nuovo processo recupera senza duplicati definitivi. Inoltre: collisione del finale dopo Ready, temporaneo danneggiato, quarantena riutilizzata senza creare nuovi `.part`, inventario ripetitivo/fallito limitato.
+## Arresti e recupero
 
-Worker: processi sintetici bloccati prima della risposta e a metà payload; timeout e cancellazione devono terminarli. COM smoke: creazione degli oggetti WPD, scambio proprietà locali stringa, GUID e UInt64 oltre 4 GiB. **Questa prova non chiama GetDevices o Open** e non dimostra una connessione a iPhone.
+Terminazioni reali di processi sintetici con Exit(77) ai confini intento, flush,
+verifica, Ready, rename e Complete. Riparazioni interrotte e collisioni preservano
+i file esistenti. Dopo un crash, un inventario vuoto conserva i lavori pendenti,
+anche se il file era pubblicato ma il risultato non ancora registrato: segnalazione
+conservativa, non falso completamento.
 
-## Dimensioni effettive e simulate
+Ripresa provata con letture corte/disallineate, divergenza all'ultimo byte, sorgente
+più corta, cancellazione prima dell'append, interruzioni ripetute e spazio sufficiente
+solo al suffisso. File estranei intatti. Nessuna cancellazione in produzione.
 
-| Prova | Cosa viene eseguito | Cosa non dimostra |
+## USB senza dispositivi reali
+
+- Vtable native sintetiche: vero percorso GetDevices, S_OK, S_FALSE, errore dopo
+  allocazione, deallocazione e stringhe senza terminatore nel testo UI.
+- Inventario nativo simulato: heartbeat tra metadati e conclusione al batch S_FALSE.
+- Processi figli reali: timeout, payload parziale, cancellazione, heartbeat oltre
+  il timeout, JSON nullo/malformato, frame inattesi e progressi corrotti.
+- Il test dei progressi malformati invia poi un risultato valido: deve fallire
+  immediatamente, non passare accidentalmente alla chiusura del processo.
+- COM smoke: registrazione, GUID, stringhe e UInt64 oltre 4 GB. Gli smoke del
+  pacchetto non invocano GetDevices/Open su hardware.
+
+## Prove di scala
+
+| Prova | Operazione reale | Limite |
 |---|---|---|
-| Copie ordinarie | File sintetici piccoli realmente scritti, riletti e pubblicati su NTFS | Video reali, decodifica o USB fisica |
-| Flusso oltre 4 GiB | 4.294.967.313 byte generati, letti e sottoposti a SHA-256; output Stream.Null | Un file oltre 4 GiB scritto su disco o trasferito da iPhone |
-| 50.000 elementi, 250 GB | Inventario completo sintetico serializzato, classificazione e controllo di capacità; payload non scritto | Trasferimento reale di 250 GB |
-| Crash recovery | Terminazione processo ai confini e riavvio reale | Perdita di alimentazione, guasto controller/disco o corruzione del filesystem |
+| 4.294.967.313 byte | Generati, letti e sottoposti a SHA-256 verso Stream.Null | Nessun USB/disco |
+| 50.000 video, 250 GB logici | Inventario, pendenti, capacità insufficiente, report | Nessun payload da 250 GB scritto |
+| 50.000 elementi, 2.000 video | 2.000 file scritti/verificati, 48.000 foto escluse; secondo passaggio senza copie aggiuntive | File piccoli sintetici |
+| 4.294.971.392 byte su NTFS | Contenitore esteso, copia, flush, hash indipendente, parser e pubblicazione | Nessun codec, video reale o USB |
 
-I tempi e il working set osservati sono nel log; non sono benchmark USB. Nella prima prova estesa il flusso oltre 4 GiB ha richiesto circa 2,7 secondi con working set 54 MiB; l'inventario circa 0,13 secondi con working set 69 MiB. Sono misure su questo ambiente, non promesse di prestazioni.
+Misure: flusso virtuale 2,25 s; inventario logico 1,03 s; 2.000 copie e secondo
+passaggio 214,05 s; file NTFS oltre 4 GB 8,72 s. Working set campionato: 79, 210,
+158 e 110 MiB, non una misura del picco. Non sono benchmark USB. Il solo payload
+sintetico da 4 GB viene rimosso dopo la verifica, in una destinazione nuova dedicata.
 
-## Revisione e artefatto
+## Revisione, mutazione e interfaccia
 
-Revisione indipendente di correttezza/sicurezza del core e dell'ABI USB, confrontata con gli header Microsoft. Corrette le criticità emerse: errori InvalidDataException non classificati, recovery bloccata su collisione/corruzione, falsi positivi Live Photo, riscrittura quadratica dei report, duplicazione dei temporanei ambigui e limite inventario aggirabile. Il report ora persiste risultati incrementali.
+Due revisioni indipendenti: core e USB, seguite da correzioni e seconda revisione.
+Dettagli in REVIEW-RC2.md. Mutazione temporanea del confronto del prefisso: la
+regressione fallisce; codice ripristinato prima della build finale. Nessun codice
+mutato distribuito.
 
-Prova di mutazione: inversione temporanea del confronto d'integrità, suite attesa in errore, poi ripristino del codice e nuova esecuzione corretta. Nessun codice mutato distribuito.
+Pacchetto autonomo avviato in modalità UI senza USB; ispezione visiva normale e
+ridotta con messaggio lungo di riconnessione. Azioni ancorate al fondo e controllo
+automatico dei loro limiti visibili. Non certifica ogni risoluzione/DPI o tutte
+le interazioni manuali.
 
-Avvio effettivo della UI compilata in `--ui-smoke` senza USB e ispezione della sua immagine. Avvio della distribuzione self-contained con runtime di sistema .NET 10 non installato. Smoke `--interop-smoke` e `--worker-smoke` sul vero eseguibile verificano anche l'avvio del processo figlio, il protocollo e l'appartamento COM MTA, senza enumerazione dispositivi. Queste prove hanno rilevato e fatto correggere una inizializzazione COM STA/MTA incompatibile nell'entry point. La prova UI verifica l'avvio, non un trasferimento fisico né tutte le interazioni tramite mouse.
+## Da verificare con hardware
 
-L'archivio pubblico viene riscaricato e confrontato tramite SHA-256 con l'archivio locale. Questo verifica la corrispondenza dell'artefatto, non sostituisce una firma Authenticode. L'eseguibile Porto è non firmato.
-
-## Compatibilità non verificata
-
-iPhone 16/17, qualsiasi versione iOS, driver Apple effettivi, velocità dei cavi USB, originali solo iCloud, comportamento delle risorse modificate, riconoscimento completo di Live Photos. Nessuna verifica Windows ARM, exFAT o cartelle di rete (rifiutati nella candidata). Nessun trasferimento fisico da 250 GB. Il sito e l'app riportano questi limiti prima/durante l'uso.
+Riconoscimento di uno specifico iPhone/iOS, driver Apple, cavo, autorizzazione,
+risorse effettive e velocità USB. La causa della lista vuota della prima prova
+non è dimostrata. Nessun trasferimento reale da 250 GB. Copertura iCloud,
+originalità Foto e Live Photos prive di indizi non certificabili. Rete, exFAT
+e ARM restano rifiutati. Eseguibile non firmato.

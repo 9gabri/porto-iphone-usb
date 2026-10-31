@@ -1,3 +1,5 @@
+PORTO rc.2: synthetic verification only; no hardware enumeration
+ORDINARY FINAL SUITE
 PASS copy and independently reread SHA256
 PASS truncation rejected
 PASS unexpected extra bytes rejected
@@ -25,6 +27,8 @@ PASS process termination and recovery at after-verification
 PASS process termination and recovery at after-ready
 PASS process termination and recovery at after-rename
 PASS process termination and recovery at after-complete
+PASS crash at after-flush followed by empty source retains conservative pending work
+PASS crash at after-complete followed by empty source retains conservative pending work
 PASS crash Ready collision preserves foreign file and recovers
 PASS crash Ready temporary corruption can be recopied
 PASS COM ABI and class registration, no device enumeration
@@ -40,8 +44,41 @@ PASS crash during repair at after-rename keeps missing resolution atomic
 PASS crash during repair at after-complete keeps missing resolution atomic
 PASS failed replacement attempt does not duplicate missing debt (corrupt=False)
 PASS failed replacement attempt does not duplicate missing debt (corrupt=True)
-  LARGE stream: 4294967313 bytes, 2,55s, working set 59 MiB
+PASS discovery retries S_FALSE instead of silently losing Apple device
+PASS discovery distinguishes Windows empty, non Apple and incomplete metadata
+PASS fresh equal-sized videos use one source read each
+PASS isolated damaged source does not block healthy subsequent videos
+PASS one session retries transient error and completes without duplicate outputs
+PASS unreached inventory items persist when next inventory is empty
+PASS legacy Copying and quarantine cannot disappear under empty inventory
+PASS final inventory changes trigger another automatic pass
+PASS retry budget and user pause are bounded
+PASS resume compares all prefix bytes across short source reads
+PASS diverging or longer partial is unchanged and never accepted
+PASS pause during prefix verification does not append
+PASS repeated interruptions reuse one owned partial without deleting anything
+PASS resume capacity estimate counts only remaining suffix
+PASS offline size does not prevent accessible video copy
+PASS three unreadable videos do not starve following healthy items
+PASS claiming a prior copy cannot erase another current duplicate obligation
+PASS responsive long worker operation renews per-frame deadline
+PASS malformed null frame invalidates worker
+PASS malformed kind frame invalidates worker
+PASS malformed progress frame invalidates worker
+PASS malformed json frame invalidates worker
+PASS native discovery ABI propagates 00000000 and releases allocated strings
+PASS native discovery ABI propagates 00000001 and releases allocated strings
+PASS native discovery ABI propagates 80004005 and releases allocated strings
+PASS native inventory emits progress between metadata calls and ends on S_FALSE
+70/70 passed
+EXTENDED SCALE CASES (same core; separate run)
+  LARGE stream: 4294967313 bytes, 2,25s, working set 79 MiB
 PASS stream beyond 4 GiB: 4 GiB + 17 bytes actually read and hashed without disk allocation
-  LARGE inventory: 50000 items, 250 GB logical, 0,11s, working set 72 MiB
+  LARGE inventory: 50000 items, 250 GB logical, 1,03s, working set 210 MiB
 PASS 50000-item inventory and 250 GB logical capacity without writing payload
-44/44 passed
+  STRESS full loop: 2000 physical files twice verified, 50000 entries, 214,05s, working set 158 MiB
+PASS 50000 inventory entries with 2000 actual copies and verified second pass
+  LARGE NTFS: 4294971392 bytes written and reread, 8,72s, working set 110 MiB
+PASS video over 4 GiB actually written verified and published on NTFS
+MUTATION: inverted prefix comparison -> expected failure detected (0/1); source restored before final build.
+TOTAL: 74 distinct passing cases (70 ordinary + 4 extended).
