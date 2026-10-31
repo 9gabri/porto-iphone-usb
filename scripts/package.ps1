@@ -4,6 +4,8 @@ Set-Location -LiteralPath $root
 $tag=git describe --tags --exact-match HEAD
 if($LASTEXITCODE -ne 0 -or $tag -notmatch '^v([0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+)$'){throw 'A release candidate tag is required'}
 $version=$Matches[1]
+[xml]$props=Get-Content -LiteralPath 'Directory.Build.props'
+if($props.Project.PropertyGroup.Version -ne $version){throw 'Tag and application version differ'}
 if((git status --porcelain)){throw 'Commit all source changes before packaging'}
 & "$PSScriptRoot/dev.ps1" publish
 $output=Join-Path $root 'artifacts/Porto-win-x64'
@@ -24,9 +26,12 @@ foreach($mode in @('--interop-smoke','--worker-smoke')){
     if($p.ExitCode -ne 0){throw "$mode failed"}
 }
 $image=Join-Path $root 'artifacts/package-ui.png'
-$p=Start-Process -FilePath $exe -ArgumentList @('--ui-smoke',('"'+$image+'"')) -WindowStyle Hidden -PassThru
-if(!$p.WaitForExit(15000)){Stop-Process -Id $p.Id;throw 'UI timeout'}
-if($p.ExitCode -ne 0){throw 'UI failed'}
+foreach($imageName in @('package-ui.png','package-ui-compact-retry.png')){
+    $image=Join-Path $root ('artifacts/'+$imageName)
+    $p=Start-Process -FilePath $exe -ArgumentList @('--ui-smoke',('"'+$image+'"')) -WindowStyle Hidden -PassThru
+    if(!$p.WaitForExit(15000)){Stop-Process -Id $p.Id;throw 'UI timeout'}
+    if($p.ExitCode -ne 0){throw 'UI failed'}
+}
 $archive=Join-Path $root "artifacts/Porto-$version-win-x64.zip"
 if(Test-Path -LiteralPath $archive){throw 'Archive already exists; preserve release artifacts'}
 Compress-Archive -LiteralPath $output -DestinationPath $archive -CompressionLevel Optimal
