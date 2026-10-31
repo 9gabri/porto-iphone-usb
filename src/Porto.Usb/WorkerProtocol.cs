@@ -28,7 +28,10 @@ public static class WorkerProtocol
                         case "devices":Json(WpdSource.Devices());break;
                         case "discover":Json(WpdSource.Discover());break;
                         case "connect":stream?.Dispose();stream=null;source?.Dispose();source=new(command.Device??throw new IOException("Dispositivo assente"));
-                            source.InventoryProgress=n=>Frame(1,JsonSerializer.SerializeToUtf8Bytes(n));Json(true);break;
+                            long lastHeartbeat=0;
+                            source.InventoryProgress=n=>
+                            {long now=Environment.TickCount64;if(n==0||now-lastHeartbeat>=250){lastHeartbeat=now;Frame(1,JsonSerializer.SerializeToUtf8Bytes(n));}};
+                            Json(true);break;
                         case "inventory":Json((source??throw new IOException("Non connesso")).Inventory(default));break;
                         case "open":stream?.Dispose();stream=null;stream=(source??throw new IOException("Non connesso")).OpenRead(new(command.Object!,"","",MediaKind.Video),default);Json(true);break;
                         case "read":

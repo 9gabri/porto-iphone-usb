@@ -38,10 +38,10 @@ internal static class ReliabilityTests
             Fixtures.Check(report.Status.StartsWith("Completati")&&Directory.GetFiles(d.Videos).Length==3);
         }));
         tests.Add(("unreached inventory items persist when next inventory is empty",()=>{
-            using var d=new Destination(Root());var s=Several(5);s.Reader=(_,_)=>throw new IOException("disconnected");
-            var first=new ImportEngine(s,d).Run(false,default);Fixtures.Check(first.Count(Outcome.Pending)==2&&first.Count(Outcome.Error)==3);
+            using var d=new Destination(Root());var s=Several(5);s.Reader=(_,_)=>throw new SourceUnavailableException("disconnected");
+            var first=new ImportEngine(s,d).Run(false,default);Fixtures.Check(first.Count(Outcome.Pending)==4&&first.Count(Outcome.Error)==1);
             var next=new ImportEngine(new FakeSource([],[]),d).Run(false,default);
-            Fixtures.Check(next.Count(Outcome.Pending)==2&&next.Count(Outcome.Error)==3&&!next.Status.StartsWith("Completati"));
+            Fixtures.Check(next.Count(Outcome.Pending)==4&&next.Count(Outcome.Error)==1&&!next.Status.StartsWith("Completati"));
         }));
         tests.Add(("legacy Copying and quarantine cannot disappear under empty inventory",()=>{
             using var d=new Destination(Root());var source=new SourceItem("legacy","p","clip.mov",MediaKind.Video,50);
@@ -106,6 +106,20 @@ internal static class ReliabilityTests
             using var d=new Destination(Root());byte[] bytes=Video();var source=new FakeSource([new("cloud","p","cloud.mov",MediaKind.Video,1L<<40,Offline:true),new("local","p","local.mov",MediaKind.Video,bytes.Length)],new(){{"local",bytes}});
             var report=new ImportEngine(source,d,new FakeSpace(VerifiedCopy.ReserveBytes+2*VerifiedCopy.BufferSize)).Run(false,default);
             Fixtures.Check(report.Count(Outcome.Imported)==1&&report.Count(Outcome.Missing)==1);
+        }));
+        tests.Add(("three unreadable videos do not starve following healthy items",()=>{
+            using var d=new Destination(Root());var session=new ImportSession(()=>{var s=Several(5);s.Reader=(item,_)=>int.Parse(item.Id)<3?throw new IOException("unreadable item"):new MemoryStream(Video(int.Parse(item.Id)));return s;},d){RetryDelay=TimeSpan.Zero};
+            var report=session.Run(false,default);Fixtures.Check(Directory.GetFiles(d.Videos).Length==2&&report.Count(Outcome.Error)==3&&report.Count(Outcome.Pending)==0);
+        }));
+        tests.Add(("claiming a prior copy cannot erase another current duplicate obligation",()=>{
+            using var d=new Destination(Root());byte[] bytes=Video();var a=new SourceItem("a","p","same.mov",MediaKind.Video,bytes.Length);var b=a with{Id="b"};
+            new ImportEngine(new FakeSource([a],new(){{"a",bytes}}),d).Run(false,default);
+            using var cancel=new CancellationTokenSource();
+            var two=new FakeSource([b,a],new(){{"a",bytes},{"b",bytes}});
+            var interrupted=new ImportEngine(two,d){Progress=p=>{if(p.Phase=="Importazione"&&two.Reads==1)cancel.Cancel();}}.Run(false,cancel.Token);
+            Fixtures.Check(interrupted.Count(Outcome.Pending)>=1);
+            var later=new ImportEngine(new FakeSource([b],new(){{"b",bytes}}),d).Run(false,default);
+            Fixtures.Check(later.Count(Outcome.Pending)>=1&&!later.Status.StartsWith("Completati"),later.Status);
         }));
     }
     internal static FakeSource Several(int count)

@@ -40,3 +40,4 @@ public sealed class LocalDiskSpace : IDiskSpace
     public long Available(string directory) => new DriveInfo(Path.GetPathRoot(directory)!).AvailableFreeSpace;
 }
 public sealed class SpaceException(string message) : IOException(message);
+public sealed class SourceUnavailableException(string message,Exception? inner=null) : IOException(message,inner);

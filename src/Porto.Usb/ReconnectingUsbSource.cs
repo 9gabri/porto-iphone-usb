@@ -11,6 +11,7 @@ public sealed class ReconnectingUsbSource(string executable, string deviceId, Ac
         if(worker is { IsDisposed: false })return worker;
         worker?.Dispose();worker=new WorkerClient(executable){InventoryProgress=progress};
         try{worker.Connect(deviceId,cancel);return worker;}
+        catch(IOException ex){worker.Dispose();throw new SourceUnavailableException("Collegamento allo stesso iPhone non disponibile: "+ex.Message,ex);}
         catch{worker.Dispose();throw;}
     }
     public Inventory Inventory(CancellationToken cancel)=>Get(cancel).Inventory(cancel);

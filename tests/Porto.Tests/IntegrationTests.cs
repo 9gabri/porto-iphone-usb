@@ -85,6 +85,12 @@ internal static class IntegrationTests
         }));
         foreach(string phase in new[]{"after-intent","after-flush","after-verification","after-ready","after-rename","after-complete"})
             tests.Add(($"process termination and recovery at {phase}",()=>CrashRecovery(phase)));
+        foreach(string phase in new[]{"after-flush","after-complete"})
+            tests.Add(($"crash at {phase} followed by empty source retains conservative pending work",()=>{
+                string root=Root();Crash(root,phase);using var d=new Destination(root);
+                var report=new ImportEngine(new FakeSource([],[]),d).Run(false,default);
+                Fixtures.Check(report.Count(Outcome.Pending)==1&&!report.Status.StartsWith("Completati"));
+            }));
         tests.Add(("crash Ready collision preserves foreign file and recovers",()=>{
             string root=Root();Crash(root,"after-ready");using var d=new Destination(root);
             string target;using(var c=new Catalog(d)){target=d.Resolve(c.Entries().Single().Final);}File.WriteAllText(target,"foreign synthetic data");

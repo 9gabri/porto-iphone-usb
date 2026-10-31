@@ -15,6 +15,8 @@ public sealed unsafe class WpdSource : IVideoSource
     public Action<int>? InventoryProgress {get;set;}
     private static Com Values()=>Com.Create("0c15d503-d017-47ce-9016-7b3f978721cc","6848f6f2-3155-4f86-b6f5-263eeeab3143");
     private static Com Manager()=>Com.Create("0af10cec-2ecd-4b92-9581-34f6ae0637f3","a1567595-4c2f-4574-a6fa-ecef917b9a40");
+    internal WpdSource(Com device,Com content,Com properties,Com resources)
+    {this.device=device;this.content=content;this.properties=properties;this.resources=resources;}
     public WpdSource(string deviceId)
     {
         using var info=Values();
@@ -32,7 +34,11 @@ public sealed unsafe class WpdSource : IVideoSource
     public static DiscoveryResult Discover()=>DeviceDiscovery.Read(ReadDeviceBatch);
     private static DeviceBatch ReadDeviceBatch()
     {
-        using var manager=Manager();uint count=0;
+        using var manager=Manager();return ReadDeviceBatch(manager);
+    }
+    internal static DeviceBatch ReadDeviceBatch(Com manager,Action<nint>? releaseString=null)
+    {
+        uint count=0;
         Com.Check(((delegate* unmanaged[Stdcall]<nint,nint*,uint*,int>)manager.Slot(3))(manager.Pointer,null,&count));
         if(count>1024)throw new IOException("Numero dispositivi non valido.");
         if(count==0)return new(0,[]);
@@ -53,7 +59,7 @@ public sealed unsafe class WpdSource : IVideoSource
                     devices.Add(new(id,name,manufacturer,string.IsNullOrWhiteSpace(name)||string.IsNullOrWhiteSpace(manufacturer)));
                 }
             }
-            finally{foreach(var p in pointers)if(p!=0)Marshal.FreeCoTaskMem(p);}
+            finally{foreach(var p in pointers)if(p!=0){if(releaseString!=null)releaseString(p);else Marshal.FreeCoTaskMem(p);}}
         }
         return new(0,devices);
     }

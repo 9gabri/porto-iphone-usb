@@ -19,7 +19,8 @@ public sealed class WorkerClient : IVideoSource
     {
         var info=new ProcessStartInfo(executable){UseShellExecute=false,CreateNoWindow=true,RedirectStandardInput=true,RedirectStandardOutput=true};
         info.ArgumentList.Add(mode);
-        process=Process.Start(info)??throw new IOException("Impossibile avviare il collegamento USB.");
+        try{process=Process.Start(info)??throw new IOException("Impossibile avviare il collegamento USB.");}
+        catch(System.ComponentModel.Win32Exception ex){throw new IOException("Windows non ha avviato il componente USB di Porto. Verifica che la cartella estratta sia completa.",ex);}
         output=process.StandardOutput.BaseStream;input=process.StandardInput;input.AutoFlush=true;
     }
     public List<DeviceInfo> Devices(CancellationToken cancel)=>Json<List<DeviceInfo>>(new("devices"),cancel);
@@ -32,10 +33,11 @@ public sealed class WorkerClient : IVideoSource
     private T Json<T>(Command command,CancellationToken cancel)
     {
         var response=Exchange(command,cancel);
-        if(response.Kind!=0)throw new IOException("Risposta USB inattesa.");
-        try{return JsonSerializer.Deserialize<T>(response.Data)??throw new IOException("Risposta USB vuota.");}
+        if(response.Kind!=0)throw ProtocolError("Risposta USB inattesa.");
+        try{return JsonSerializer.Deserialize<T>(response.Data)??throw ProtocolError("Risposta USB vuota.");}
         catch(JsonException ex){Dispose();throw new IOException("Risposta USB non leggibile.",ex);}
     }
+    private IOException ProtocolError(string message){Dispose();return new IOException(message);}
     private (byte Kind,byte[] Data) Exchange(Command command,CancellationToken cancel)
     {
         ObjectDisposedException.ThrowIf(disposed,this);
@@ -49,7 +51,7 @@ public sealed class WorkerClient : IVideoSource
                 int limit=header[0]==2?VerifiedCopy.BufferSize:header[0]==1?64:256*1024*1024;
                 if(size<0||size>limit)throw new IOException("Risposta USB oltre i limiti.");
                 byte[] data=new byte[size];Read(data,cancel);
-                if(header[0]==1){InventoryProgress?.Invoke(JsonSerializer.Deserialize<int>(data));continue;}
+                if(header[0]==1){int progress=JsonSerializer.Deserialize<int>(data);InventoryProgress?.Invoke(progress);continue;}
                 if(header[0]==3)throw new IOException(Encoding.UTF8.GetString(data));
                 return(header[0],data);
             }
@@ -77,7 +79,7 @@ public sealed class WorkerClient : IVideoSource
             if(offset<0||count<0||offset>buffer.Length-count)throw new ArgumentOutOfRangeException(nameof(count));
             if(count==0)return 0;
             var response=client.Exchange(new("read",Count:Math.Min(count,VerifiedCopy.BufferSize)),cancel);
-            if(response.Kind!=2||response.Data.Length>count)throw new IOException("Risposta flusso USB non valida.");
+            if(response.Kind!=2||response.Data.Length>count)throw client.ProtocolError("Risposta flusso USB non valida.");
             response.Data.CopyTo(buffer,offset);return response.Data.Length;
         }
         protected override void Dispose(bool disposing)
