@@ -26,8 +26,11 @@ Il coordinatore confronta ogni riscontro con il codice e orchestra build seriali
 - [x] Riproduzioni sintetiche dei difetti confermati.
 - [x] Correzioni con regressioni e tre cicli di riesame indipendente; verifica conclusiva del coordinatore.
 - [x] Suite finale: 188 ordinari + quattro estesi sulla stessa logica, mutazione isolata e tre smoke UI.
-- [ ] Versione/tag/pacchetto coerenti, staging nuovo e controllo contenuti.
-- [ ] Pubblicazione autorizzata, download pubblico e smoke del pacchetto scaricato.
+- [x] Versione/tag/pacchetto coerenti, staging nuovo, CRC, checksum e controllo contenuti.
+- [x] Pubblicazione autorizzata, download pubblico, cinque smoke e tre immagini del pacchetto scaricato.
+
+Consegna: rc.4, sorgente 4a60abe, ZIP 51.602.369 byte. I dettagli verificabili
+sono in docs/RELEASE-VERIFICATION.md. Release precedenti conservate.
 
 La consegna resta candidata senza prova su iPhone fisico. Nessuna promessa di
 zero bug, originalità Foto o copertura degli elementi presenti soltanto su iCloud.

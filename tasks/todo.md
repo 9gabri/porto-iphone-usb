@@ -38,4 +38,4 @@
 - [x] Cataloghi, preflight, percorsi, preferenze, snapshot e compatibilità legacy.
 - [x] 188 test ordinari e quattro estesi; mutazione isolata e tre stati UI.
 - [x] Confezionamento con pubblicazione atomica dello ZIP, quattro prove sintetiche.
-- [ ] Nuovo pacchetto, tag, pubblicazione e download pubblico verificato.
+- [x] Nuovo pacchetto, tag, pubblicazione, download pubblico, checksum e cinque smoke verificati.

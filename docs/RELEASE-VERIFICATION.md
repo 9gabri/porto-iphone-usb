@@ -78,3 +78,54 @@ Nessun costo, nuovo servizio o modifica alle protezioni. Eseguibile non firmato.
 Nessuna validazione con iPhone fisico: la compatibilità con telefono, driver e
 cavo della cliente resta da provare. Non è una certificazione di zero bug o di
 copertura Foto/iCloud. Questo resoconto è successivo al tag; il pacchetto resta immutato.
+
+## rc.4 — 31 ottobre 2026
+
+- Release candidata: https://github.com/9gabri/porto-iphone-usb/releases/tag/v0.1.0-rc.4
+- Sorgente distribuita: commit `4a60abeeb126f8c09ca156be0847f40674865c3f`, tag `v0.1.0-rc.4`.
+- ZIP: `Porto-0.1.0-rc.4-win-x64.zip`, 51.602.369 byte, 283 voci; runtime 10.0.14 incluso.
+- SHA-256: `c3ed5b929fcce426fbacc56041392637898f0bf20e2f426db79663ced7ce6505`.
+- SHA-256 del file `SHA256SUMS.txt` (96 byte): `6c67a3eb9e2ba0c242f0b9de41a3a9db691f62a36d3832bda54dddc87121ba17`.
+- Pubblicazione GitHub: 2026-10-31 17:21:53 UTC, prerelease pubblica con due allegati.
+
+Verificati 192 casi distinti sulla logica finale: 188 ordinari e quattro estesi,
+in due esecuzioni. La prima esecuzione combinata terminava 191/192 per una vecchia
+aspettativa sul preflight di un hard link; aggiornato soltanto il test e ripetuta
+l'intera suite ordinaria, 188/188. Le quattro prove estese erano già passate sulla
+medesima logica. Build senza avvisi o errori. Tre cicli massimi di revisione per
+area, regressioni negative e mutazione isolata documentate in REVIEW-RC4.md e
+TESTS.md. Quattro ulteriori prove sul confezionamento, tutte passate.
+
+Staging nuovo dedicato; compressione e verifica prima di spostare lo ZIP al nome
+definitivo, senza sovrascrivere artefatti. Checksum separato per tentativo. CRC di
+tutte le voci valido; manifesto e ProductVersion dell'eseguibile coincidono con
+versione e commit del tag. Runtime, licenze e istruzioni presenti. Controllati
+percorsi ZIP e assenza di duplicati, link, SDK, test, PDB, allegati privati e
+configurazioni personali; assenti i marcatori del percorso privato nelle quattro
+binarie Porto. Sentinella della vecchia cartella di build esclusa.
+
+ZIP e checksum riscaricati senza autenticazione, entrambi HTTP 200; hash identici
+agli originali, inclusi i digest esposti da GitHub. I primi accessi allo ZIP
+appena pubblicato hanno restituito 404. Il download completo riuscito ha usato
+lo stesso URL pubblico con `?download=1`; il successivo controllo HEAD dell'URL
+senza parametri è HTTP 200. Nessuna modifica agli allegati per risolverlo.
+
+Archivio riscaricato controllato nuovamente ed estratto in una nuova cartella.
+Superati smoke COM, worker, UI normale, UI ridotta in recupero e UI ridotta in
+pausa; nessuna enumerazione o apertura di dispositivi. Ispezionate visivamente
+tutte e tre le immagini del pacchetto scaricato, con versione rc.4 e pulsanti
+visibili. La verifica UI controlla anche la rimozione della stima dopo la pausa.
+
+GitHub Pages ha completato senza errori la build del commit della release.
+HTML e anteprima: HTTP 200 e confronto byte per byte identico ai sorgenti.
+Collegamenti a ZIP, checksum e release rc.4 verificati nel contenuto. Il test
+interattivo del browser della rc.1 non è stato ripetuto.
+
+I tre ZIP precedenti e il checksum locale della rc.3 sono invariati. Nessun costo,
+servizio aggiunto, driver installato o protezione ridotta. Eseguibile non firmato.
+Nessun iPhone reale: rimangono da confermare rilevamento, autorizzazione, driver,
+cavo, stabilità delle risorse e trasferimento effettivo sul PC della cliente.
+La copertura dell'intera libreria Foto e degli originali solo iCloud non è
+certificabile con questi test. È una candidata da provare, non una certificazione
+di assenza di bug. Questo aggiornamento documentale è successivo al tag;
+codice, ZIP e checksum della release rimangono immutati.
