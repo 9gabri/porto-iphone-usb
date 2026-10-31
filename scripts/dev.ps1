@@ -1,4 +1,4 @@
-param([ValidateSet('test','build','publish')][string]$Task='test',[switch]$Large)
+param([ValidateSet('test','build','publish')][string]$Task='test',[switch]$Large,[string]$Output='artifacts/Porto-win-x64')
 $ErrorActionPreference='Stop'
 $root=Split-Path $PSScriptRoot -Parent
 Set-Location -LiteralPath $root
@@ -17,5 +17,5 @@ if($Task -eq 'test'){
     else{& $sdk run --project $project --no-restore -c Release}
 }
 elseif($Task -eq 'build'){& $sdk build $project --no-restore -c Release}
-else{& $sdk publish $project -c Release -r win-x64 --self-contained true --configfile NuGet.Config -p:DebugType=None -p:DebugSymbols=false -o artifacts/Porto-win-x64}
+else{& $sdk publish $project -c Release -r win-x64 --self-contained true --configfile NuGet.Config -p:DebugType=None -p:DebugSymbols=false -o $Output}
 if($LASTEXITCODE -ne 0){throw "$Task failed"}

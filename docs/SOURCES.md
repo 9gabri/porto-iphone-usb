@@ -2,6 +2,11 @@
 
 Consultazione: 30 ottobre 2026. Nessun codice Rollport, AFC/libimobiledevice o DLL Apple non ufficiale riutilizzato.
 
+Verifiche aggiuntive rc.3, 31 ottobre 2026:
+- [Microsoft BY_HANDLE_FILE_INFORMATION](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/ns-fileapi-by_handle_file_information) e [GetFileInformationByHandle](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfileinformationbyhandle): numero di collegamenti NTFS prima di scritture sui file di stato.
+- [SQLite PRAGMA](https://www.sqlite.org/pragma.html): application_id, user_version e schema; sono controlli di compatibilità, non firme di autenticità.
+- [SQLite formato journal](https://sqlite.org/fileformat2.html#the_rollback_journal), [hot journal](https://www.sqlite.org/lockingv3.html#dealing_with_hot_journals) e [pager ufficiale](https://github.com/sqlite/sqlite/blob/master/src/pager.c): validazione prudenziale e recupero su copia locale prima dell'apertura in scrittura.
+
 - [Apple: trasferire foto e video su PC](https://support.apple.com/en-us/120267): collegamento, autorizzazione, Dispositivi Apple e necessità di originali locali per l'importazione USB. Non documenta una garanzia di inventario Foto completo via WPD.
 - [Apple: HEIF/HEVC e Mantieni originali](https://support.apple.com/en-ie/116944): il trasferimento USB può convertire il formato se non si sceglie Keep Originals. Ciò non è una certificazione indipendente di originale non modificato.
 - [Apple: metadati Live Photo](https://developer.apple.com/documentation/avfoundation/avcapturephotosettings/livephotomoviemetadata?language=objc): associazione movie/foto tramite content identifier. La candidata tratta gli indizi incompleti come ambigui.

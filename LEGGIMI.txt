@@ -1,4 +1,4 @@
-PORTO 0.1.0-rc.2 — CANDIDATA WINDOWS 11 x64
+PORTO 0.1.0-rc.3 — CANDIDATA WINDOWS 11 x64
 
 1. Estrai tutta la cartella dello ZIP e apri Porto.exe.
 2. Collega l'iPhone via USB, sbloccalo e autorizza il PC.
@@ -26,9 +26,9 @@ SE L'IPHONE NON COMPARE
 Sbloccalo, ricollega un cavo dati e autorizza il PC. Verifica che sia riconosciuto da Dispositivi Apple, poi chiudi quell'app e premi Cerca iPhone.
 Porto distingue assenza di dispositivi Windows, dispositivo non riconosciuto Apple e metadati non leggibili. Non modifica driver o protezioni.
 
-AGGIORNAMENTO DA rc.1
+AGGIORNAMENTO DA rc.1 / rc.2
 Chiudi la vecchia app ed estrai questo ZIP in una nuova cartella. Riutilizza la destinazione dei video conservando .porto. Non mescolare i file dei due pacchetti.
-Catalogo rc.1 compatibile: viene aggiunto un registro dei lavori pendenti. Usa rc.2 per le importazioni successive.
+I cataloghi Porto riconosciuti vengono migrati. I vecchi lavori pendenti senza una storia sufficiente restano esplicitamente non verificabili: non vengono cancellati per supposizione. Usa rc.3 per le importazioni successive in quella destinazione.
 
 LIMITI DELLA CANDIDATA
 - Nessun iPhone fisico o iOS è stato usato per validarla; implementazione USB WPD reale, prove sintetiche.

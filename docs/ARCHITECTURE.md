@@ -1,43 +1,51 @@
 # Architettura e sicurezza
 
-## Confini
+## USB e processi
 
-Il processo UI usa WinForms e avvia un processo figlio dello stesso eseguibile con `--usb-worker`, stdin/stdout reindirizzati. Solo questo processo tocca WPD. COM in MTA, PortableDeviceFTM, `WPD_CLIENT_DESIRED_ACCESS=GENERIC_READ`, `GetStream(WPD_RESOURCE_DEFAULT, STGM_READ)`. Non esistono chiamate a Delete, SetValues, CreateObject, Write o comandi generici sul dispositivo. I setter Values preparano soltanto la struttura locale delle informazioni client.
+WinForms avvia un processo figlio dello stesso eseguibile con --usb-worker e pipe stdin/stdout. Solo il worker usa WPD: COM in MTA, PortableDeviceFTM, GENERIC_READ e STGM_READ. Non esistono comandi per eliminare, rinominare o modificare contenuti del telefono.
 
-Il worker risponde a un insieme chiuso di comandi: elenco/diagnosi, connessione, inventario, apertura, lettura, chiusura. Nessun comando shell o rete. Timeout di inattività per frame di 60 secondi; progressi tra i singoli oggetti rinnovano il timer, con emissione limitata a circa 4/s. Pausa/timeout terminano solo il figlio creato dall'app. Nessun arresto di processi Apple o di sistema. Fino a tre passaggi con 15 secondi d'attesa cancellabile; worker nuovi solo per lo stesso ID di dispositivo. Errori isolati proseguono con gli altri file; connessione indisponibile, disco pieno e accesso negato sospendono il passaggio.
+I comandi ammessi sono fissi: ricerca/diagnosi, connessione, inventario, apertura, lettura e chiusura. Timeout di 60 secondi e cancellazione coprono invio e ricezione, anche con pipe satura. Frame invalidi, EOF e timeout terminano il worker; un errore remoto valido del singolo file permette di raggiungere gli altri nella stessa sessione. I progressi sono limitati a circa quattro al secondo, anche con metadati illeggibili e conteggio zero.
 
-GetDevices S_FALSE indica inventario troncato: tre tentativi limitati, poi errore, mai una lista completa silenziosamente. La diagnosi distingue zero dispositivi WPD, dispositivi non Apple e metadati insufficienti. Firme native, HRESULT, deallocazione e heartbeat sono provati anche con vtable COM sintetiche.
+Gli ID oggetto non attraversano connessioni WPD: dopo una sessione morta serve un nuovo inventario. ImportSession crea fino a tre passaggi sullo stesso ID dispositivo, con attesa cancellabile di 15 secondi. Nessun cambio automatico di telefono. Disco pieno, permessi mancanti e pausa interrompono il recupero. Il worker possiede al massimo uno stream, liberato prima dell'operazione seguente o alla terminazione; il cleanup del client non può sostituire un errore di copia con un errore di close.
 
-Inventario massimo un milione di oggetti tentati, profondità 128, 10.000 errori; ID vuoti/ripetuti interrompono l'inventario con esito incompleto. Proprietà non leggibili e tipi non esplorati sono errori registrati, non successi silenziosi. Il driver iPhone non viene considerato equivalente a un Android MTP.
+GetDevices S_FALSE provoca tentativi limitati, poi una diagnosi di elenco incompleto. L'inventario ammette al massimo un milione di oggetti tentati, profondità 128 e 10.000 errori. ID vuoti/ripetuti, proprietà illeggibili e rami non esplorati restano errori, non successi silenziosi. COM sintetico e processi figli di test esercitano i confini nativi senza enumerare hardware.
 
-## Transazione e pubblicazione
+## Destinazione e persistenza
 
-La destinazione contiene un lock con FileShare.None. SQLite di Windows usa journal DELETE e synchronous FULL, query parametrizzate. I file hanno UUID interni indipendenti dai nomi sorgente. Stati:
+Destinazioni locali NTFS, percorso breve, nessuna junction/symlink. Un lock esclusivo impedisce due importatori simultanei nella stessa cartella. I percorsi del catalogo non possono uscire dalla destinazione. I file esistenti controllati devono avere un solo collegamento NTFS; un hard link viene rifiutato prima di append o apertura SQLite.
 
-`Copying → Ready → Complete`, oppure `Quarantined`, `Missing`, `Damaged`. Le riparazioni collegano l'intento alla copia mancante con `Replaces`: nuova copia e risoluzione `Replaced` si salvano nella stessa transazione. Un tentativo di riparazione perso o corrotto diventa `Abandoned`, conservando un solo elemento logico da recuperare.
+SQLite di Windows usa query parametrizzate, journal DELETE e synchronous FULL. Catalogo e registro lavori hanno application_id e versione di schema distinti. Prima di aprire un DB esistente in scrittura vengono verificati header, schema completo (incluse colonne nascoste/generate), indici, assenza di trigger/view e compatibilità della versione. Le vecchie strutture Porto riconosciute vengono migrate.
 
-1. Registra intento Copying; crea un nuovo `.part` con CreateNew nello stesso volume oppure riapre esclusivamente un temporaneo Copying appartenente al catalogo. Legge USB dall'inizio e confronta ogni byte esistente sotto lock prima dell'append. Nessun troncamento o riscrittura del prefisso. Divergenze conservano il temporaneo come Abandoned; il nuovo tentativo è separato.
-2. Copia a buffer 1 MiB, SHA-256, contatori Int64. Controllo spazio prima di ogni lettura/scrittura, riserva 64 MiB e controllo preventivo dei volumi noti.
-3. Flush(true), chiusura, hash di rilettura locale. Confronto dimensioni quando dichiarate; discrepanze causano pausa anche se il driver ha fornito una dimensione sbagliata.
-4. Verifica sorgente opzionale e classificazione contenitore. Il parser non decodifica i frame; controlla limiti degli atom, traccia `vide`, `moov` e `mdat`, con limiti a profondità, numero di atom e metadati.
-5. Salva Ready con hash, lunghezza e percorso finale; esegue MoveFileEx senza REPLACE_EXISTING e con WRITE_THROUGH; salva Complete.
+Un journal richiede struttura riconoscibile, dimensioni coerenti e primo record verificabile; i casi troncati o non attribuibili vengono conservati e rifiutati. Porto non usa ATTACH: i riferimenti a super/master-journal vengono respinti prima di aprire SQLite. Un journal recuperabile viene prima provato su una copia locale isolata. Questo è controllo strutturale, non autenticazione crittografica: database e journal non devono essere modificati, sostituiti o mescolati manualmente. Non è una difesa contro un processo locale ostile concorrente. La reale perdita di alimentazione/corruzione del volume resta fuori dalle prove.
 
-Rinomina e catalogo non sono un'unica transazione. Alla ripresa, Ready verifica il finale già esistente oppure il temporaneo prima di completare. Una collisione con contenuto diverso conserva il file estraneo e registra un nuovo percorso prima di rinominare il temporaneo verificato. Un temporaneo danneggiato è marcato Damaged e può essere ricopiato. I file completi vengono controllati per presenza; i candidati riutilizzati vengono anche rihashati. Nessuna rimozione automatica.
+Inventari e report vengono scritti in nuovi temporanei, flushati e pubblicati tramite rinomina senza sostituzione. Un'interruzione può lasciare un file chiaramente temporaneo, non un JSON finale troncato. Il catalogo conserva anche i risultati delle singole operazioni e dei passaggi.
 
-Le garanzie dipendono dal filesystem e dal dispositivo di archiviazione che rispettano flush/atomicità. Non è stata simulata una reale perdita di alimentazione o corruzione del volume. Non è una difesa contro un processo locale ostile che alteri la destinazione durante l'importazione. Il catalogo non deve essere modificato manualmente.
+## Copia e recupero
 
-## Identità e molteplicità
+Stati principali: Copying → Ready → Complete; Quarantined per contenuti ambigui, Missing/Damaged per copie da riparare, Replaced per intenti risolti da una nuova copia. Nessuna cancellazione automatica di video o temporanei di trasferimento.
 
-`work.db` registra transazionalmente tutti i candidati prima della copia, con esiti Pending, Missing, Ambiguous ed Error che sopravvivono ai passaggi. Migrazione conservativa di Copying/Quarantined da rc.1. Una chiave descrittiva serve alla contabilità, mai a saltare il confronto dei contenuti. ID cambiati prima della verifica possono lasciare debito storico esplicito. Una copia verificata reclamata viene associata al descrittore corrente prima della riconciliazione: non si cancella il debito di un altro elemento presente nello stesso inventario. Nessun vero originale Foto viene certificato da questa contabilità.
+1. Registrare l'intento. Creare un .part con nome UUID oppure riaprire solo il temporaneo Copying associato dal catalogo.
+2. Per la ripresa, leggere USB dall'inizio e confrontare ogni byte del prefisso sotto lock. Aggiungere soltanto il suffisso; mai troncare o riscrivere il prefisso. Divergenze conservano il temporaneo come Abandoned.
+3. Copia a buffer 1 MiB, contatori Int64, SHA-256 e controllo spazio durante il lavoro. Riserva di 64 MiB e stima iniziale delle dimensioni note.
+4. Flush(true), chiusura e hash tramite rilettura locale. Confrontare la dimensione dichiarata, quando disponibile. Verifica approfondita con seconda lettura USB; letture discordanti diventano incertezza persistente.
+5. Classificare il contenitore; pubblicare soltanto dopo i controlli. MoveFileEx senza REPLACE_EXISTING e con WRITE_THROUGH. I nomi sorgente vengono sanificati e ricevono un suffisso UUID.
 
-Due inventari sono confrontati indipendentemente dall'ordine, includendo la molteplicità. Un secondo inventario diverso o con errori provoca un altro passaggio limitato, senza dichiarare il lavoro completo. Non è uno snapshot atomico del telefono. Le copie con la stessa dimensione non causano una lettura USB preventiva quando non ci sono più copie locali reclamabili. Riconciliazione e riparazione usano code per hash/lunghezza, senza ricerche quadratiche per video identici.
+Rinomina e SQLite non sono un'unica transazione. Alla ripresa, Ready verifica il finale o il temporaneo prima di completare. Collisioni conservano il file estraneo e registrano un nuovo percorso. Le riparazioni collegano copia nuova e intento Missing/Damaged in una transazione; la copia danneggiata rimane conservata. L'errore di rilevamento resta nel report del relativo passaggio, ma non è riproposto per sempre dopo una riparazione riuscita.
 
-Gli ID WPD non sono chiavi sufficienti per la deduplicazione. Per possibili copie precedenti, si legge tutta la sorgente, si confrontano SHA-256 e lunghezza e si verifica la copia locale. Ogni record può essere reclamato una sola volta per inventario; nuove copie sono immediatamente reclamate. Tre elementi identici nell'inventario producono tre file, non uno. Il confronto considera anche temporanei ambigui già verificati, per non moltiplicarli alle riprese.
+## Contabilità dei video
 
-La molteplicità è per cartella di destinazione, non un'identità Foto attestata da Apple. Un cambio di iPhone/libreria nella stessa destinazione può riutilizzare contenuti identici: usare una cartella per libreria. Nessuna deduplicazione di file non presenti nel catalogo.
+La chiave descrittiva non prova identità. work.db mantiene osservazioni, inventari, fingerprint e conteggi per contenuto: si conserva un limite prudenziale alla molteplicità storica, invece di considerare permanentemente equivalenti ID che hanno restituito gli stessi byte. Snapshot e contatori vengono aggiornati transazionalmente, senza materializzare coppie quadratiche.
 
-## Percorsi e dati
+Un elemento appena osservato è anche unread. Solo una lettura attuale completa con le verifiche richieste può cancellare tale stato; un fingerprint storico o un alias successivo non può far sparire un elemento non riletto. Identità con byte differenti e debiti legacy senza una storia sufficiente restano non verificabili. Non si inventa una prova per trasformare il risultato in successo.
 
-Nomina locale sanificata, prefisso V_, suffisso UUID; estensione ammessa o dedotta dal contenitore. Le stringhe USB non diventano percorsi. Catalogo con traversal o percorsi assoluti rifiutato; junction/symlink e destinazioni non NTFS/rete rifiutate. Processo senza elevazione. Il catalogo e i report contengono nomi e identificatori solo locali: non pubblicarli senza controllarli.
+Il riuso richiede lettura completa della sorgente, hash e lunghezza coincidenti e rilettura della copia locale scelta. Ogni copia può essere assegnata una sola volta nell'inventario corrente. Le copie aggiuntive necessarie ai conteggi storici non vengono rimesse nella coda dello stesso passaggio. I deficit provati possono attivare ulteriori passaggi limitati. Due inventari vengono confrontati includendo la molteplicità, ma non costituiscono uno snapshot atomico di Foto.
 
-Nessuna telemetria, aggiornamento automatico, account, credenziale o upload implementato nell'app. Le dipendenze native vengono cercate in System32. L'eseguibile usa librerie runtime presenti nel pacchetto; preservare l'integrità dell'intera cartella estratta.
+Usare una cartella per telefono/libreria. L'identità tra librerie differenti, gli originali Foto e gli elementi solo iCloud non sono certificabili da questi confronti. I cataloghi non devono essere rimossi o modificati manualmente.
+
+## Formati, interfaccia e privacy
+
+Il parser controlla limiti degli atom, gerarchia moov/trak/mdia/hdlr, traccia vide e mdat, con limiti di profondità, numero di atom e metadati. Non decodifica i fotogrammi e non certifica riproducibilità o originalità. Le indicazioni Live Photo/varianti ambigue impediscono la pubblicazione automatica fra i video autonomi.
+
+La cartella scelta viene ricordata solo nel profilo locale. Durante il lavoro viene richiesta la prevenzione della sospensione inattiva; blocco schermo e sospensione manuale restano invariati. Nessuna elevazione, installazione di driver, telemetria, account, upload o aggiornamento automatico. Cataloghi e report contengono nomi/ID locali: non pubblicarli senza controllarli.
+
+Le dipendenze native vengono cercate in System32. Il pacchetto include il runtime Microsoft e viene costruito in uno staging nuovo per ogni release; non incorpora residui delle build precedenti. L'eseguibile è non firmato. La compatibilità con un iPhone fisico deve ancora essere provata.

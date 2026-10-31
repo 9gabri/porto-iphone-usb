@@ -1,28 +1,29 @@
-# Porto 0.1.0-rc.2
+# Porto 0.1.0-rc.3
 
 Candidata Windows 11 x64 per copiare in massa i video accessibili dell'iPhone via USB.
-Archivio pronto con runtime incluso: estrarre tutta la cartella e aprire Porto.exe.
+Estrarre tutta la cartella e aprire Porto.exe; runtime incluso.
 
-Recupero automatico fino a tre passaggi, prosecuzione oltre errori isolati, ripresa
-dei temporanei tramite confronto e append, registro persistente dei video pendenti
-e confronto finale dell'inventario. Diagnosi del telefono non rilevato e pulsanti
-sempre visibili nelle finestre ridotte.
+La revisione avversaria ha corretto conteggi storici di video identici, letture
+pendenti cancellate da vecchi fingerprint, riuso di ID dopo riconnessione e
+blocco dei file sani dopo un errore. Timeout e Pausa coprono anche i comandi.
 
-74 casi sintetici verificati (70 ordinari e 4 estesi), revisioni indipendenti,
-2.000 copie effettive con secondo passaggio senza duplicati, 50.000 elementi e un
-file oltre 4 GB realmente scritto e riletto su NTFS. Smoke UI, COM e worker del
-pacchetto senza enumerare hardware. Nessun accesso a file personali.
+Aggiunti controlli su hard link, cataloghi/journal estranei, report atomici,
+gerarchia dei contenitori e confezionamento in una cartella nuova.
+Tutti i 124 test finali sono passati. Le prove comprendono crash reali di processi sintetici, pipe sature, migrazioni,
+file oltre 4 GB e clip MOV/MP4/M4V H.264/HEVC generate localmente.
 
-**Rimane una candidata da provare: nessun trasferimento con iPhone reale validato.**
-Non garantisce zero bug né copia degli originali presenti soltanto su iCloud.
-Nessuna modifica al telefono, cancellazione automatica, conversione o upload.
-Eseguibile non firmato; non richiede di disattivare antivirus o altre protezioni.
+**Nessun trasferimento con iPhone reale è stato validato.** Rimane una candidata,
+senza promessa di zero bug o copertura degli originali presenti soltanto su iCloud.
+Il telefono è utilizzato in sola lettura. Nessun servizio a pagamento introdotto.
 
-Per aggiornare: chiudere rc.1, estrarre rc.2 in una cartella nuova, scegliere la
-stessa destinazione conservando .porto. Non mescolare i file dei due pacchetti.
-Una destinazione per telefono/libreria; locale NTFS.
+Per aggiornare: chiudere la vecchia app ed estrarre rc.3 separatamente. Conservare
+la destinazione con .porto e usare la nuova versione per le importazioni successive.
+Vecchi lavori pendenti senza storia sufficiente rimangono esplicitamente incerti.
+Usare una cartella locale NTFS dedicata a un solo telefono/libreria.
 
-[Istruzioni](https://9gabri.github.io/porto-iphone-usb/) · [Prove e limiti](https://github.com/9gabri/porto-iphone-usb/blob/v0.1.0-rc.2/docs/TESTS.md) · [Revisione](https://github.com/9gabri/porto-iphone-usb/blob/v0.1.0-rc.2/docs/REVIEW-RC2.md)
+Eseguibile non firmato; non disattivare antivirus o altre protezioni.
 
-Scaricare lo ZIP Windows e SHA256SUMS.txt dagli allegati della release.
+[Istruzioni](https://9gabri.github.io/porto-iphone-usb/) · [Prove e limiti](https://github.com/9gabri/porto-iphone-usb/blob/v0.1.0-rc.3/docs/TESTS.md) · [Revisione](https://github.com/9gabri/porto-iphone-usb/blob/v0.1.0-rc.3/docs/REVIEW-RC3.md)
+
+Scaricare Porto-0.1.0-rc.3-win-x64.zip e SHA256SUMS.txt dagli allegati.
 Gli archivi Source code sono per sviluppatori.

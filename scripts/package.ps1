@@ -7,8 +7,13 @@ $version=$Matches[1]
 [xml]$props=Get-Content -LiteralPath 'Directory.Build.props'
 if($props.Project.PropertyGroup.Version -ne $version){throw 'Tag and application version differ'}
 if((git status --porcelain)){throw 'Commit all source changes before packaging'}
-& "$PSScriptRoot/dev.ps1" publish
-$output=Join-Path $root 'artifacts/Porto-win-x64'
+$archive=Join-Path $root "artifacts/Porto-$version-win-x64.zip"
+if(Test-Path -LiteralPath $archive){throw 'Archive already exists; preserve release artifacts'}
+# Each release gets a new empty staging directory; ignored files from older builds cannot leak.
+$stage=Join-Path $root ('artifacts/package-'+$version+'-'+[Guid]::NewGuid().ToString('N'))
+New-Item -ItemType Directory -Path $stage -ErrorAction Stop | Out-Null
+$output=Join-Path $stage 'Porto-win-x64'
+& "$PSScriptRoot/dev.ps1" publish -Output $output
 foreach($name in @('LEGGIMI.txt','LICENSE','THIRD-PARTY-NOTICES.md')){Copy-Item -LiteralPath $name -Destination $output}
 Copy-Item -LiteralPath '.tools/packages/microsoft.netcore.app.runtime.win-x64/10.0.14/LICENSE.TXT' -Destination "$output/LICENSE-DOTNET.txt"
 Copy-Item -LiteralPath '.tools/packages/microsoft.netcore.app.runtime.win-x64/10.0.14/THIRD-PARTY-NOTICES.TXT' -Destination "$output/THIRD-PARTY-DOTNET.txt"
@@ -32,8 +37,6 @@ foreach($imageName in @('package-ui.png','package-ui-compact-retry.png')){
     if(!$p.WaitForExit(15000)){Stop-Process -Id $p.Id;throw 'UI timeout'}
     if($p.ExitCode -ne 0){throw 'UI failed'}
 }
-$archive=Join-Path $root "artifacts/Porto-$version-win-x64.zip"
-if(Test-Path -LiteralPath $archive){throw 'Archive already exists; preserve release artifacts'}
 Compress-Archive -LiteralPath $output -DestinationPath $archive -CompressionLevel Optimal
 $hash=(Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
 "$hash  $(Split-Path $archive -Leaf)" | Set-Content -LiteralPath 'artifacts/SHA256SUMS.txt' -Encoding ascii

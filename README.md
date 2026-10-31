@@ -1,8 +1,8 @@
 # Porto
 
-App locale italiana per importare via USB i video accessibili di un iPhone su Windows 11 x64. Versione **0.1.0-rc.2**, candidata sperimentale: il collegamento WPD è reale, ma **nessun iPhone fisico è stato utilizzato per validarla**.
+App locale italiana per importare via USB i video accessibili di un iPhone su Windows 11 x64. Versione **0.1.0-rc.3**, candidata sperimentale: il collegamento WPD è reale, ma **nessun iPhone fisico è stato utilizzato per validarla**.
 
-[Pagina e istruzioni](https://9gabri.github.io/porto-iphone-usb/) · [Download Windows](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.2/Porto-0.1.0-rc.2-win-x64.zip) · [Checksum SHA-256](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.2/SHA256SUMS.txt)
+[Pagina e istruzioni](https://9gabri.github.io/porto-iphone-usb/) · [Download Windows](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.3/Porto-0.1.0-rc.3-win-x64.zip) · [Checksum SHA-256](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.3/SHA256SUMS.txt)
 
 ## Provala
 
@@ -15,6 +15,10 @@ L'app inventaria prima di copiare e non richiede selezioni di file o lotti. **Pa
 Gli errori di singoli video lasciano proseguire gli altri. Errori di connessione o inventario attivano fino a **tre passaggi automatici**, con attese cancellabili di 15 secondi. Ogni passaggio usa un collegamento nuovo allo stesso dispositivo. Disco pieno o permessi insufficienti sulla destinazione richiedono una pausa. Gli errori permanenti restano nel report: nessun retry infinito.
 
 Al termine viene riletto l'inventario USB: se cambia o rimane incompleto, il risultato non è dichiarato completo. Le osservazioni precedenti ancora pendenti restano visibili. Se gli identificatori cambiano prima che un contenuto sia verificato, può restare un debito storico non riconciliabile: non viene cancellato per ottenere un risultato verde. Il confronto non è uno snapshot atomico della libreria Foto.
+
+La rc.3 conserva anche il numero minimo storico di copie identiche provato dagli inventari: pause e successivi cambi di ID non possono azzerare un duplicato ancora dovuto. Dopo la perdita della sessione USB è obbligatorio un inventario nuovo; gli errori del singolo file non bloccano quelli successivi. Report e inventari vengono pubblicati dopo scrittura e flush completi. Cataloghi estranei e file con hard link vengono rifiutati senza modificarli.
+
+Per aggiornare, chiudi la versione precedente ed estrai il nuovo ZIP separatamente. Conserva la destinazione con `.porto`. I lavori pendenti delle vecchie versioni privi di storia sufficiente restano segnalati come non verificabili anche dopo nuove copie; non vengono dichiarati risolti per supposizione. Dopo la migrazione usa la nuova versione per quella destinazione.
 
 Se il telefono non compare, **Cerca iPhone** distingue nessun dispositivo portatile esposto da Windows, nessun dispositivo identificato Apple e metadati non leggibili. Verifica prima il riconoscimento in **Dispositivi Apple**. Una lista vuota può richiedere ulteriore diagnosi di Porto/driver.
 

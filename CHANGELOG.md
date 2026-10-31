@@ -1,5 +1,20 @@
 # Novità
 
+## 0.1.0-rc.3 — revisione avversaria
+
+- Conservata la molteplicità storica dei video identici attraverso pause, cambi di ID, alias che ricompaiono insieme e variazioni dell'inventario finale.
+- Recupero dei file danneggiati senza cancellarli e senza riproporre per sempre un errore già riparato.
+- Sessione USB persa: nuovo inventario obbligatorio. Errori per file distinti da morte del worker; quelli sani proseguono.
+- Timeout e Pausa coprono anche l'invio di comandi; progressi iniziali limitati per evitare code eccessive nell'interfaccia.
+- Controlli dei collegamenti NTFS e della provenienza strutturale di cataloghi e journal; report e inventari pubblicati atomicamente.
+- Gerarchia della traccia MOV/MP4/M4V verificata; prove anche con clip H.264 e HEVC generate e decodificate localmente.
+- Pacchetto costruito in una cartella nuova per escludere residui delle build precedenti.
+
+Restano da verificare iPhone, iOS, cavo e driver reali. La revisione non certifica
+assenza di bug, riproducibilità di qualsiasi video o copertura dell'intera libreria.
+I debiti legacy senza storia sufficiente e le identità con contenuti discordanti
+rimangono esplicitamente incerti. Nessun nuovo servizio, acquisto o permesso.
+
 ## 0.1.0-rc.2 — revisione di affidabilità
 
 ### Corretto

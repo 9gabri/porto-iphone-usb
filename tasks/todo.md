@@ -20,3 +20,13 @@
 - [x] UI: diagnostica, DPI e avanzamento, cartella ricordata, versione visibile.
 - [x] Verifica: suite estesa, stress, mutazione, revisione e smoke pacchetto senza USB.
 - [x] Release: codice/tag coerenti, ZIP, checksum, sito e download verificato.
+
+## rc.3 — revisione avversaria conclusiva
+- [x] Revisori con contesto nuovo e riproduzioni sulla baseline.
+- [x] Molteplicità, letture pendenti, conflitti e riparazioni.
+- [x] Errori per file, sessioni USB, pipe e progressi.
+- [x] Hard link, cataloghi/journal, report e gerarchia media.
+- [x] Clip codificate generate localmente, mutazione isolata e build UI.
+- [x] Suite finale ordinaria e scala, risultati consolidati: 124/124.
+- [ ] Pacchetto con staging nuovo, ZIP e codice coerenti.
+- [ ] Pubblicazione, download indipendente e verifica finale.

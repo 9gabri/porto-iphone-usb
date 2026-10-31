@@ -1,5 +1,6 @@
-PORTO rc.2: synthetic verification only; no hardware enumeration
-ORDINARY FINAL SUITE
+PORTO rc.3: synthetic verification only; no hardware enumeration
+FINAL SUITE: 120 ordinary + 4 extended tests
+
 PASS copy and independently reread SHA256
 PASS truncation rejected
 PASS unexpected extra bytes rejected
@@ -61,6 +62,56 @@ PASS resume capacity estimate counts only remaining suffix
 PASS offline size does not prevent accessible video copy
 PASS three unreadable videos do not starve following healthy items
 PASS claiming a prior copy cannot erase another current duplicate obligation
+PASS ledger reverse return retains a co-observed duplicate
+PASS ledger alias chain cannot erase duplicate multiplicity
+PASS ledger previously equivalent aliases can later coexist
+PASS ledger final inventory preserves simultaneous duplicate debt
+PASS ledger verified duplicate counts survive several ordinary ID changes
+PASS ledger corruption repair preserves old payload and clears future failure
+PASS ledger changed bytes under identical metadata remain explicitly ambiguous
+PASS ledger current unprocessed item cannot be settled by its historical fingerprint
+PASS ledger disagreement on a requested second source read remains persistent
+PASS ledger rechecks the actual local copy after an earlier group verification
+PASS ledger a multi-copy deficit retries until the historical count is restored
+PASS ledger legacy pending debt without inventory provenance cannot disappear
+PASS ledger multiplicity recovery at after-ready reuses each copy once
+PASS ledger multiplicity recovery at after-rename reuses each copy once
+PASS ledger multiplicity recovery at after-complete reuses each copy once
+PASS blocked stdin write respects timeout and disposes promptly
+PASS blocked stdin write respects pause and disposes promptly
+PASS failed WPD session requires a new inventory before any further object read
+PASS remote per-file errors do not starve healthy videos in a full import session
+PASS remote stream disposal preserves the primary copy error
+PASS remote stream disposal preserves the primary cancellation
+PASS repeated zero inventory progress is throttled and each inventory starts immediately
+PASS state hard links are rejected without changing unrelated files
+PASS a resumed hard-linked partial never appends to the unrelated file
+PASS foreign SQLite database is rejected before any mutation
+PASS foreign journal alongside a Porto catalog is preserved and rejected
+PASS unattributable journal is preserved: empty
+PASS unattributable journal is preserved: single zero
+PASS unattributable journal is preserved: zero prefix and foreign payload
+PASS unattributable journal is preserved: zero sector
+PASS generated columns cannot hide foreign work schema from ownership checks
+PASS incomplete or foreign journal structure is preserved: hot header without a record
+PASS incomplete or foreign journal structure is preserved: hot header with one record byte
+PASS incomplete or foreign journal structure is preserved: non-hot header with foreign padding
+PASS recognized legacy SQLite schemas migrate without losing records
+PASS unrecognized catalog ownership or schema is rejected: PRAGMA application_id=1234
+PASS unrecognized catalog ownership or schema is rejected: PRAGMA user_version=99
+PASS unrecognized catalog ownership or schema is rejected: CREATE TABLE unexpected(value TEXT)
+PASS unrecognized catalog ownership or schema is rejected: CREATE TRIGGER unexpected AFTER INSERT ON runs BEGIN DELETE FROM files; END
+PASS legacy hot rollback journal recovers after ownership validation
+PASS complete native non-hot journal remains recoverable
+PASS super-journal footer cannot touch an external file: journal
+PASS super-journal footer cannot touch an external file: journal-nonhot
+PASS failed atomic report writes expose no partial final file
+PASS process termination during report write leaves only a temporary file
+PASS report JSON and text are published complete
+PASS handler depth cannot impersonate the moov trak mdia hierarchy
+PASS encoded synthetic media is copied byte for byte: synthetic-h264.mov
+PASS encoded synthetic media is copied byte for byte: synthetic-h264.m4v
+PASS encoded synthetic media is copied byte for byte: synthetic-hevc.mp4
 PASS responsive long worker operation renews per-frame deadline
 PASS malformed null frame invalidates worker
 PASS malformed kind frame invalidates worker
@@ -70,15 +121,19 @@ PASS native discovery ABI propagates 00000000 and releases allocated strings
 PASS native discovery ABI propagates 00000001 and releases allocated strings
 PASS native discovery ABI propagates 80004005 and releases allocated strings
 PASS native inventory emits progress between metadata calls and ends on S_FALSE
-70/70 passed
-EXTENDED SCALE CASES (same core; separate run)
-  LARGE stream: 4294967313 bytes, 2,25s, working set 79 MiB
+  LARGE stream: 4294967313 bytes, 2,40s, working set 73 MiB
 PASS stream beyond 4 GiB: 4 GiB + 17 bytes actually read and hashed without disk allocation
-  LARGE inventory: 50000 items, 250 GB logical, 1,03s, working set 210 MiB
+  LARGE inventory: 50000 items, 250 GB logical, 3,48s, working set 221 MiB
 PASS 50000-item inventory and 250 GB logical capacity without writing payload
-  STRESS full loop: 2000 physical files twice verified, 50000 entries, 214,05s, working set 158 MiB
+  STRESS full loop: 2000 physical files twice verified, 50000 entries, 296,07s, working set 184 MiB
 PASS 50000 inventory entries with 2000 actual copies and verified second pass
-  LARGE NTFS: 4294971392 bytes written and reread, 8,72s, working set 110 MiB
+  LARGE NTFS: 4294971392 bytes written and reread, 8,47s, working set 113 MiB
 PASS video over 4 GiB actually written verified and published on NTFS
-MUTATION: inverted prefix comparison -> expected failure detected (0/1); source restored before final build.
-TOTAL: 74 distinct passing cases (70 ordinary + 4 extended).
+124/124 passed
+
+NEGATIVE CONTROLS (separate isolated source copies)
+EXPECTED FAIL: 3/3 reproduced regressions on rc.2 baseline
+EXPECTED FAIL: 1/1 focused multiplicity test on intentionally mutated comparison
+No mutated source is included in the release.
+App build: 0 warnings, 0 errors.
+Encoded synthetic fixtures were also decoded locally with FFmpeg.
