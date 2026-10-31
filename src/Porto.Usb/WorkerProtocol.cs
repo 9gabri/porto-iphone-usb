@@ -1,10 +1,22 @@
 using System.Text;
 using System.Text.Json;
+using System.Runtime.InteropServices;
 using Porto.Core;
 
 namespace Porto.Usb;
 
 public sealed record Command(string Op,string? Device=null,string? Object=null,int Count=0);
+internal sealed record WorkerSessionError(string Message,int? NativeHResult)
+{
+    public static WorkerSessionError From(Exception error)
+    {
+        for(Exception? current=error;current!=null;current=current.InnerException)
+            if(current is COMException)return new(error.Message,current.HResult);
+        return new(error.Message,null);
+    }
+    public SourceUnavailableException ToException()=>new(Message,
+        NativeHResult.HasValue?new COMException(Message,NativeHResult.Value):null);
+}
 public static class WorkerProtocol
 {
     public static int Run()
@@ -41,8 +53,15 @@ public static class WorkerProtocol
                         default:throw new IOException("Operazione non supportata.");
                     }
                 }
-                catch(Exception ex) when(ex is IOException or InvalidDataException or UnauthorizedAccessException or System.Runtime.InteropServices.COMException)
-                {Frame(3,Encoding.UTF8.GetBytes(ex.Message));}
+                catch(Exception ex) when(ex is IOException or InvalidDataException or UnauthorizedAccessException or COMException)
+                {
+                    if(ex is SourceUnavailableException||ex is COMException&&Com.IsSessionLost(ex.HResult))
+                    {
+                        Frame(4,JsonSerializer.SerializeToUtf8Bytes(WorkerSessionError.From(ex)));
+                        return 1; // No further command may use object IDs from this connection.
+                    }
+                    Frame(3,Encoding.UTF8.GetBytes(ex.Message));
+                }
             }
             return 0;
         }

@@ -157,11 +157,12 @@ internal static class AdversarialLedgerTests
             using var destination = new Destination(Root());
             var a = Item("a"); var b = Item("b");
             byte[] bytes = Video();
-            string relative = Path.Combine("Video Porto", "legacy.mov");
+            string id = Guid.NewGuid().ToString("N");
+            string relative = Path.Combine("Video Porto", Destination.SafeStem(b.Name) + "_" + id + ".mov");
             File.WriteAllBytes(destination.Resolve(relative), bytes);
             var content = VerifiedCopy.Hash(new MemoryStream(bytes), default);
             using (var catalog = new Catalog(destination))
-                catalog.Save(new("legacy", "Complete", Path.Combine(".porto", "legacy.part"), relative, content.Hash, content.Length, b));
+                catalog.Save(new(id, "Complete", Path.Combine(".porto", id + ".part"), relative, content.Hash, content.Length, b));
             string Quote(string value) => "'" + value.Replace("'", "''", StringComparison.Ordinal) + "'";
             string Row(SourceItem item, string outcome) => $"({Quote(WorkLedger.Key(item))},{Quote(JsonSerializer.Serialize(item))},{Quote(outcome)},'synthetic rc2 work')";
             LegacyDatabase.Create(Path.Combine(destination.State, "work.db"),

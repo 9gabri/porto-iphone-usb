@@ -119,7 +119,7 @@ public sealed unsafe class WpdSource : IVideoSource
                                 else if(media==MediaKind.Unknown&&!MediaInspector.Candidate(item))
                                     Error($"Tipo USB non riconosciuto per {name}; contenuto non esplorato.");
                             }
-                            catch(IOException ex){Error($"Metadati elemento {items.Count+1}: {ex.Message}");}
+                            catch(IOException ex)when(ex is not SourceUnavailableException){Error($"Metadati elemento {items.Count+1}: {ex.Message}");}
                             InventoryProgress?.Invoke(items.Count);
                         }
                     }
@@ -128,7 +128,7 @@ public sealed unsafe class WpdSource : IVideoSource
                     if(fetched==0||hr==1)break;
                 }
             }
-            catch(IOException ex){Error("Enumerazione cartella USB: "+ex.Message);}
+            catch(IOException ex)when(ex is not SourceUnavailableException){Error("Enumerazione cartella USB: "+ex.Message);}
         }
         }catch(EnumerationStoppedException ex){errors.Add(ex.Message);}
         return new(items,errors,errors.Count==0);

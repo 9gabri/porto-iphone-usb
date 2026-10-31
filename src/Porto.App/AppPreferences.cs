@@ -1,23 +1,33 @@
 using System.Runtime.InteropServices;
+using Porto.Core;
 
 namespace Porto.App;
 
 internal static class AppPreferences
 {
     private static string PathName=>Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"Porto","destination.txt");
-    public static string LoadFolder()
+    public static string LoadFolder()=>LoadFolder(PathName);
+    internal static string LoadFolder(string path)
     {
         try
         {
-            if(!File.Exists(PathName)||new FileInfo(PathName).Length>4096)return "";
-            string folder=File.ReadAllText(PathName).Trim();
+            Destination.CheckAncestors(path);
+            if(!File.Exists(path)||new FileInfo(path).Length>4096)return "";
+            string folder=File.ReadAllText(path).Trim();
             return folder.Length<=120&&!folder.Contains('\0')&&Path.IsPathFullyQualified(folder)?folder:"";
         }
         catch(Exception ex)when(ex is IOException or UnauthorizedAccessException or ArgumentException){return "";}
     }
-    public static void SaveFolder(string folder)
+    public static void SaveFolder(string folder)=>SaveFolder(PathName,folder);
+    internal static void SaveFolder(string path,string folder)
     {
-        try{Directory.CreateDirectory(Path.GetDirectoryName(PathName)!);File.WriteAllText(PathName,folder);}
+        try
+        {
+            Destination.CheckAncestors(path);
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            Destination.CheckAncestors(path);
+            File.WriteAllText(path,folder);
+        }
         catch(Exception ex)when(ex is IOException or UnauthorizedAccessException){/* Optional preference; copy is unaffected. */}
     }
 }

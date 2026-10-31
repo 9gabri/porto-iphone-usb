@@ -24,6 +24,9 @@ public sealed class ImportReport
     public bool FinalInventoryChecked { get; set; }
     public bool RetryRecommended { get; set; }
     public bool StoppedForCapacity { get; set; }
+    // Runtime scheduling hints only; metadata never establishes identity or completion.
+    [System.Text.Json.Serialization.JsonIgnore]
+    public List<RetryHint> RetryLast { get; } = [];
     public int CandidateCount { get; set; }
     public int Attempt { get; set; } = 1;
     public List<string> InventoryErrors { get; set; } = [];

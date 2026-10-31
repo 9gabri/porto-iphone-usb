@@ -11,13 +11,17 @@ public sealed class ImportSession(Func<IVideoSource> createSource, Destination d
     public ImportReport Run(bool deep, CancellationToken cancel)
     {
         ImportReport? latest=null;
+        var retryLast=new List<RetryHint>();
         for(int attempt=1;attempt<=MaximumAttempts;attempt++)
         {
             if(cancel.IsCancellationRequested)break;
             Attempts=attempt;
             using var source=createSource();
-            var engine=new ImportEngine(source,destination,disk){Progress=Progress,Attempt=attempt};
+            var engine=new ImportEngine(source,destination,disk){Progress=Progress,Attempt=attempt,RetryLast=retryLast};
             latest=engine.Run(deep,cancel);ReportPath=engine.ReportPath;
+            // A failed read must not monopolize every fresh session. The hints only reorder
+            // the next inventory; every item still needs its own complete content verification.
+            retryLast.AddRange(latest.RetryLast);
             if(!latest.RetryRecommended||cancel.IsCancellationRequested||attempt==MaximumAttempts)break;
             Progress?.Invoke(new("Recupero automatico",$"Tentativo {attempt+1}/{MaximumAttempts} tra {RetryDelay.TotalSeconds:0} secondi. Sblocca o ricollega lo stesso iPhone. Pausa interrompe l'attesa.",0,latest.CandidateCount,0,null,null));
             if(cancel.WaitHandle.WaitOne(RetryDelay))break;

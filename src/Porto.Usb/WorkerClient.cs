@@ -6,7 +6,7 @@ using Porto.Core;
 
 namespace Porto.Usb;
 
-// A complete error response rejects one operation without invalidating the transport or its object IDs.
+// Frame 3 rejects one operation; frame 4 invalidates the connection and its object IDs.
 internal sealed class RemoteOperationException(string message):IOException(message);
 
 public sealed class WorkerClient : IVideoSource
@@ -39,9 +39,9 @@ public sealed class WorkerClient : IVideoSource
         var response=Exchange(command,cancel);
         if(response.Kind!=0)throw ProtocolError("Risposta USB inattesa.");
         try{return JsonSerializer.Deserialize<T>(response.Data)??throw ProtocolError("Risposta USB vuota.");}
-        catch(JsonException ex){Dispose();throw new IOException("Risposta USB non leggibile.",ex);}
+        catch(JsonException ex){Dispose();throw new SourceUnavailableException("Risposta USB non leggibile. Serve un nuovo inventario.",ex);}
     }
-    private IOException ProtocolError(string message){Dispose();return new IOException(message);}
+    private SourceUnavailableException ProtocolError(string message){Dispose();return new SourceUnavailableException(message);}
     private (byte Kind,byte[] Data) Exchange(Command command,CancellationToken cancel)
     {
         ObjectDisposedException.ThrowIf(disposed,this);
@@ -60,14 +60,22 @@ public sealed class WorkerClient : IVideoSource
                 byte[] data=new byte[size];Read(data,cancel);
                 if(header[0]==1){int progress=JsonSerializer.Deserialize<int>(data);InventoryProgress?.Invoke(progress);continue;}
                 if(header[0]==3)throw new RemoteOperationException(Encoding.UTF8.GetString(data));
+                if(header[0]==4)
+                {
+                    var failure=JsonSerializer.Deserialize<WorkerSessionError>(data);
+                    if(failure==null||string.IsNullOrWhiteSpace(failure.Message))throw ProtocolError("Errore di sessione USB non leggibile.");
+                    throw failure.ToException();
+                }
                 return(header[0],data);
             }
         }
         catch(RemoteOperationException){throw;}
+        catch(SourceUnavailableException){Dispose();throw;}
         catch(OperationCanceledException){Dispose();throw;}
-        catch(TimeoutException){Dispose();throw new IOException($"Il telefono non risponde da {Timeout.TotalSeconds:0} secondi. Sbloccalo o ricollegalo; Porto tenterà il recupero.");}
-        catch(JsonException ex){Dispose();throw new IOException("Risposta USB non valida.",ex);}
-        catch(Exception ex) when(ex is IOException or InvalidDataException){Dispose();throw;}
+        catch(TimeoutException ex){Dispose();throw new SourceUnavailableException($"Il telefono non risponde da {Timeout.TotalSeconds:0} secondi. Sbloccalo o ricollegalo; Porto tenterà il recupero con un nuovo inventario.",ex);}
+        catch(JsonException ex){Dispose();throw new SourceUnavailableException("Risposta USB non valida. Serve un nuovo inventario.",ex);}
+        catch(Exception ex) when(ex is IOException or InvalidDataException)
+        {Dispose();throw new SourceUnavailableException("La comunicazione USB è stata interrotta. Serve un nuovo inventario. "+ex.Message,ex);}
     }
     private void Read(byte[] data,CancellationToken cancel)
     {

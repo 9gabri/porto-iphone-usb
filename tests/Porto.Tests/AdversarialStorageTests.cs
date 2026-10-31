@@ -32,8 +32,11 @@ internal static class AdversarialStorageTests
             var item=FakeSource.One(video).Inventory(default).Items.Single();
             using(var catalog=new Catalog(destination))catalog.Save(new(id,"Copying",relative,"",null,0,item));
             HardLink(Path.Combine(destination.Root,relative),external);
-            var report=new ImportEngine(FakeSource.One(video),destination).Run(false,default);
-            Fixtures.Check(!report.Status.StartsWith("Completati")&&report.Count(Outcome.Imported)==0);
+            var source=FakeSource.One(video);
+            byte[] catalogBefore=File.ReadAllBytes(Path.Combine(destination.State,"catalog.db"));
+            Fixtures.Throws<IOException>(()=>new ImportEngine(source,destination).Run(false,default));
+            Fixtures.Check(source.Reads==0&&Directory.GetFiles(destination.Videos).Length==0);
+            Fixtures.Check(File.ReadAllBytes(Path.Combine(destination.State,"catalog.db")).SequenceEqual(catalogBefore));
             Fixtures.Check(File.ReadAllBytes(external).SequenceEqual(prefix));
         }));
         tests.Add(("foreign SQLite database is rejected before any mutation",()=>

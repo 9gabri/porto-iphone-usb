@@ -45,8 +45,9 @@ internal static class ReliabilityTests
         }));
         tests.Add(("legacy Copying and quarantine cannot disappear under empty inventory",()=>{
             using var d=new Destination(Root());var source=new SourceItem("legacy","p","clip.mov",MediaKind.Video,50);
-            using(var c=new Catalog(d))c.Save(new("old","Copying",Path.Combine(".porto","old.part"),"",null,0,source));
-            File.WriteAllBytes(Path.Combine(d.State,"old.part"),[1,2,3]);
+            string id=Guid.NewGuid().ToString("N");
+            using(var c=new Catalog(d))c.Save(new(id,"Copying",Path.Combine(".porto",id+".part"),"",null,0,source));
+            File.WriteAllBytes(Path.Combine(d.State,id+".part"),[1,2,3]);
             Fixtures.Check(new ImportEngine(new FakeSource([],[]),d).Run(false,default).Count(Outcome.Pending)==1);
             new ImportEngine(FakeSource.One(Video(marker:"com.apple.quicktime.content.identifier")),d).Run(false,default);
             var report=new ImportEngine(new FakeSource([],[]),d).Run(false,default);

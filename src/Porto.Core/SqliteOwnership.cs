@@ -41,18 +41,42 @@ internal static class SqliteOwnership
         }
         if(File.Exists(path+"-wal")||File.Exists(path+"-shm"))throw Foreign();
         string inspect=path;
+        string? snapshot=null;
         bool journal=File.Exists(path+"-journal");
-        if(journal)
+        try
         {
-            ValidateJournal(path,databasePageSize,databaseLength);
-            string snapshot=Path.Combine(Path.GetDirectoryName(path)!,".porto-validation-"+Guid.NewGuid().ToString("N"));
-            Destination.CheckAncestors(snapshot);Directory.CreateDirectory(snapshot);
-            inspect=Path.Combine(snapshot,Path.GetFileName(path));
-            File.Copy(path,inspect,false);File.Copy(path+"-journal",inspect+"-journal",false);
+            if(journal)
+            {
+                ValidateJournal(path,databasePageSize,databaseLength);
+                string directory=Path.Combine(Path.GetDirectoryName(path)!,".porto-validation-"+Guid.NewGuid().ToString("N"));
+                Destination.CheckAncestors(directory);
+                if(File.Exists(directory)||Directory.Exists(directory))throw Foreign();
+                Directory.CreateDirectory(directory);
+                snapshot=directory;
+                inspect=Path.Combine(snapshot,Path.GetFileName(path));
+                File.Copy(path,inspect,false);File.Copy(path+"-journal",inspect+"-journal",false);
+            }
+            // Payloads remain under the original destination even when the
+            // database itself is inspected in a deeper recovery snapshot.
+            string destinationRoot=Path.GetDirectoryName(Path.GetDirectoryName(path)!)!;
+            using(var connection=new Sqlite(inspect,readOnly:!journal))ValidateSchema(connection,kind,destinationRoot);
+            return true;
         }
-        using var connection=new Sqlite(inspect,readOnly:!journal);
-        ValidateSchema(connection,kind);
-        return true;
+        finally
+        {
+            if(snapshot!=null)RemoveSnapshot(snapshot,inspect);
+        }
+    }
+
+    private static void RemoveSnapshot(string directory,string database)
+    {
+        // Only this invocation's two copy targets may be removed, after SQLite
+        // closes. Unknown entries and every pre-existing directory are retained.
+        if(Path.GetDirectoryName(Path.GetFullPath(database))!=Path.GetFullPath(directory))throw Foreign();
+        Destination.CheckAncestors(directory);
+        foreach(string file in new[]{database,database+"-journal"})
+            if(File.Exists(file)){Destination.CheckAncestors(file);File.Delete(file);}
+        if(Directory.Exists(directory)&&!Directory.EnumerateFileSystemEntries(directory).Any())Directory.Delete(directory);
     }
 
     private static bool PowerOfTwo(uint value,uint minimum,uint maximum)=>value>=minimum&&value<=maximum&&(value&(value-1))==0;
@@ -109,7 +133,7 @@ internal static class SqliteOwnership
         if(!current.AsSpan().SequenceEqual(page))throw Foreign();
     }
 
-    private static void ValidateSchema(Sqlite db,SqliteDatabaseKind kind)
+    private static void ValidateSchema(Sqlite db,SqliteDatabaseKind kind,string destinationRoot)
     {
         int appId=int.Parse(db.Query("PRAGMA application_id").Single()[0]!,CultureInfo.InvariantCulture);
         int version=int.Parse(db.Query("PRAGMA user_version").Single()[0]!,CultureInfo.InvariantCulture);
@@ -118,7 +142,8 @@ internal static class SqliteOwnership
         var tables=Tables(kind);
         var indices=Indices(kind);
         var present=new HashSet<string>(StringComparer.Ordinal);
-        foreach(var entry in db.Query("SELECT type,name,tbl_name FROM sqlite_master"))
+        bool hasReplacement=false;
+        foreach(var entry in db.Query("SELECT type,name,tbl_name,sql FROM sqlite_master"))
         {
             string type=entry[0]!,name=entry[1]!,table=entry[2]!;
             if(type=="table")
@@ -126,17 +151,20 @@ internal static class SqliteOwnership
                 if(!tables.TryGetValue(name,out var expected))throw Foreign();
                 var actual=db.Query($"PRAGMA table_xinfo({name})");
                 bool oldCatalog=name=="files"&&actual.Count==7;
-                if(!MatchColumns(actual,oldCatalog?expected[..7]:expected))throw Foreign();
+                var columns=oldCatalog?expected[..7]:expected;
+                if(!MatchColumns(actual,columns)||!MatchesSql(entry[3],TableSql(name,columns)))throw Foreign();
                 if(db.Query($"PRAGMA foreign_key_list({name})").Count!=0)throw Foreign();
+                if(name=="files")hasReplacement=!oldCatalog;
                 present.Add(name);
             }
             else if(type=="index")
             {
                 if(!tables.TryGetValue(table,out var columns))throw Foreign();
                 string[] expected;
-                if(name.StartsWith("sqlite_autoindex_",StringComparison.Ordinal))
+                if(name=="sqlite_autoindex_"+table+"_1"&&entry[3]==null)
                     expected=columns.Where(c=>c.Key>0).OrderBy(c=>c.Key).Select(c=>c.Name).ToArray();
-                else if(indices.TryGetValue(name,out var index)&&index.Table==table)expected=index.Columns;
+                else if(indices.TryGetValue(name,out var index)&&index.Table==table&&
+                    MatchesSql(entry[3],$"CREATE INDEX {name} ON {table}({string.Join(",",index.Columns)})"))expected=index.Columns;
                 else throw Foreign();
                 string quotedName="\""+name.Replace("\"","\"\"")+"\"";
                 if(expected.Length==0||!db.Query($"PRAGMA index_info({quotedName})").Select(r=>r[2]).SequenceEqual(expected))throw Foreign();
@@ -148,7 +176,19 @@ internal static class SqliteOwnership
             string[] required=kind==SqliteDatabaseKind.Catalog?["files","runs","run_items"]:["work"];
             if(required.Any(t=>!present.Contains(t)))throw Foreign();
         }
+        if(kind==SqliteDatabaseKind.Catalog&&present.Contains("files"))CatalogValidation.Read(db,hasReplacement,destinationRoot);
     }
+
+    private static string TableSql(string name,Column[] columns)
+    {
+        string[] keys=columns.Where(column=>column.Key>0).OrderBy(column=>column.Key).Select(column=>column.Name).ToArray();
+        string definitions=string.Join(",",columns.Select(column=>column.Name+" "+column.Type+(column.Required?" NOT NULL":"")+(column.Key>0&&keys.Length==1?" PRIMARY KEY":"")));
+        if(keys.Length>1)definitions+=",PRIMARY KEY("+string.Join(",",keys)+")";
+        return $"CREATE TABLE {name}({definitions})";
+    }
+
+    private static bool MatchesSql(string? actual,string expected)=>actual!=null&&NormalizeSql(actual)==NormalizeSql(expected);
+    private static string NormalizeSql(string sql)=>new string(sql.Where(c=>!char.IsWhiteSpace(c)).ToArray()).ToUpperInvariant();
 
     private static bool MatchColumns(List<string?[]> actual,Column[] expected)=>actual.Count==expected.Length&&
         actual.Zip(expected).All(pair=>pair.First[1]==pair.Second.Name&&pair.First[2]==pair.Second.Type&&

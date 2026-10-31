@@ -65,6 +65,12 @@ public sealed class MainForm:Form
                 if(phones.SelectedItem is not DeviceInfo||string.IsNullOrEmpty(phones.Text))throw new InvalidOperationException("Selettore telefono non funzionante.");
                 folder.Text=@"C:\Video\Archivio";bytes.Text="Spazio richiesto: dopo l’inventario   ·   Disponibile: 114,6 GiB";
                 if(smokePath.Contains("retry",StringComparison.Ordinal)){SetBusy(true);ShowProgress(new("Recupero automatico","Tentativo 2/3 tra 15 secondi. Sblocca o ricollega lo stesso iPhone. Pausa interrompe l'attesa.",0,2500,0,null,null));}
+                if(smokePath.Contains("paused",StringComparison.Ordinal))
+                {
+                    SetBusy(true);ShowProgress(new("Copia","Esempio sintetico di pausa",0,3,2*1024*1024,10*1024*1024,null,1024*1024));
+                    string activeEstimate=speed.Text;SetBusy(false);status.Text="In pausa su richiesta. Premi Riprendi per continuare.";
+                    if(speed.Text==activeEstimate)throw new InvalidOperationException("La stima deve essere rimossa quando il trasferimento si ferma.");
+                }
                 await Task.Delay(350);if(Width<700||Height<550)throw new InvalidOperationException("UI smoke dimensions invalid");
                 foreach(var button in new[]{start,pause,resume,reportButton})
                 {var bounds=RectangleToClient(button.RectangleToScreen(button.ClientRectangle));if(bounds.Bottom>ClientSize.Height||bounds.Right>ClientSize.Width)throw new InvalidOperationException("Action button outside visible window");}
@@ -135,12 +141,15 @@ public sealed class MainForm:Form
     {
         status.Text=p.Phase;detail.Text=p.Name;counts.Text=$"Video esaminati: {p.Done:N0} / {(p.Total>0?p.Total.ToString("N0"):"—")}   ·   Copiati: {FormatBytes(p.Bytes)}";
         bytes.Text=$"Dimensioni video USB: {(p.TotalBytes.HasValue?FormatBytes(p.TotalBytes.Value):"da determinare / non note")}   ·   Disponibile: {(p.FreeBytes.HasValue?FormatBytes(p.FreeBytes.Value):"—")}";
-        string eta=p.TotalBytes.HasValue&&p.BytesPerSecond>0?TimeSpan.FromSeconds(Math.Clamp((p.TotalBytes.Value-p.Bytes)/p.BytesPerSecond,0,31536000)).ToString(@"d\.hh\:mm\:ss"):"—";
+        string eta=p.Done<p.Total&&p.TotalBytes.HasValue&&p.BytesPerSecond>0?TimeSpan.FromSeconds(Math.Clamp((p.TotalBytes.Value-p.Bytes)/p.BytesPerSecond,0,31536000)).ToString(@"d\.hh\:mm\:ss"):"—";
         speed.Text=$"Copia media: {(p.BytesPerSecond>0?FormatBytes((long)p.BytesPerSecond)+"/s":"—")}   ·   Stima copia: {eta} (verifiche escluse)";
         progress.Value=p.Total>0?(int)Math.Clamp(1000L*p.Done/p.Total,0,1000):0;
     }
     private void SetBusy(bool value)
-        {busy=value;foreach(Control c in new Control[]{search,browse,start,phones,folder,deep,resume})c.Enabled=!value;pause.Enabled=value;}
+    {
+        busy=value;foreach(Control c in new Control[]{search,browse,start,phones,folder,deep,resume})c.Enabled=!value;pause.Enabled=value;
+        if(!value)speed.Text="Velocità: —   ·   Tempo rimanente: —";
+    }
     private static string FormatBytes(long bytes)=>bytes>=1024L*1024*1024?$"{bytes/(1024d*1024*1024):N1} GiB":$"{bytes/(1024d*1024):N1} MiB";
 }
 

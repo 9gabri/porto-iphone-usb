@@ -9,6 +9,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
     public Action<ImportProgress>? Progress { get; set; }
     public string? ReportPath { get; private set; }
     public int Attempt { get; set; } = 1;
+    public IReadOnlyList<RetryHint> RetryLast { get; init; } = [];
     private long? totalBytes;
     private long copied;
     private int done,total;
@@ -38,7 +39,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
             var inventory=source.Inventory(cancel);
             observed=inventory.Items;
             var observedKeys=observed.Select(WorkLedger.Key).ToHashSet(StringComparer.Ordinal);
-            ledger.Observe(observed.Where(MediaInspector.Candidate),runId+"-initial");
+            ledger.Observe(observed.Where(NeedsTracking),runId+"-initial");
             report.UsbEnumerationComplete=inventory.EnumerationComplete;
             report.InventoryErrors=inventory.Errors;
             // Save the inventory result before any transfer. Each item has an explicit pending category.
@@ -98,6 +99,9 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                 verifiedCopies.Add(content,verified);
                 return verified;
             }
+            // An absent source does not prove that its historical local copies remain intact.
+            // Cache each group once; the individual file selected for reuse is still rechecked.
+            foreach(var content in groups.Keys)VerifyGroup(content);
             void VerifySourceReads(SourceItem item,CopyResult first,CopyResult second)
             {
                 // Preserve both full-read observations before throwing on disagreement.
@@ -127,7 +131,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                 .Aggregate(VerifiedCopy.ReserveBytes,(n,i)=>checked(n+Remaining(i)));
             Notify("Inventario pronto",$"{total:N0} video candidati; spazio prudenziale {required:N0} byte",true);
             EnsureSpace(required);
-            foreach(var item in inventory.Items)
+            foreach(var item in RetryOrder.Arrange(inventory.Items,RetryLast))
             {
                 cancel.ThrowIfCancellationRequested();
                 if(!MediaInspector.Candidate(item))
@@ -137,6 +141,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                         bool uncertain=item.Kind==MediaKind.Unknown;
                         report.Items.Add(new(item.Id,item.Name,uncertain?Outcome.Ambiguous:Outcome.Excluded,
                             uncertain?"Metadati insufficienti: tipo non riconosciuto.":"Fotografia o contenuto non video."));
+                        if(uncertain)SaveProgress(item);
                     }
                     continue;
                 }
@@ -241,6 +246,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                     done++;SaveProgress(item);report.RetryRecommended=true;
                     if(ex is SpaceException or UnauthorizedAccessException or SourceUnavailableException)
                     {
+                        if(ex is SourceUnavailableException)report.RetryLast.Add(RetryOrder.AfterFailure(inventory.Items,item));
                         report.StoppedForCapacity=ex is SpaceException;
                         if(report.StoppedForCapacity||ex is UnauthorizedAccessException){report.RetryRecommended=false;mayRetryDeficits=false;}
                         report.Status="Importazione in pausa: collegamento o destinazione da verificare.";
@@ -258,7 +264,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                 report.InventoryErrors.AddRange(finalInventory.Errors);report.RetryRecommended=true;
                 var initialKeys=inventory.Items.Select(WorkLedger.Key).ToHashSet(StringComparer.Ordinal);
                 var newKeys=finalInventory.Items.Select(WorkLedger.Key).Where(key=>!initialKeys.Contains(key)).ToHashSet(StringComparer.Ordinal);
-                ledger.Observe(finalInventory.Items.Where(MediaInspector.Candidate),runId+"-final",newKeys);
+                ledger.Observe(finalInventory.Items.Where(NeedsTracking),runId+"-final",newKeys);
             }
             if(!report.UsbEnumerationComplete||report.InventoryErrors.Count>0)report.RetryRecommended=true;
             AddOutstanding();
@@ -316,6 +322,8 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                     report.Items.Add(new(conflict.Source.Id,conflict.Source.Name,Outcome.Ambiguous,conflict.Detail));
         }
     }
+
+    private static bool NeedsTracking(SourceItem item)=>MediaInspector.Candidate(item)||item.Kind==MediaKind.Unknown;
 
     public void Recover(Catalog catalog,CancellationToken cancel)
     {

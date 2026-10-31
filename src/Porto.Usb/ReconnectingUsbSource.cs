@@ -21,6 +21,7 @@ public sealed class ReconnectingUsbSource : IVideoSource
         if(worker!=null)throw SessionUnavailable();
         worker=createWorker();worker.InventoryProgress=progress;
         try{worker.Connect(deviceId,cancel);return worker;}
+        catch(SourceUnavailableException){worker.Dispose();throw;}
         catch(IOException ex){worker.Dispose();throw new SourceUnavailableException("Collegamento allo stesso iPhone non disponibile: "+ex.Message,ex);}
         catch{worker.Dispose();throw;}
     }
@@ -28,6 +29,7 @@ public sealed class ReconnectingUsbSource : IVideoSource
     {
         var current=Get(cancel);
         try{var inventory=current.Inventory(cancel);hasInventory=true;return inventory;}
+        catch(SourceUnavailableException){hasInventory=false;throw;}
         catch(IOException ex)when(current.IsDisposed){hasInventory=false;throw SessionUnavailable(ex);}
     }
     public Stream OpenRead(SourceItem item,CancellationToken cancel)
@@ -36,6 +38,7 @@ public sealed class ReconnectingUsbSource : IVideoSource
         if(!hasInventory)throw SessionUnavailable();
         var current=Get(cancel);
         try{return current.OpenRead(item,cancel);}
+        catch(SourceUnavailableException){hasInventory=false;throw;}
         catch(IOException ex)when(current.IsDisposed){hasInventory=false;throw SessionUnavailable(ex);}
     }
     private static SourceUnavailableException SessionUnavailable(Exception? inner=null)=>new(
