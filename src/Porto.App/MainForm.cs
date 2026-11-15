@@ -71,6 +71,18 @@ public sealed class MainForm:Form
                     string activeEstimate=speed.Text;SetBusy(false);status.Text="In pausa su richiesta. Premi Riprendi per continuare.";
                     if(speed.Text==activeEstimate)throw new InvalidOperationException("La stima deve essere rimossa quando il trasferimento si ferma.");
                 }
+                if(smokePath.Contains("incomplete",StringComparison.Ordinal))
+                {
+                    SetBusy(true);ShowProgress(new("Importazione","Esempio sintetico",20,20,1024*1024,1024*1024,null));
+                    var incomplete=new ImportReport{Status="Importazione incompleta. Consulta il report.",Attempt=3,
+                        UsbItemCount=100,ImageCount=70,SidecarCount=10,CandidateCount=20,SuspectedCompanionCount=16,TransferCandidateCount=4};
+                    incomplete.Items.Add(new("synthetic","example.mov",Outcome.Error,"Errore sintetico di verifica."));
+                    ShowResult(incomplete);SetBusy(false);
+                    // A queued callback from the finished worker must not replace the final result.
+                    ShowProgress(new("Importazione","Callback sintetico tardivo",20,20,1024*1024,1024*1024,null));
+                    if(progress.Value!=0||!counts.Text.Contains("100",StringComparison.Ordinal)||!summary.Text.Contains("Candidati alla copia: 4",StringComparison.Ordinal))
+                        throw new InvalidOperationException("L'esito incompleto deve distinguere i conteggi e rimuovere la barra verde.");
+                }
                 await Task.Delay(350);if(Width<700||Height<550)throw new InvalidOperationException("UI smoke dimensions invalid");
                 foreach(var button in new[]{start,pause,resume,reportButton})
                 {var bounds=RectangleToClient(button.RectangleToScreen(button.ClientRectangle));if(bounds.Bottom>ClientSize.Height||bounds.Right>ClientSize.Width)throw new InvalidOperationException("Action button outside visible window");}
@@ -127,8 +139,7 @@ public sealed class MainForm:Form
                     {Progress=p=>((IProgress<ImportProgress>)updates).Report(p)};
                 var report=session.Run(deeper,cancellation.Token);return(report,session.ReportPath);
             });
-            reportPath=result.ReportPath;status.Text=result.report.Status;
-            summary.Text=$"Ultimo passaggio {result.report.Attempt}/{ImportSession.MaximumAttempts} — Importati: {result.report.Count(Outcome.Imported)} · Già presenti verificati: {result.report.Count(Outcome.AlreadyPresent)}\nDa completare: {result.report.Count(Outcome.Pending)} · Mancanti: {result.report.Count(Outcome.Missing)} · Ambigui: {result.report.Count(Outcome.Ambiguous)} · Errori: {result.report.Count(Outcome.Error)}\nI report di ogni passaggio sono nella cartella scelta.";
+            reportPath=result.ReportPath;ShowResult(result.report);
             if(cancellation.IsCancellationRequested)status.Text="In pausa su richiesta. Premi Riprendi per continuare.";
             else if(result.report.RetryRecommended)detail.Text="Tentativi automatici esauriti. Verifica collegamento e report, poi premi Riprendi.";
             reportButton.Enabled=reportPath!=null;
@@ -139,16 +150,28 @@ public sealed class MainForm:Form
     }
     private void ShowProgress(ImportProgress p)
     {
-        status.Text=p.Phase;detail.Text=p.Name;counts.Text=$"Video esaminati: {p.Done:N0} / {(p.Total>0?p.Total.ToString("N0"):"—")}   ·   Copiati: {FormatBytes(p.Bytes)}";
-        bytes.Text=$"Dimensioni video USB: {(p.TotalBytes.HasValue?FormatBytes(p.TotalBytes.Value):"da determinare / non note")}   ·   Disponibile: {(p.FreeBytes.HasValue?FormatBytes(p.FreeBytes.Value):"—")}";
+        if(!busy)return;
+        status.Text=p.Phase;detail.Text=p.Name;
+        bool inventory=p.Phase=="Inventario USB";
+        counts.Text=inventory?"Esame dei metadati USB: comprende foto, cartelle e file accessori.":
+            $"Risorse video USB valutate: {p.Done:N0} / {(p.Total>0?p.Total.ToString("N0"):"—")}   ·   Byte elaborati: {FormatBytes(p.Bytes)}";
+        bytes.Text=inventory?"I candidati alla copia saranno distinti al termine dell'inventario.":
+            $"Dimensioni candidate USB: {(p.TotalBytes.HasValue?FormatBytes(p.TotalBytes.Value):"da determinare / non note")}   ·   Disponibile: {(p.FreeBytes.HasValue?FormatBytes(p.FreeBytes.Value):"—")}";
         string eta=p.Done<p.Total&&p.TotalBytes.HasValue&&p.BytesPerSecond>0?TimeSpan.FromSeconds(Math.Clamp((p.TotalBytes.Value-p.Bytes)/p.BytesPerSecond,0,31536000)).ToString(@"d\.hh\:mm\:ss"):"—";
         speed.Text=$"Copia media: {(p.BytesPerSecond>0?FormatBytes((long)p.BytesPerSecond)+"/s":"—")}   ·   Stima copia: {eta} (verifiche escluse)";
         progress.Value=p.Total>0?(int)Math.Clamp(1000L*p.Done/p.Total,0,1000):0;
     }
+    private void ShowResult(ImportReport report)
+    {
+        status.Text=report.Status;
+        counts.Text=$"Risorse USB: {report.UsbItemCount:N0} · Immagini: {report.ImageCount:N0} · File AAE: {report.SidecarCount:N0}";
+        bytes.Text=$"Risorse video USB: {report.CandidateCount:N0} · Possibili Live Photo/modifiche: {report.SuspectedCompanionCount:N0}";
+        summary.Text=$"Candidati alla copia: {report.TransferCandidateCount:N0} — Ultimo passaggio {report.Attempt}/{ImportSession.MaximumAttempts}\nImportati: {report.Count(Outcome.Imported)} · Già presenti verificati: {report.Count(Outcome.AlreadyPresent)}\nDa completare: {report.Count(Outcome.Pending)} · Mancanti: {report.Count(Outcome.Missing)} · Ambigui: {report.Count(Outcome.Ambiguous)} · Errori: {report.Count(Outcome.Error)}\nI report di ogni passaggio sono nella cartella scelta.";
+    }
     private void SetBusy(bool value)
     {
         busy=value;foreach(Control c in new Control[]{search,browse,start,phones,folder,deep,resume})c.Enabled=!value;pause.Enabled=value;
-        if(!value)speed.Text="Velocità: —   ·   Tempo rimanente: —";
+        if(!value){speed.Text="Velocità: —   ·   Tempo rimanente: —";progress.Value=0;}
     }
     private static string FormatBytes(long bytes)=>bytes>=1024L*1024*1024?$"{bytes/(1024d*1024*1024):N1} GiB":$"{bytes/(1024d*1024):N1} MiB";
 }

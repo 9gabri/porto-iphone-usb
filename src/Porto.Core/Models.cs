@@ -28,6 +28,11 @@ public sealed class ImportReport
     [System.Text.Json.Serialization.JsonIgnore]
     public List<RetryHint> RetryLast { get; } = [];
     public int CandidateCount { get; set; }
+    public int UsbItemCount { get; set; }
+    public int ImageCount { get; set; }
+    public int SidecarCount { get; set; }
+    public int SuspectedCompanionCount { get; set; }
+    public int TransferCandidateCount { get; set; }
     public int Attempt { get; set; } = 1;
     public List<string> InventoryErrors { get; set; } = [];
     public List<ReportItem> Items { get; } = [];

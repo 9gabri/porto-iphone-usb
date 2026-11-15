@@ -25,7 +25,7 @@ public static class VerifiedCopy
                 int count = input.Read(received, 0, BufferSize);
                 if (count == 0) break;
                 long next = checked(total + count);
-                if (expected.HasValue && next > expected.Value) throw new InvalidDataException("Dimensione USB incoerente.");
+                if (expected.HasValue && next > expected.Value) throw new InvalidDataException($"Dimensione USB incoerente: attesi {expected} byte, ricevuti almeno {next}.");
                 int compare = (int)Math.Min(count, Math.Max(0, prefix - total));
                 if (compare > 0)
                 {
@@ -40,7 +40,7 @@ public static class VerifiedCopy
                 hash.AppendData(received, 0, count); total = next; progress?.Invoke(total);
             }
             if (total < prefix) throw new PartialMismatchException();
-            if (expected.HasValue && total != expected.Value) throw new InvalidDataException("Sorgente interrotta: copia non pubblicata.");
+            if (expected.HasValue && total != expected.Value) throw new InvalidDataException($"Sorgente interrotta: attesi {expected} byte, ricevuti {total}. Copia non pubblicata.");
             return new(total, Convert.ToHexString(hash.GetHashAndReset()));
         }
         finally { ArrayPool<byte>.Shared.Return(received); ArrayPool<byte>.Shared.Return(existing); }
@@ -62,13 +62,13 @@ public static class VerifiedCopy
                 if (read == 0) break;
                 total = checked(total + read);
                 if (expected.HasValue && total > expected.Value)
-                    throw new InvalidDataException("La sorgente supera la dimensione dichiarata; copia non pubblicata.");
+                    throw new InvalidDataException($"La sorgente supera la dimensione dichiarata: attesi {expected} byte, ricevuti almeno {total}. Copia non pubblicata.");
                 output.Write(buffer, 0, read);
                 hash.AppendData(buffer, 0, read);
                 progress?.Invoke(total);
             }
             if (expected.HasValue && total != expected.Value)
-                throw new InvalidDataException("Dimensione diversa da quella dichiarata dalla sorgente.");
+                throw new InvalidDataException($"Dimensione diversa da quella dichiarata dalla sorgente: attesi {expected} byte, ricevuti {total}.");
             return new(total, Convert.ToHexString(hash.GetHashAndReset()));
         }
         finally { ArrayPool<byte>.Shared.Return(buffer); }

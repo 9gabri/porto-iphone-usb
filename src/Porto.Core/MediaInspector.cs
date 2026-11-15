@@ -13,6 +13,11 @@ public static partial class MediaInspector
         (item.Kind is MediaKind.Other or MediaKind.Unknown && (VideoExtensions.Contains(Path.GetExtension(item.Name)) ||
         item.Format?.StartsWith("b9820000",StringComparison.OrdinalIgnoreCase)==true || item.Format?.StartsWith("300b0000",StringComparison.OrdinalIgnoreCase)==true));
 
+    // Recognize only the documented adjustment-sidecar extension, never an
+    // arbitrary unknown resource or metadata that explicitly identifies video.
+    public static bool IsAdjustmentSidecar(SourceItem item) => item.Kind is MediaKind.Other or MediaKind.Unknown &&
+        Path.GetExtension(item.Name).Equals(".aae",StringComparison.OrdinalIgnoreCase)&&!Candidate(item);
+
     public static Dictionary<string,Outcome> SuspectedCompanions(IEnumerable<SourceItem> items)
     {
         var photos = new HashSet<string>(items.Where(i=>i.Kind==MediaKind.Image||ImageExtensions.Contains(Path.GetExtension(i.Name)))

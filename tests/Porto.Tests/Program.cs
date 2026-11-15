@@ -10,6 +10,7 @@ if(args.Length>0&&args[0].StartsWith("--adversarial-usb-",StringComparison.Ordin
 if(args.Length>0&&args[0].StartsWith("--final-usb-",StringComparison.Ordinal))return FinalUsbTests.Child(args[0]);
 if(args.Length>0&&args[0]=="--storage-crash")return AdversarialStorageTests.Child(args[1],args[2]);
 
+if(args.Length>0&&args[0].StartsWith("--rc5-protocol-",StringComparison.Ordinal))return Rc5ProtocolTests.Child(args[0]);
 var tests = new List<(string, Action)>
 {
     ("copy and independently reread SHA256", () => {
@@ -36,6 +37,10 @@ FinalPreferenceTests.Add(tests);
 EncodedMediaTests.Add(tests);
 ProtocolTests.Add(tests);
 NativeUsbTests.Add(tests);
+Rc5ResourceTests.Add(tests);
+Rc5ProtocolTests.Add(tests);
+Rc5NativeResourceTests.Add(tests);
+Rc5InventoryTests.Add(tests);
 if(args.Contains("--large"))LargeTests.Add(tests);
 int failures = 0;
 string? filter=args.FirstOrDefault(a=>a.StartsWith("--filter=",StringComparison.Ordinal))?[9..];

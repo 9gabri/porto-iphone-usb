@@ -6,6 +6,7 @@ using Porto.Core;
 namespace Porto.Usb;
 
 public sealed record Command(string Op,string? Device=null,string? Object=null,int Count=0);
+internal sealed record OpenedResource(long? ResourceLength);
 internal sealed record WorkerSessionError(string Message,int? NativeHResult)
 {
     public static WorkerSessionError From(Exception error)
@@ -44,7 +45,7 @@ public static class WorkerProtocol
                             source.InventoryProgress=heartbeat.Report;
                             Json(true);break;
                         case "inventory":stream?.Dispose();stream=null;heartbeat.Reset();Json((source??throw new IOException("Non connesso")).Inventory(default));break;
-                        case "open":stream?.Dispose();stream=null;stream=(source??throw new IOException("Non connesso")).OpenRead(new(command.Object!,"","",MediaKind.Video),default);Json(true);break;
+                        case "open":stream?.Dispose();stream=null;stream=(source??throw new IOException("Non connesso")).OpenRead(new(command.Object!,"","",MediaKind.Video),default);Json(new OpenedResource((stream as ISourceStreamInfo)?.ResourceLength));break;
                         case "read":
                             if(command.Count<0||command.Count>VerifiedCopy.BufferSize)throw new IOException("Lettura non valida");
                             var buffer=new byte[command.Count];int n=(stream??throw new IOException("Nessun flusso aperto")).Read(buffer,0,buffer.Length);

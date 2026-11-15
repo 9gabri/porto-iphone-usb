@@ -70,7 +70,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
             var groups=known.GroupBy(e=>new CopyResult(e.Length,e.Hash!)).ToDictionary(g=>g.Key,g=>g.ToList());
             var byHash=groups.ToDictionary(pair=>pair.Key,pair=>new Queue<CatalogEntry>(pair.Value));
             var knownLengths=known.Select(e=>e.Length).ToHashSet();
-            var availableLengths=known.GroupBy(e=>e.Length).ToDictionary(g=>g.Key,g=>g.Count());
+
             int availableCount=known.Count;
             bool VerifyLocal(CatalogEntry old,CopyResult content)
             {
@@ -125,6 +125,11 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
             var candidates=inventory.Items.Where(MediaInspector.Candidate).ToList();
             total=candidates.Count;
             report.CandidateCount=total;
+            report.UsbItemCount=inventory.Items.Count;
+            report.ImageCount=inventory.Items.Count(i=>i.Kind==MediaKind.Image);
+            report.SidecarCount=inventory.Items.Count(MediaInspector.IsAdjustmentSidecar);
+            report.SuspectedCompanionCount=companions.Count;
+            report.TransferCandidateCount=total-companions.Count;
             totalBytes=candidates.All(i=>i.Size.HasValue)?candidates.Aggregate(0L,(n,i)=>checked(n+i.Size!.Value)):null;
             // Reserve only a lower-bound estimate for genuinely unknown lengths; repeated content is hashed before writing.
             long required=candidates.Where(i=>!i.Offline&&i.Size.HasValue&&!knownLengths.Contains(i.Size.Value)&&!companions.ContainsKey(i.Id))
@@ -138,9 +143,10 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                 {
                     if(item.Kind!=MediaKind.Container)
                     {
-                        bool uncertain=item.Kind==MediaKind.Unknown;
+                        bool sidecar=MediaInspector.IsAdjustmentSidecar(item);
+                        bool uncertain=item.Kind==MediaKind.Unknown&&!sidecar;
                         report.Items.Add(new(item.Id,item.Name,uncertain?Outcome.Ambiguous:Outcome.Excluded,
-                            uncertain?"Metadati insufficienti: tipo non riconosciuto.":"Fotografia o contenuto non video."));
+                            sidecar?"File accessorio .AAE: escluso dalla copia video.":uncertain?"Metadati insufficienti: tipo non riconosciuto.":"Fotografia o contenuto non video."));
                         if(uncertain)SaveProgress(item);
                     }
                     continue;
@@ -151,14 +157,28 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                     report.Items.Add(new(item.Id,item.Name,Outcome.Ambiguous,"Possibile Live Photo o versione modificata: non importato automaticamente."));done++;SaveProgress(item);continue;
                 }
                 Notify("Importazione",item.Name,true);
+                string sizeNote="";
                 try
                 {
+                    bool verifySourceTwice=deep;
+                    long? Expected(Stream input)
+                    {
+                        long? resource=(input as ISourceStreamInfo)?.ResourceLength;
+                        if(resource is <0)throw new InvalidDataException("Dimensione risorsa USB non valida.");
+                        if(resource.HasValue&&resource!=item.Size)
+                        {
+                            verifySourceTwice=true;
+                            sizeNote=$" Dimensione inventario: {item.Size?.ToString()??"sconosciuta"}; risorsa USB: {resource} byte. Richieste due letture concordanti.";
+                        }
+                        return resource??item.Size;
+                    }
+                    CopyResult ReadSource(Stream input,string phase)=>VerifiedCopy.Copy(input,Stream.Null,Expected(input),n=>Notify(phase,item.Name,false,n),null,cancel);
                     CopyResult? fingerprint=null;
-                    if(item.Size.HasValue?availableLengths.GetValueOrDefault(item.Size.Value)>0:availableCount>0)
+                    if(availableCount>0)
                     {
                         using var input=source.OpenRead(item,cancel);
-                        fingerprint=VerifiedCopy.Hash(input,cancel,n=>Notify("Confronto contenuto USB",item.Name,false,n));
-                        if(item.Size.HasValue&&fingerprint.Length!=item.Size.Value)throw new InvalidDataException("Dimensione USB incoerente.");
+                        fingerprint=ReadSource(input,"Confronto contenuto USB");
+
                         ledger.Remember(item,fingerprint);
                         var verified=VerifyGroup(fingerprint);
                         CatalogEntry? match=null;
@@ -168,7 +188,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                         {
                             while(matching.TryDequeue(out var old))
                             {
-                                availableCount--;availableLengths[old.Length]--;
+                                availableCount--;
                                 if(!verified.Contains(old.Id))continue;
                                 // A group count can be cached, but the file actually being reused
                                 // must still match now, after possibly hours of other transfers.
@@ -178,13 +198,13 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                         }
                         if(match!=null)
                         {
-                            if(deep){using var second=source.OpenRead(item,cancel);VerifySourceReads(item,fingerprint,VerifiedCopy.Hash(second,cancel,n=>Notify("Seconda lettura USB",item.Name,false,n)));}
+                            if(verifySourceTwice){using var second=source.OpenRead(item,cancel);VerifySourceReads(item,fingerprint,ReadSource(second,"Seconda lettura USB"));}
                             ledger.ReadVerified(item,fingerprint);
                             catalog.Save(match with{Source=item});
                             ReconcileContent(fingerprint);
                             report.Items.Add(match.State=="Quarantined"
                                 ?new(item.Id,item.Name,Outcome.Ambiguous,"Elemento ambiguo già conservato in .porto, verificato senza creare altre copie.",match.Temp,fingerprint.Length,fingerprint.Hash)
-                                :new(item.Id,item.Name,Outcome.AlreadyPresent,"Sorgente e copia locale rilette: SHA-256 identico.",match.Final,fingerprint.Length,fingerprint.Hash));
+                                :new(item.Id,item.Name,Outcome.AlreadyPresent,"Sorgente e copia locale rilette: SHA-256 identico."+sizeNote,match.Final,fingerprint.Length,fingerprint.Hash));
                             done++;SaveProgress(item);continue;
                         }
                     }
@@ -202,9 +222,9 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                         long start=copied;
                         try
                         {
-                            received=resuming?VerifiedCopy.Resume(input,output,item.Size,n=>{copied=start+n;Notify("Ripresa verificata",item.Name,false);},
+                            received=resuming?VerifiedCopy.Resume(input,output,Expected(input),n=>{copied=start+n;Notify("Ripresa verificata",item.Name,false);},
                                 ()=>EnsureSpace(VerifiedCopy.ReserveBytes+VerifiedCopy.BufferSize),cancel)
-                                :VerifiedCopy.Copy(input,output,item.Size,n=>{copied=start+n;Notify("Copia",item.Name,false);},
+                                :VerifiedCopy.Copy(input,output,Expected(input),n=>{copied=start+n;Notify("Copia",item.Name,false);},
                                 ()=>EnsureSpace(VerifiedCopy.ReserveBytes+VerifiedCopy.BufferSize),cancel);
                         }
                         catch(PartialMismatchException){catalog.Save(entry with{State="Abandoned"});throw;}
@@ -212,10 +232,10 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                     }
                     VerifiedCopy.Verify(received,VerifiedCopy.HashFile(temp,cancel,n=>Notify("Verifica locale SHA-256",item.Name,false,n)));
                     if(fingerprint!=null)VerifySourceReads(item,fingerprint,received);
-                    if(deep)
+                    if(verifySourceTwice)
                     {
                         using var second=source.OpenRead(item,cancel);
-                        VerifySourceReads(item,received,VerifiedCopy.Hash(second,cancel,n=>Notify("Seconda lettura USB",item.Name,false,n)));
+                        VerifySourceReads(item,received,ReadSource(second,"Seconda lettura USB"));
                     }
                     ledger.ReadVerified(item,received);
                     VerifyGroup(received);
@@ -236,13 +256,13 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                     catalog.Save(entry);FaultPoint?.Invoke("after-ready");
                     Destination.Publish(temp,destination.Resolve(entry.Final));FaultPoint?.Invoke("after-rename");
                     entry=entry with{State="Complete"};SaveFinalEntry(entry);ReconcileContent(received);FaultPoint?.Invoke("after-complete");
-                    report.Items.Add(new(item.Id,item.Name,Outcome.Imported,media.Detail,entry.Final,entry.Length,entry.Hash));
+                    report.Items.Add(new(item.Id,item.Name,Outcome.Imported,media.Detail+sizeNote,entry.Final,entry.Length,entry.Hash));
                     done++;SaveProgress(item);
                 }
                 catch(OperationCanceledException){throw;}
                 catch(Exception ex) when(ex is IOException or UnauthorizedAccessException or InvalidDataException)
                 {
-                    report.Items.Add(new(item.Id,item.Name,Outcome.Error,ex.Message));
+                    report.Items.Add(new(item.Id,item.Name,Outcome.Error,ex.Message+sizeNote));
                     done++;SaveProgress(item);report.RetryRecommended=true;
                     if(ex is SpaceException or UnauthorizedAccessException or SourceUnavailableException)
                     {
@@ -323,7 +343,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
         }
     }
 
-    private static bool NeedsTracking(SourceItem item)=>MediaInspector.Candidate(item)||item.Kind==MediaKind.Unknown;
+    private static bool NeedsTracking(SourceItem item)=>MediaInspector.Candidate(item)||item.Kind==MediaKind.Unknown&&!MediaInspector.IsAdjustmentSidecar(item);
 
     public void Recover(Catalog catalog,CancellationToken cancel)
     {

@@ -114,6 +114,7 @@ public sealed unsafe class WpdSource : IVideoSource
                                 string name=values.String(new(ObjectKeys,12))??values.String(new(ObjectKeys,4))??"Senza nome";
                                 var item=new SourceItem(objectId,parent.Id,name,media,values.Length(new(ObjectKeys,11)),
                                     values.String(new(ObjectKeys,5)),values.GuidValue(new(ObjectKeys,6))?.ToString());
+                                if(MediaInspector.IsAdjustmentSidecar(item)){media=MediaKind.Other;item=item with{Kind=media};}
                                 items.Add(item);
                                 if(media==MediaKind.Container)pending.Enqueue((objectId,parent.Depth+1));
                                 else if(media==MediaKind.Unknown&&!MediaInspector.Candidate(item))
@@ -137,9 +138,22 @@ public sealed unsafe class WpdSource : IVideoSource
     {
         cancel.ThrowIfCancellationRequested();
         var key=new PropertyKey(new("e81e79be-34f0-41bf-b53f-f1a06ae87842"),0);nint stream=0;uint buffer=0;
-        fixed(char* id=item.Id)Com.Check(((delegate* unmanaged[Stdcall]<nint,char*,PropertyKey*,uint,uint*,nint*,int>)resources.Slot(5))
-            (resources.Pointer,id,&key,0,&buffer,&stream)); // STGM_READ = 0.
-        return new WpdReadStream(new(stream),Math.Clamp((int)Math.Min(buffer,int.MaxValue),4096,1024*1024));
+        long? resourceLength=ResourceLength(item.Id,key);
+        int hr;fixed(char* id=item.Id)hr=((delegate* unmanaged[Stdcall]<nint,char*,PropertyKey*,uint,uint*,nint*,int>)resources.Slot(5))
+            (resources.Pointer,id,&key,0,&buffer,&stream); // STGM_READ = 0.
+        try{Com.Check(hr);if(stream==0)throw new IOException("Flusso USB assente.");}
+        catch{if(stream!=0)new Com(stream).Dispose();throw;}
+        return new WpdReadStream(new(stream),buffer==0?65536:(int)Math.Min(buffer,1024*1024),resourceLength);
+    }
+    private long? ResourceLength(string objectId,PropertyKey key)
+    {
+        nint values=0;int hr;
+        fixed(char* id=objectId)hr=((delegate* unmanaged[Stdcall]<nint,char*,PropertyKey*,nint*,int>)resources.Slot(4))(resources.Pointer,id,&key,&values);
+        using var attributes=values!=0?new Com(values):null;
+        if(Com.IsSessionLost(hr))Com.Check(hr);
+        // Unsupported attributes are optional; retain the strict object-size check.
+        if(hr<0||attributes==null)return null;
+        return attributes.Length(new(new("1eb6f604-9278-429f-93cc-5bb8c06656b6"),2));
     }
     public void Dispose(){resources.Dispose();properties.Dispose();content.Dispose();device.Dispose();}
     // No device discovery or connection: safe development smoke test for ABI and COM registration.
@@ -162,19 +176,33 @@ public sealed unsafe class WpdSource : IVideoSource
         }
         finally{Com.CoUninitialize();}
     }
-    private sealed class WpdReadStream(Com stream,int optimal):Stream
+    private sealed class WpdReadStream(Com stream,int optimal,long? resourceLength):Stream,ISourceStreamInfo
     {
+        private bool ended,disposed;
+        private long position;
+        public long? ResourceLength=>resourceLength;
         public override int Read(byte[] buffer,int offset,int count)
         {
+            ObjectDisposedException.ThrowIf(disposed,this);
             ArgumentOutOfRangeException.ThrowIfNegative(offset);ArgumentOutOfRangeException.ThrowIfNegative(count);
             if(offset>buffer.Length-count)throw new ArgumentException("Buffer range");
-            uint read=0;fixed(byte* data=buffer)Com.Check(((delegate* unmanaged[Stdcall]<nint,byte*,uint,uint*,int>)stream.Slot(3))
-                (stream.Pointer,data+offset,(uint)Math.Min(count,optimal),&read));
+            if(count==0||ended)return 0;
+            uint read=0;int hr;fixed(byte* data=buffer)hr=((delegate* unmanaged[Stdcall]<nint,byte*,uint,uint*,int>)stream.Slot(3))
+                (stream.Pointer,data+offset,(uint)Math.Min(count,optimal),&read);
+            try{Com.Check(hr);}
+            catch(IOException error)
+            {
+                string message=$"Lettura USB interrotta dopo {position} byte; dimensione risorsa: {resourceLength?.ToString()??"non disponibile"}. "+error.Message;
+                if(error is SourceUnavailableException)throw new SourceUnavailableException(message,error);
+                throw new IOException(message,error);
+            }
             if(read>Math.Min(count,optimal))throw new IOException("USB returned an invalid length");
+            position=checked(position+read);
+            ended=hr==1||read==0; // S_FALSE reports EOF, including a final nonempty chunk.
             return (int)read;
         }
-        protected override void Dispose(bool disposing){if(disposing)stream.Dispose();base.Dispose(disposing);}
-        public override bool CanRead=>true;public override bool CanSeek=>false;public override bool CanWrite=>false;
+        protected override void Dispose(bool disposing){if(disposing&&!disposed){disposed=true;stream.Dispose();}base.Dispose(disposing);}
+        public override bool CanRead=>!disposed;public override bool CanSeek=>false;public override bool CanWrite=>false;
         public override long Length=>throw new NotSupportedException();public override long Position{get=>throw new NotSupportedException();set=>throw new NotSupportedException();}
         public override void Flush(){}public override long Seek(long o,SeekOrigin s)=>throw new NotSupportedException();
         public override void SetLength(long v)=>throw new NotSupportedException();public override void Write(byte[] b,int o,int c)=>throw new NotSupportedException();

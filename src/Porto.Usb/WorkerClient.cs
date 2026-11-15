@@ -33,7 +33,16 @@ public sealed class WorkerClient : IVideoSource
     public void Connect(string id,CancellationToken cancel)=>Json<bool>(new("connect",Device:id),cancel);
     public Inventory Inventory(CancellationToken cancel)=>Json<Inventory>(new("inventory"),cancel);
     public Stream OpenRead(SourceItem item,CancellationToken cancel)
-    {Json<bool>(new("open",Object:item.Id),cancel);return new RemoteStream(this,cancel);}
+    {
+        var opened=Json<JsonElement>(new("open",Object:item.Id),cancel);
+        // Legacy workers return true and supply no resource-specific length.
+        if(opened.ValueKind==JsonValueKind.True)return new RemoteStream(this,cancel,null);
+        if(opened.ValueKind!=JsonValueKind.Object||!opened.TryGetProperty("ResourceLength",out var size))throw ProtocolError("Risposta apertura USB non valida.");
+        long? length=null;
+        if(size.ValueKind!=JsonValueKind.Null)
+        {if(size.ValueKind!=JsonValueKind.Number||!size.TryGetInt64(out long value)||value<0)throw ProtocolError("Dimensione risorsa USB non valida.");length=value;}
+        return new RemoteStream(this,cancel,length);
+    }
     private T Json<T>(Command command,CancellationToken cancel)
     {
         var response=Exchange(command,cancel);
@@ -103,8 +112,9 @@ public sealed class WorkerClient : IVideoSource
         try{input.Dispose();}catch(IOException){}
         finally{try{output.Dispose();}catch(IOException){}finally{process.Dispose();}}
     }
-    private sealed class RemoteStream(WorkerClient client,CancellationToken cancel):Stream
+    private sealed class RemoteStream(WorkerClient client,CancellationToken cancel,long? resourceLength):Stream,ISourceStreamInfo
     {
+        public long? ResourceLength=>resourceLength;
         private bool disposed;
         public override int Read(byte[] buffer,int offset,int count)
         {
