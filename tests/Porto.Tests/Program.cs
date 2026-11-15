@@ -11,6 +11,9 @@ if(args.Length>0&&args[0].StartsWith("--final-usb-",StringComparison.Ordinal))re
 if(args.Length>0&&args[0]=="--storage-crash")return AdversarialStorageTests.Child(args[1],args[2]);
 
 if(args.Length>0&&args[0].StartsWith("--rc5-protocol-",StringComparison.Ordinal))return Rc5ProtocolTests.Child(args[0]);
+if(args.Length>0&&args[0]=="--rc6-lifetime")return Rc6StreamLifetimeTests.Child();
+if(args.Length>0&&args[0]=="--rc6-cleanup-hang")return Rc6StreamLifetimeTests.Child(true);
+if(args.Length>0&&args[0]=="--rc6-cleanup-failure")return Rc6StreamLifetimeTests.Child(failCleanup:true);
 var tests = new List<(string, Action)>
 {
     ("copy and independently reread SHA256", () => {
@@ -41,6 +44,10 @@ Rc5ResourceTests.Add(tests);
 Rc5ProtocolTests.Add(tests);
 Rc5NativeResourceTests.Add(tests);
 Rc5InventoryTests.Add(tests);
+Rc6StreamLifetimeTests.Add(tests);
+Rc6ClassificationTests.Add(tests);
+Rc6NativeCleanupTests.Add(tests);
+Rc6RecoveryTests.Add(tests);
 if(args.Contains("--large"))LargeTests.Add(tests);
 int failures = 0;
 string? filter=args.FirstOrDefault(a=>a.StartsWith("--filter=",StringComparison.Ordinal))?[9..];

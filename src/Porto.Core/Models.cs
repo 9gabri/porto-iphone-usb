@@ -48,4 +48,6 @@ public sealed class LocalDiskSpace : IDiskSpace
     public long Available(string directory) => new DriveInfo(Path.GetPathRoot(directory)!).AvailableFreeSpace;
 }
 public sealed class SpaceException(string message) : IOException(message);
-public sealed class SourceUnavailableException(string message,Exception? inner=null) : IOException(message,inner);
+public class SourceUnavailableException(string message,Exception? inner=null) : IOException(message,inner);
+// The next resource has not been opened: failure belongs to cleanup of the prior read.
+public sealed class PreviousReadCleanupException(string message,Exception? inner=null) : SourceUnavailableException(message,inner);

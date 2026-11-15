@@ -154,7 +154,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                 if(item.Offline){report.Items.Add(new(item.Id,item.Name,Outcome.Missing,"Originale segnalato non disponibile offline."));done++;SaveProgress(item);continue;}
                 if(companions.ContainsKey(item.Id))
                 {
-                    report.Items.Add(new(item.Id,item.Name,Outcome.Ambiguous,"Possibile Live Photo o versione modificata: non importato automaticamente."));done++;SaveProgress(item);continue;
+                    report.Items.Add(new(item.Id,item.Name,Outcome.Ambiguous,companions[item.Id]));done++;SaveProgress(item);continue;
                 }
                 Notify("Importazione",item.Name,true);
                 string sizeNote="";
@@ -262,11 +262,14 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                 catch(OperationCanceledException){throw;}
                 catch(Exception ex) when(ex is IOException or UnauthorizedAccessException or InvalidDataException)
                 {
-                    report.Items.Add(new(item.Id,item.Name,Outcome.Error,ex.Message+sizeNote));
+                    bool previousCleanup=ex is PreviousReadCleanupException;
+                    report.Items.Add(new(item.Id,item.Name,previousCleanup?Outcome.Pending:Outcome.Error,ex.Message+sizeNote));
+                    // Remember the actual failed reads, including those preceding a
+                    // cleanup failure. A resource not opened yet must not be penalized.
+                    if(!previousCleanup)report.RetryLast.Add(RetryOrder.AfterFailure(inventory.Items,item));
                     done++;SaveProgress(item);report.RetryRecommended=true;
                     if(ex is SpaceException or UnauthorizedAccessException or SourceUnavailableException)
                     {
-                        if(ex is SourceUnavailableException)report.RetryLast.Add(RetryOrder.AfterFailure(inventory.Items,item));
                         report.StoppedForCapacity=ex is SpaceException;
                         if(report.StoppedForCapacity||ex is UnauthorizedAccessException){report.RetryRecommended=false;mayRetryDeficits=false;}
                         report.Status="Importazione in pausa: collegamento o destinazione da verificare.";

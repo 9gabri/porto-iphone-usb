@@ -10,3 +10,4 @@ test-output/
 .env*
 *.dmp
 .codex-remote-attachments/
+.codex-attachments/

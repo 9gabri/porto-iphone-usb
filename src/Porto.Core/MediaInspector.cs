@@ -18,13 +18,19 @@ public static partial class MediaInspector
     public static bool IsAdjustmentSidecar(SourceItem item) => item.Kind is MediaKind.Other or MediaKind.Unknown &&
         Path.GetExtension(item.Name).Equals(".aae",StringComparison.OrdinalIgnoreCase)&&!Candidate(item);
 
-    public static Dictionary<string,Outcome> SuspectedCompanions(IEnumerable<SourceItem> items)
+    public static Dictionary<string,string> SuspectedCompanions(IEnumerable<SourceItem> items)
     {
         var photos = new HashSet<string>(items.Where(i=>i.Kind==MediaKind.Image||ImageExtensions.Contains(Path.GetExtension(i.Name)))
             .Select(Key),StringComparer.OrdinalIgnoreCase);
-        Dictionary<string,Outcome> result=[];
+        Dictionary<string,string> result=[];
         foreach(var i in items.Where(Candidate))
-            if(photos.Contains(Key(i)) || EditedName().IsMatch(i.Name)) result[i.Id]=Outcome.Ambiguous;
+        {
+            bool paired=photos.Contains(Key(i)),edited=EditedName().IsMatch(i.Name);
+            if(paired||edited)result[i.Id]=
+                (paired?"Foto omonima nella stessa cartella USB: possibile componente Live Photo. ":"")+
+                (edited?"Nome IMG_E: possibile variante modificata. ":"")+
+                "Questi indizi non provano la classificazione in Foto; non importato automaticamente.";
+        }
         return result;
     }
     private static string Key(SourceItem item)=>item.ParentId+"/"+Path.GetFileNameWithoutExtension(item.Name);

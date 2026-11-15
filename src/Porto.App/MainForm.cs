@@ -166,7 +166,7 @@ public sealed class MainForm:Form
         status.Text=report.Status;
         counts.Text=$"Risorse USB: {report.UsbItemCount:N0} · Immagini: {report.ImageCount:N0} · File AAE: {report.SidecarCount:N0}";
         bytes.Text=$"Risorse video USB: {report.CandidateCount:N0} · Possibili Live Photo/modifiche: {report.SuspectedCompanionCount:N0}";
-        summary.Text=$"Candidati alla copia: {report.TransferCandidateCount:N0} — Ultimo passaggio {report.Attempt}/{ImportSession.MaximumAttempts}\nImportati: {report.Count(Outcome.Imported)} · Già presenti verificati: {report.Count(Outcome.AlreadyPresent)}\nDa completare: {report.Count(Outcome.Pending)} · Mancanti: {report.Count(Outcome.Missing)} · Ambigui: {report.Count(Outcome.Ambiguous)} · Errori: {report.Count(Outcome.Error)}\nI report di ogni passaggio sono nella cartella scelta.";
+        summary.Text=$"Candidati alla copia: {report.TransferCandidateCount:N0} — Ultimo passaggio {report.Attempt}/{ImportSession.MaximumAttempts}\nCopie verificate: {report.Count(Outcome.Imported)+report.Count(Outcome.AlreadyPresent)} · Nuove: {report.Count(Outcome.Imported)} · Già presenti: {report.Count(Outcome.AlreadyPresent)}\nPendenti aggiuntivi: {report.Count(Outcome.Pending)} · Mancanti: {report.Count(Outcome.Missing)} · Ambigui: {report.Count(Outcome.Ambiguous)} · Errori: {report.Count(Outcome.Error)}\nZero pendenti non esclude errori o ambiguità. Consulta il report.";
     }
     private void SetBusy(bool value)
     {

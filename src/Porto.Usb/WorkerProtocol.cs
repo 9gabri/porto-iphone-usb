@@ -7,16 +7,19 @@ namespace Porto.Usb;
 
 public sealed record Command(string Op,string? Device=null,string? Object=null,int Count=0);
 internal sealed record OpenedResource(long? ResourceLength);
-internal sealed record WorkerSessionError(string Message,int? NativeHResult)
+internal sealed record WorkerSessionError(string Message,int? NativeHResult,bool PreviousOperation=false)
 {
     public static WorkerSessionError From(Exception error)
     {
         for(Exception? current=error;current!=null;current=current.InnerException)
-            if(current is COMException)return new(error.Message,current.HResult);
-        return new(error.Message,null);
+            if(current is COMException)return new(error.Message,current.HResult,error is PreviousReadCleanupException);
+        return new(error.Message,null,error is PreviousReadCleanupException);
     }
-    public SourceUnavailableException ToException()=>new(Message,
-        NativeHResult.HasValue?new COMException(Message,NativeHResult.Value):null);
+    public SourceUnavailableException ToException()
+    {
+        Exception? inner=NativeHResult.HasValue?new COMException(Message,NativeHResult.Value):null;
+        return PreviousOperation?new PreviousReadCleanupException(Message,inner):new SourceUnavailableException(Message,inner);
+    }
 }
 public static class WorkerProtocol
 {

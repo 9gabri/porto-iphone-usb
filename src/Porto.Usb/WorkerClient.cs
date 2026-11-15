@@ -16,6 +16,7 @@ public sealed class WorkerClient : IVideoSource
     private readonly StreamWriter input;
     private Task? pendingWrite;
     private bool disposed;
+    private long streamGeneration;
     public bool IsDisposed=>disposed;
     public TimeSpan Timeout {get;set;}=TimeSpan.FromSeconds(60);
     public Action<int>? InventoryProgress {get;set;}
@@ -30,18 +31,21 @@ public sealed class WorkerClient : IVideoSource
     public List<DeviceInfo> Devices(CancellationToken cancel)=>Json<List<DeviceInfo>>(new("devices"),cancel);
     public DiscoveryResult Discover(CancellationToken cancel)=>Json<DiscoveryResult>(new("discover"),cancel);
     public void ValidateTransportWithoutDevices()=>Json<bool>(new("smoke"),default);
-    public void Connect(string id,CancellationToken cancel)=>Json<bool>(new("connect",Device:id),cancel);
-    public Inventory Inventory(CancellationToken cancel)=>Json<Inventory>(new("inventory"),cancel);
+    public void Connect(string id,CancellationToken cancel)
+    {streamGeneration++;Json<bool>(new("connect",Device:id),cancel);}
+    public Inventory Inventory(CancellationToken cancel)
+    {streamGeneration++;return Json<Inventory>(new("inventory"),cancel);}
     public Stream OpenRead(SourceItem item,CancellationToken cancel)
     {
+        long generation=++streamGeneration;
         var opened=Json<JsonElement>(new("open",Object:item.Id),cancel);
         // Legacy workers return true and supply no resource-specific length.
-        if(opened.ValueKind==JsonValueKind.True)return new RemoteStream(this,cancel,null);
+        if(opened.ValueKind==JsonValueKind.True)return new RemoteStream(this,cancel,null,generation);
         if(opened.ValueKind!=JsonValueKind.Object||!opened.TryGetProperty("ResourceLength",out var size))throw ProtocolError("Risposta apertura USB non valida.");
         long? length=null;
         if(size.ValueKind!=JsonValueKind.Null)
         {if(size.ValueKind!=JsonValueKind.Number||!size.TryGetInt64(out long value)||value<0)throw ProtocolError("Dimensione risorsa USB non valida.");length=value;}
-        return new RemoteStream(this,cancel,length);
+        return new RemoteStream(this,cancel,length,generation);
     }
     private T Json<T>(Command command,CancellationToken cancel)
     {
@@ -112,13 +116,14 @@ public sealed class WorkerClient : IVideoSource
         try{input.Dispose();}catch(IOException){}
         finally{try{output.Dispose();}catch(IOException){}finally{process.Dispose();}}
     }
-    private sealed class RemoteStream(WorkerClient client,CancellationToken cancel,long? resourceLength):Stream,ISourceStreamInfo
+    private sealed class RemoteStream(WorkerClient client,CancellationToken cancel,long? resourceLength,long generation):Stream,ISourceStreamInfo
     {
         public long? ResourceLength=>resourceLength;
         private bool disposed;
         public override int Read(byte[] buffer,int offset,int count)
         {
             ObjectDisposedException.ThrowIf(disposed,this);
+            if(generation!=client.streamGeneration)throw new IOException("Il flusso USB non è più attivo: è stata aperta un'altra risorsa o aggiornata la sessione.");
             if(offset<0||count<0||offset>buffer.Length-count)throw new ArgumentOutOfRangeException(nameof(count));
             if(count==0)return 0;
             var response=client.Exchange(new("read",Count:Math.Min(count,VerifiedCopy.BufferSize)),cancel);

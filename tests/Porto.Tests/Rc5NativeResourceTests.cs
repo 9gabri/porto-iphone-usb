@@ -119,6 +119,7 @@ internal static unsafe class Rc5NativeResourceTests
             attributes=values.Pointer;streamPointer=stream.Pointer;
             resources.Set(4,(nint)(delegate* unmanaged[Stdcall]<nint,char*,PropertyKey*,nint*,int>)&Attributes);
             resources.Set(5,(nint)(delegate* unmanaged[Stdcall]<nint,char*,PropertyKey*,uint,uint*,nint*,int>)&Open);
+            resources.Set(7,(nint)(delegate* unmanaged[Stdcall]<nint,int>)&Cancel);
             values.Set(14,(nint)(delegate* unmanaged[Stdcall]<nint,PropertyKey*,ulong*,int>)&Length);
             stream.Set(3,(nint)(delegate* unmanaged[Stdcall]<nint,byte*,uint,uint*,int>)&Read);
             Source=new(new(device.Pointer),new(content.Pointer),new(properties.Pointer),new(resources.Pointer));
@@ -157,6 +158,8 @@ internal static unsafe class Rc5NativeResourceTests
         if(position==payload.Length&&n<count){tailSent=true;return 1;}
         return 0;
     }
+    [UnmanagedCallersOnly(CallConvs=[typeof(CallConvStdcall)])]
+    private static int Cancel(nint self)=>0;
     [UnmanagedCallersOnly(CallConvs=[typeof(CallConvStdcall)])]
     private static uint Release(nint self)
     {if(self==attributes)attributeReleases++;if(self==streamPointer)streamReleases++;return 0;}

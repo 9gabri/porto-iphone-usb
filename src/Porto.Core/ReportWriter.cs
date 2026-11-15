@@ -18,6 +18,7 @@ public static class ReportWriter
             .AppendLine($"Risorse USB totali (incluse cartelle): {report.UsbItemCount}; immagini: {report.ImageCount}; file accessori AAE: {report.SidecarCount}")
             .AppendLine($"Risorse video USB: {report.CandidateCount}; possibili Live Photo/versioni modificate: {report.SuspectedCompanionCount}; candidati alla copia: {report.TransferCandidateCount}")
             .AppendLine("Questi conteggi riguardano risorse USB, non il numero dei video autonomi nell'app Foto.")
+            .AppendLine("Importati e già presenti verificati si riferiscono a questo passaggio. Zero pendenti non esclude errori, mancanti o ambiguità.")
             .AppendLine("Copertura dell'intera libreria: NON VERIFICABILE via USB; elementi solo iCloud potrebbero non essere enumerati.")
             .AppendLine("Originalità: byte ricevuti conservati senza conversioni; originale Foto non verificato indipendentemente.")
             .AppendLine($"Seconda lettura sorgente richiesta: {(report.SecondSourceRead?"sì":"no")}")
@@ -37,5 +38,5 @@ public static class ReportWriter
     }
     public static string Label(Outcome outcome)=>outcome switch{
         Outcome.Imported=>"Importati",Outcome.AlreadyPresent=>"Già presenti verificati",Outcome.Excluded=>"Esclusi",
-        Outcome.Ambiguous=>"Ambigui",Outcome.Missing=>"Mancanti noti",Outcome.Pending=>"Da completare",_=>"Errori"};
+        Outcome.Ambiguous=>"Ambigui",Outcome.Missing=>"Mancanti noti",Outcome.Pending=>"Pendenti aggiuntivi",_=>"Errori"};
 }

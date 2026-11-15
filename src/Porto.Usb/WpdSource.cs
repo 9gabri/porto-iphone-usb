@@ -12,6 +12,9 @@ public sealed unsafe class WpdSource : IVideoSource
     private static readonly Guid Folder=new("27e2e392-a111-48e0-ab0c-e17705a05f85");
     private static readonly Guid Functional=new("99ed0160-17ff-4c44-9d98-1d7a6f941921");
     private readonly Com device,content,properties,resources;
+    private WpdReadStream? activeStream;
+    private Exception? cleanupFailure;
+    private bool disposed;
     public Action<int>? InventoryProgress {get;set;}
     private static Com Values()=>Com.Create("0c15d503-d017-47ce-9016-7b3f978721cc","6848f6f2-3155-4f86-b6f5-263eeeab3143");
     private static Com Manager()=>Com.Create("0af10cec-2ecd-4b92-9581-34f6ae0637f3","a1567595-4c2f-4574-a6fa-ecef917b9a40");
@@ -80,6 +83,7 @@ public sealed unsafe class WpdSource : IVideoSource
     }
     public Inventory Inventory(CancellationToken cancel)
     {
+        PrepareOperation();
         List<SourceItem> items=[];List<string> errors=[];var guard=new EnumerationGuard();
         void Error(string message){guard.Error();errors.Add(message);}
         Queue<(string Id,int Depth)> pending=new();pending.Enqueue(("DEVICE",0));
@@ -137,13 +141,32 @@ public sealed unsafe class WpdSource : IVideoSource
     public Stream OpenRead(SourceItem item,CancellationToken cancel)
     {
         cancel.ThrowIfCancellationRequested();
+        PrepareOperation();
         var key=new PropertyKey(new("e81e79be-34f0-41bf-b53f-f1a06ae87842"),0);nint stream=0;uint buffer=0;
         long? resourceLength=ResourceLength(item.Id,key);
         int hr;fixed(char* id=item.Id)hr=((delegate* unmanaged[Stdcall]<nint,char*,PropertyKey*,uint,uint*,nint*,int>)resources.Slot(5))
             (resources.Pointer,id,&key,0,&buffer,&stream); // STGM_READ = 0.
         try{Com.Check(hr);if(stream==0)throw new IOException("Flusso USB assente.");}
-        catch{if(stream!=0)new Com(stream).Dispose();throw;}
-        return new WpdReadStream(new(stream),buffer==0?65536:(int)Math.Min(buffer,1024*1024),resourceLength);
+        catch{CancelIncomplete();if(stream!=0)new Com(stream).Dispose();throw;}
+        activeStream=new WpdReadStream(new(stream),buffer==0?65536:(int)Math.Min(buffer,1024*1024),resourceLength,CancelIncomplete);
+        return activeStream;
+    }
+    private void PrepareOperation()
+    {
+        ObjectDisposedException.ThrowIf(disposed,this);
+        activeStream?.Dispose();activeStream=null;
+        if(cleanupFailure!=null)throw new PreviousReadCleanupException(
+            "Non è stato possibile annullare la precedente lettura USB. Serve una nuova sessione e un nuovo inventario.",cleanupFailure);
+    }
+    private void CancelIncomplete()
+    {
+        // IPortableDeviceResources.Cancel is slot 7 (slot 6 is Delete and is never used).
+        // One read-only operation at a time belongs to this handle. Release alone
+        // need not cancel an incomplete operation in the underlying driver.
+        try{Com.Check(((delegate* unmanaged[Stdcall]<nint,int>)resources.Slot(7))(resources.Pointer));}
+        catch(Exception error)when(error is IOException or COMException){cleanupFailure??=error;}
+        // Dispose must preserve the primary error. The next operation rejects
+        // this connection if cancellation failed; it cannot reuse stale IDs.
     }
     private long? ResourceLength(string objectId,PropertyKey key)
     {
@@ -155,7 +178,12 @@ public sealed unsafe class WpdSource : IVideoSource
         if(hr<0||attributes==null)return null;
         return attributes.Length(new(new("1eb6f604-9278-429f-93cc-5bb8c06656b6"),2));
     }
-    public void Dispose(){resources.Dispose();properties.Dispose();content.Dispose();device.Dispose();}
+    public void Dispose()
+    {
+        if(disposed)return;disposed=true;
+        try{activeStream?.Dispose();activeStream=null;}
+        finally{resources.Dispose();properties.Dispose();content.Dispose();device.Dispose();}
+    }
     // No device discovery or connection: safe development smoke test for ABI and COM registration.
     public static void SmokeWithoutDevices()
     {
@@ -176,7 +204,7 @@ public sealed unsafe class WpdSource : IVideoSource
         }
         finally{Com.CoUninitialize();}
     }
-    private sealed class WpdReadStream(Com stream,int optimal,long? resourceLength):Stream,ISourceStreamInfo
+    private sealed class WpdReadStream(Com stream,int optimal,long? resourceLength,Action cancelIncomplete):Stream,ISourceStreamInfo
     {
         private bool ended,disposed;
         private long position;
@@ -201,7 +229,16 @@ public sealed unsafe class WpdSource : IVideoSource
             ended=hr==1||read==0; // S_FALSE reports EOF, including a final nonempty chunk.
             return (int)read;
         }
-        protected override void Dispose(bool disposing){if(disposing&&!disposed){disposed=true;stream.Dispose();}base.Dispose(disposing);}
+        protected override void Dispose(bool disposing)
+        {
+            if(disposing&&!disposed)
+            {
+                disposed=true;
+                try{if(!ended)cancelIncomplete();}
+                finally{stream.Dispose();}
+            }
+            base.Dispose(disposing);
+        }
         public override bool CanRead=>!disposed;public override bool CanSeek=>false;public override bool CanWrite=>false;
         public override long Length=>throw new NotSupportedException();public override long Position{get=>throw new NotSupportedException();set=>throw new NotSupportedException();}
         public override void Flush(){}public override long Seek(long o,SeekOrigin s)=>throw new NotSupportedException();
