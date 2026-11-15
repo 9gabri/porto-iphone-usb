@@ -39,3 +39,15 @@
 - [x] 188 test ordinari e quattro estesi; mutazione isolata e tre stati UI.
 - [x] Confezionamento con pubblicazione atomica dello ZIP, quattro prove sintetiche.
 - [x] Nuovo pacchetto, tag, pubblicazione, download pubblico, checksum e cinque smoke verificati.
+
+## rc.5 — correzioni dopo il collaudo fisico
+- [x] Diagnosi dai report autorizzati, senza lettura dei media o modifica della prova.
+- [x] EOF nativo, dimensione per risorsa, doppia lettura obbligatoria sulle discrepanze e riuso.
+- [x] Accessori AAE, contatori distinti e risultato incompleto senza barra piena.
+- [x] Revisione indipendente, regressioni sulla baseline e mutazione negativa isolata.
+- [x] Suite finale unica 233/233, quattro prove packaging, build senza avvisi/errori.
+- [x] Pacchetto nuovo, pubblicazione, riscaricamento e sei smoke senza hardware.
+- [x] Versioni precedenti conservate e metadati della destinazione reale invariati.
+
+Prossimo riscontro esterno: collaudo rc.5 con l'utente, in una nuova cartella
+vuota, per confermare la stabilità USB e confrontare i video autonomi attesi.

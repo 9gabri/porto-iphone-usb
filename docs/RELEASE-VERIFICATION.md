@@ -129,3 +129,56 @@ La copertura dell'intera libreria Foto e degli originali solo iCloud non è
 certificabile con questi test. È una candidata da provare, non una certificazione
 di assenza di bug. Questo aggiornamento documentale è successivo al tag;
 codice, ZIP e checksum della release rimangono immutati.
+
+## rc.5 — 15 novembre 2026
+
+- Release candidata: https://github.com/9gabri/porto-iphone-usb/releases/tag/v0.1.0-rc.5
+- Sorgente distribuita: commit `6df82ddd935d234a994d32e40321a0a8d5a93283`, tag `v0.1.0-rc.5`.
+- ZIP: `Porto-0.1.0-rc.5-win-x64.zip`, 51.607.356 byte, 283 voci; runtime 10.0.14 incluso.
+- SHA-256: `3876da28077194aaffa97d5fb131cdbbaf1f5de778d53eba889a7c27ccb27999`.
+- SHA-256 del file `SHA256SUMS.txt` (96 byte): `252af66a44e7652090ef10e8ba1164e04e5d8ccb6bac44eb1daad3d1f9a735cd`.
+- Pubblicazione GitHub: 2026-11-15 13:29:28 UTC, prerelease pubblica con due allegati.
+
+Suite finale unica **233/233**: 229 prove ordinarie e quattro estese. Quarantuno
+nuove regressioni sulle dimensioni delle risorse, fine stream, IPC, AAE e contatori.
+Build senza avvisi o errori. Quattro prove di confezionamento separate. Revisione
+indipendente, baseline rc.4 e mutazione negativa isolata in REVIEW-RC5.md.
+Le prove estese includono 2.000 copie reali sintetiche con secondo passaggio senza
+duplicazioni e un contenitore oltre 4 GB scritto, riletto e verificato su NTFS.
+
+Staging nuovo; archivio controllato prima dell'assegnazione del nome finale.
+CRC di tutte le voci valido, nessun percorso assoluto/risalita, duplicato o link.
+Manifesto e ProductVersion concordano con versione e commit del tag. Runtime,
+licenze, istruzioni e risultati presenti. Nessun SDK, test privato, credenziale,
+allegato personale, PDB o configurazione locale incluso; assenti i marcatori del
+percorso privato nelle quattro binarie Porto. Sentinella della vecchia build esclusa.
+
+ZIP e checksum riscaricati dagli URL pubblici senza autenticazione, entrambi
+HTTP 200, usando `?download=1`. Hash identici agli originali e ai digest esposti
+da GitHub. Anche il collegamento diretto dello ZIP senza parametri risponde
+HTTP 200. Archivio riscaricato ricontrollato ed estratto in una nuova cartella.
+
+Sei smoke superati sul pacchetto riscaricato: COM, worker, UI normale, UI ridotta
+in recupero, in pausa e con risultato incompleto. Tutte e quattro le immagini
+ispezionate visivamente: versione rc.5 e pulsanti visibili. Gli smoke verificano
+anche contatori distinti, rimozione della barra dopo l'arresto e rifiuto di un
+aggiornamento tardivo. Nessuna enumerazione o apertura di dispositivi reali.
+
+GitHub Pages: build del commit della release completata senza errori. HTML e
+anteprima HTTP 200, identici byte per byte ai file del tag. Collegamenti a ZIP,
+checksum e note rc.5 verificati. Nessuna nuova prova interattiva del browser.
+
+I quattro ZIP precedenti e i checksum locali rc.3/rc.4 restano invariati. La
+destinazione della prova autorizzata è stata soltanto letta per la diagnosi:
+elenco file, dimensioni e date di modifica coincidono con il rilevamento iniziale.
+Nessun media personale aperto, modificato, cancellato o pubblicato. Nessuna
+installazione, spesa o modifica delle protezioni di Windows.
+
+La rc.4 ha prodotto errori nel collaudo manuale. I test sintetici dimostrano le
+correzioni riprodotte, non la causa di tutti gli errori sul dispositivo. La rc.5
+richiede un nuovo collaudo fisico in una cartella vuota separata, conservando
+intatta la prova precedente. Stabilità del trasferimento, corrispondenza con i
+video autonomi attesi e comportamento iOS rimangono da confermare. Nessuna
+certificazione dell'intera libreria Foto/iCloud o di assenza di bug. Eseguibile
+non firmato. Questo resoconto è successivo al tag; pacchetto e checksum restano
+immutati.

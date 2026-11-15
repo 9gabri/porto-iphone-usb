@@ -4,8 +4,8 @@
 - [x] Regressioni sintetiche AAE, risorsa USB, EOF, contatori e protocollo.
 - [x] Correzione mirata e riesame indipendente.
 - [x] Suite finale unica 233/233, scala, regressioni sulla baseline e mutazione isolata.
-- [ ] Build, quattro stati UI e pacchetto autonomo nuovo.
-- [ ] Pubblicazione, download verificato e avvio senza enumerazione hardware.
+- [x] Build senza avvisi/errori, quattro stati UI e pacchetto autonomo nuovo.
+- [x] Pubblicazione, download verificato e sei smoke senza enumerazione hardware.
 
 Vincoli: niente driver, costi, modifiche alle protezioni o accesso all'iPhone.
 Non pubblicare report, inventari, cataloghi, percorsi personali o media reali.
