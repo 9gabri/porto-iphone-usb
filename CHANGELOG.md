@@ -1,5 +1,17 @@
 # Novità
 
+## 0.1.0-rc.6 — isolamento delle letture incomplete e recupero
+
+- Annullate sullo stesso handle WPD le operazioni incomplete prima del rilascio dello stream; coperto anche GetStream fallito. EOF normale non provoca cancellazioni.
+- Una bonifica fallita invalida la sessione senza mascherare l'errore primario. Il video successivo non ancora aperto resta pendente; i file realmente falliti vengono rimandati dopo quelli sani nei passaggi successivi.
+- Wrapper di lettura obsoleti rifiutati prima di inviare comandi al worker.
+- Contatori espliciti sull'ultimo passaggio e motivi distinti per foto omonime e nomi IMG_E; nessuna esclusione nascosta o indebolimento delle verifiche.
+- Recupero compatibile con la destinazione rc.5, conservando copie, report, cataloghi e temporanei.
+
+Regressioni sintetiche e revisione indipendente non dimostrano la risoluzione
+di tutti gli errori fisici. Conteggi rispetto a Foto ancora da riconciliare.
+Un cleanup bloccato può esaurire i tre tentativi: l'esito rimane incompleto.
+
 ## 0.1.0-rc.5 — correzioni dopo la prova iPhone
 
 - Rispettata la fine del flusso USB anche quando l'ultimo blocco contiene ancora dati. Nessuna ulteriore lettura del driver dopo S_FALSE; una lettura corta con S_OK continua normalmente.

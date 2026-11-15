@@ -1,40 +1,37 @@
-# Porto 0.1.0-rc.5
+# Porto 0.1.0-rc.6
 
-Candidata Windows 11 x64 per copiare in massa i video accessibili dell'iPhone via
-USB. Estrarre tutta la cartella e aprire Porto.exe; runtime incluso.
+Candidata Windows 11 x64, portabile con runtime incluso, per una nuova prova di
+recupero dopo gli errori USB della rc.5.
 
-Dopo gli errori emersi nel collaudo rc.4, questa versione corregge la lettura
-oltre la fine del flusso USB, distingue la dimensione della risorsa aperta da
-quella dell'inventario e riconosce gli accessori AAE. Se le dimensioni dichiarate
-differiscono, sono obbligatorie due letture complete concordanti: i controlli
-su troncamento, SHA-256, copia locale e contenitore rimangono attivi. Corretto
-anche il riuso delle copie quando la dimensione inventariata è inesatta.
+- Annullamento WPD delle operazioni di lettura incomplete prima del rilascio e
+  dell'apertura successiva. Se la cancellazione fallisce serve una nuova sessione.
+- Un errore nella chiusura della lettura precedente non viene attribuito al video
+  successivo ancora da aprire. I file realmente falliti vengono rimandati dopo i sani.
+- Un vecchio stream non può leggere i byte di una risorsa aperta successivamente.
+- Contatori più chiari sull'ultimo passaggio e motivazioni distinte per le
+  ambiguità da foto omonima o nome IMG_E. Zero pendenti non significa zero errori.
 
-L'interfaccia distingue risorse USB, immagini, accessori, possibili Live Photo
-o modifiche e candidati alla copia. Una barra piena non rimane visibile dopo
-un esito incompleto. Errori e ambiguità restano nel report.
+Dimensioni, hash, verifica locale e seconda lettura richiesta restano controllati.
+Nessuna conversione, cancellazione sul telefono, driver o servizio aggiunto.
+Superati 253/253 test in una suite finale unica, build senza avvisi/errori.
+Regressioni sintetiche, revisione indipendente, baseline negativa e mutazione
+isolata documentate nei collegamenti sotto; nessun video personale incluso.
 
-Superati **233/233 test** in un'unica esecuzione finale, con build senza avvisi
-o errori. Le verifiche comprendono regressioni native COM e processi worker sintetici,
-troncamenti, letture discordanti, ripresa, duplicati, cataloghi e percorsi
-ostili, 50.000 elementi, 2.000 copie con secondo passaggio e un file oltre
-4 GB su NTFS. Risultati effettivi e limiti sono documentati sotto.
+**Non è dimostrato che tutti gli errori reali abbiano la stessa causa o siano
+risolti. La differenza rispetto ai video autonomi in Foto resta da riconciliare.**
+Se la cancellazione del driver si blocca, il timeout termina il worker; entro
+tre tentativi possono restare elementi non raggiunti, sempre dichiarati incompleti.
+Le risorse ambigue e gli originali solo iCloud non vengono dichiarati recuperati.
 
-**La rc.5 richiede ancora la prova con iPhone reale.** I report precedenti non
-dimostrano che tutti gli errori fisici avessero la stessa causa. Nessuna promessa
-di zero bug o copertura degli originali soltanto su iCloud. Il telefono viene
-aperto in sola lettura; nessun nuovo servizio, driver o costo introdotto.
+Per aggiornare: chiudere la vecchia app, estrarre tutta la rc.6 separatamente,
+aprire Porto.exe. **Per recuperare la prova rc.5 scegliere la stessa destinazione
+con tutti i file e .porto conservati**, mantenere la verifica approfondita e
+avviare. Le copie precedenti vengono rilette e riutilizzate se integre: non è
+una selezione basata solo sui nomi. Temporanei divergenti restano conservati.
 
-Per aggiornare: chiudere la vecchia app ed estrarre rc.5 separatamente.
-**Per il collaudo scegliere una cartella vuota nuova, per esempio
-“Porto - prova rc5”, conservando intatti i file della prova precedente.**
-Usare una cartella locale NTFS dedicata a un solo telefono/libreria. I cataloghi
-precedenti restano compatibili, ma vecchi obblighi senza prove sufficienti non
-vengono cancellati per supposizione.
+Eseguibile non firmato. Non disattivare le protezioni Windows. Necessaria una
+prova con lo specifico iPhone, iOS, cavo e driver; nessuna promessa di zero bug.
 
-Eseguibile non firmato; non disattivare antivirus o altre protezioni.
+[Istruzioni](https://9gabri.github.io/porto-iphone-usb/) · [Test](https://github.com/9gabri/porto-iphone-usb/blob/v0.1.0-rc.6/docs/TESTS.md) · [Revisione](https://github.com/9gabri/porto-iphone-usb/blob/v0.1.0-rc.6/docs/REVIEW-RC6.md)
 
-[Istruzioni](https://9gabri.github.io/porto-iphone-usb/) · [Prove e limiti](https://github.com/9gabri/porto-iphone-usb/blob/v0.1.0-rc.5/docs/TESTS.md) · [Revisione](https://github.com/9gabri/porto-iphone-usb/blob/v0.1.0-rc.5/docs/REVIEW-RC5.md)
-
-Scaricare Porto-0.1.0-rc.5-win-x64.zip e SHA256SUMS.txt dagli allegati.
-Gli archivi Source code sono per sviluppatori.
+Scaricare Porto-0.1.0-rc.6-win-x64.zip e SHA256SUMS.txt dagli allegati.

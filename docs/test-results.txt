@@ -1,6 +1,6 @@
-Porto 0.1.0-rc.5 - Windows 11 x64 - 15 novembre 2026
-Suite finale unica: 229 test ordinari + 4 estesi, tutti passati.
-Comando: scripts/dev.ps1 test -Large. Dati sintetici; nessun accesso hardware.
+Porto 0.1.0-rc.6 - Windows 11 x64 - novembre 2026
+Suite finale unica: 249 test ordinari + 4 estesi. Dati sintetici, nessun accesso hardware.
+Comando: scripts/dev.ps1 test -Large.
 
 PASS copy and independently reread SHA256
 PASS truncation rejected
@@ -231,17 +231,37 @@ PASS rc5 inventory classifies sidecars without hiding contrary video metadata: c
 PASS rc5 inventory classifies sidecars without hiding contrary video metadata: format-video.AAE
 PASS rc5 inventory mixed resources separate transfer candidates and do not retry sidecars
 PASS rc5 inventory sidecar classification does not erase legacy unknown obligations
-  LARGE stream: 4294967313 bytes, 3,22s, working set 69 MiB
+PASS rc6 protocol preserves that cleanup failure belongs to the previous read
+PASS rc6 cleanup blocked inside next open remains bounded by timeout
+PASS rc6 cleanup blocked inside next open remains bounded by cancellation
+PASS rc6 stale stream cannot consume a later resource after open
+PASS rc6 stale stream cannot consume a later resource after failed-open
+PASS rc6 stale stream cannot consume a later resource after inventory
+PASS rc6 stale stream cannot consume a later resource after connect
+PASS rc6 ambiguous report explains photo pairing and edited-name evidence: True/False
+PASS rc6 ambiguous report explains photo pairing and edited-name evidence: False/True
+PASS rc6 ambiguous report explains photo pairing and edited-name evidence: True/True
+PASS rc6 native incomplete A is cancelled before B receives its own bytes
+PASS rc6 native clean S_FALSE tail is released without Cancel
+PASS rc6 native failed cleanup preserves read error and blocks subsequent Open and Inventory
+PASS rc6 native failed GetStream cancels and releases an allocated result
+PASS rc6 native failed GetStream cleanup retains original HRESULT and invalidates session
+PASS rc6 native failed GetStream without pointer still cancels its unfinished operation
+PASS rc6 native opening B closes A and stale A cannot consume or cancel B
+PASS rc6 native source closes active stream before releasing resources and disposal is idempotent
+PASS rc6 recovery prioritizes untouched healthy files after delayed cleanup failure; remap=False
+PASS rc6 recovery prioritizes untouched healthy files after delayed cleanup failure; remap=True
+  LARGE stream: 4294967313 bytes, 7,38s, working set 66 MiB
 PASS stream beyond 4 GiB: 4 GiB + 17 bytes actually read and hashed without disk allocation
-  LARGE inventory: 50000 items, 250 GB logical, 8,54s, working set 218 MiB
+  LARGE inventory: 50000 items, 250 GB logical, 16,85s, working set 210 MiB
 PASS 50000-item inventory and 250 GB logical capacity without writing payload
-  STRESS full loop: 2000 physical files twice verified, 50000 entries, 419,84s, working set 211 MiB
+  STRESS full loop: 2000 physical files twice verified, 50000 entries, 527,74s, working set 191 MiB
 PASS 50000 inventory entries with 2000 actual copies and verified second pass
-  LARGE NTFS: 4294971392 bytes written and reread, 23,54s, working set 126 MiB
+  LARGE NTFS: 4294971392 bytes written and reread, 40,21s, working set 191 MiB
 PASS video over 4 GiB actually written verified and published on NTFS
 
-233/233 passed
+253/253 passed
 Build app: 0 warnings, 0 errors.
-Separati dalla suite: 4/4 package staging tests; 4/4 UI states.
-Baseline e mutazione negativa: vedere REVIEW-RC5.md.
-Nessuna validazione fisica della rc.5; nessun media personale incluso.
+Separati: 4/4 package staging tests; 4/4 UI states.
+Baseline e mutazione negativa: REVIEW-RC6.md.
+Compatibilità fisica e riconciliazione con Foto ancora da confermare.

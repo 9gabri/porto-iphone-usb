@@ -2,6 +2,12 @@
 
 Consultazione: 30 ottobre 2026. Nessun codice Rollport, AFC/libimobiledevice o DLL Apple non ufficiale riutilizzato.
 
+Verifiche aggiuntive rc.6, 15 novembre 2026:
+- [Microsoft IPortableDeviceResources.Cancel](https://learn.microsoft.com/en-us/windows/win32/api/portabledeviceapi/nf-portabledeviceapi-iportabledeviceresources-cancel): annulla operazioni pendenti sul relativo handle. La rc.6 usa una sola lettura alla volta e non apre risorse in scrittura. Slot 7 verificato nell'header WinSDK PortableDeviceApi.h; slot 6 Delete non utilizzato.
+- [Microsoft GetStream](https://learn.microsoft.com/en-us/windows/win32/api/portabledeviceapi/nf-portabledeviceapi-iportabledeviceresources-getstream): proprietà del riferimento COM e rilascio dello stream.
+- [Microsoft IPortableDeviceDataStream.GetObjectID](https://learn.microsoft.com/en-us/windows/win32/api/portabledeviceapi/nf-portabledeviceapi-iportabledevicedatastream-getobjectid): documentato dopo Commit di un oggetto scritto; non usato per autenticare letture.
+- Il driver che conserva uno stato dopo l'abbandono è una riproduzione sintetica motivata dai report, non una diagnosi certa del comportamento iPhone.
+
 Verifiche aggiuntive rc.5, 15 novembre 2026:
 - [Microsoft GetResourceAttributes](https://learn.microsoft.com/en-us/windows/win32/api/portabledeviceapi/nf-portabledeviceapi-iportabledeviceresources-getresourceattributes) e [WPD_RESOURCE_DEFAULT](https://learn.microsoft.com/en-us/windows/win32/wpd_sdk/wpd-resource-default): attributi della risorsa aperta, distinti dalle proprietà dell'oggetto inventariato.
 - [PortableDevice.h ufficiale](https://github.com/microsoft/win32metadata/blob/main/generation/WinSDK/RecompiledIdlHeaders/um/PortableDevice.h): WPD_RESOURCE_ATTRIBUTE_TOTAL_SIZE, GUID 1EB6F604-9278-429F-93CC-5BB8C06656B6, PID 2, tipo VT_UI8.

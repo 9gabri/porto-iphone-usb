@@ -2,6 +2,17 @@
 
 ## USB e processi
 
+La rc.6 possiede esplicitamente lo stream nativo attivo. Un'operazione che non
+ha raggiunto EOF viene annullata con Resources.Cancel prima del rilascio;
+GetStream fallito viene bonificato allo stesso modo. Una bonifica fallita viene
+memorizzata senza mascherare l'errore primario e impedisce ulteriori operazioni
+sulla connessione. Il worker trasmette il flag PreviousOperation: l'engine
+mantiene pendente la risorsa successiva non ancora aperta e rinvia i soli file
+realmente falliti. Ogni nuovo collegamento richiede comunque inventario nuovo.
+La generazione locale di WorkerClient rifiuta letture da wrapper sostituiti.
+Un blocco nel cleanup è coperto dal timeout dell'intero comando; in quel caso
+la fase esatta può non essere distinguibile e i tentativi restano limitati.
+
 WinForms avvia un processo figlio dello stesso eseguibile con --usb-worker e pipe stdin/stdout. Solo il worker usa WPD: COM in MTA, PortableDeviceFTM, GENERIC_READ e STGM_READ. Non esistono comandi per eliminare, rinominare o modificare contenuti del telefono.
 
 I comandi ammessi sono fissi: ricerca/diagnosi, connessione, inventario, apertura, lettura e chiusura. Timeout di 60 secondi e cancellazione coprono invio e ricezione, anche con pipe satura. Frame invalidi, EOF e timeout terminano il worker; un errore remoto valido del singolo file permette di raggiungere gli altri nella stessa sessione. I progressi sono limitati a circa quattro al secondo, anche con metadati illeggibili e conteggio zero.
