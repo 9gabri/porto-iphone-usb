@@ -5,7 +5,7 @@
 - [x] Correzioni mirate, 20 regressioni nuove, revisione indipendente e mutazione negativa.
 - [x] Limiti di classificazione documentati e motivazioni distinte; conteggi Foto non riconciliati.
 - [x] Suite finale unica 253/253, build senza avvisi/errori, quattro stati UI e quattro prove packaging.
-- [ ] Verifiche finali, pacchetto nuovo e pubblicazione autorizzata.
+- [x] Pacchetto nuovo, pubblicazione autorizzata, riscaricamento verificato e sei smoke senza hardware.
 
 Non modificare o cancellare file della prova reale. Conservare ogni release.
 Non usare hardware reale, installare driver, ridurre protezioni o sostenere costi.

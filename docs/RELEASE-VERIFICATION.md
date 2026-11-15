@@ -182,3 +182,50 @@ video autonomi attesi e comportamento iOS rimangono da confermare. Nessuna
 certificazione dell'intera libreria Foto/iCloud o di assenza di bug. Eseguibile
 non firmato. Questo resoconto è successivo al tag; pacchetto e checksum restano
 immutati.
+
+## rc.6 — 15 novembre 2026
+
+- Release: https://github.com/9gabri/porto-iphone-usb/releases/tag/v0.1.0-rc.6
+- Sorgente: `5fad0eb863e4e0f9dcb0d20fee23d3116b9db23e`, tag `v0.1.0-rc.6`.
+- ZIP: `Porto-0.1.0-rc.6-win-x64.zip`, 51.609.294 byte, 283 voci.
+- SHA-256 ZIP: `85b3a7b5281ae5e49830a151c91816c687c306afbd8facafcedc3d34533ba580`.
+- SHA-256 `SHA256SUMS.txt` (96 byte): `6e10fcb2497f7239faf481d644467882af5506c5c3a5034e0e2ca8b707f735dd`.
+- Pubblicazione: 2026-11-15 20:57:41 UTC, prerelease pubblica con due allegati.
+
+Suite finale unica **253/253** (249 ordinari e quattro estesi), build senza
+avvisi/errori. I venti nuovi casi coprono cleanup nativo, wrapper obsoleti,
+protocollo della failure precedente, recupero con ID rimappati e motivi delle
+ambiguità. Superate anche quattro prove packaging e quattro stati UI separati.
+Revisione indipendente e regressioni negative in REVIEW-RC6.md; mutazione
+isolata di Cancel rilevata dal test che impedisce a B di ricevere byte di A.
+
+ZIP creato in staging nuovo, verificato prima della pubblicazione. CRC di tutte
+le voci valido; percorsi, duplicati, link, file necessari, versione e manifesto
+controllati. ProductVersion coincide con commit e versione del tag. Runtime e
+licenze inclusi; SDK, test privati, PDB, credenziali e allegati personali esclusi.
+Assenti i marcatori dei percorsi privati nelle quattro binarie Porto. La
+sentinella della vecchia build è rimasta esclusa. I cinque ZIP precedenti e i
+checksum locali controllati rc.3/rc.4/rc.5 sono invariati.
+
+ZIP e checksum riscaricati senza autenticazione dai link pubblici con
+`?download=1`, entrambi HTTP 200 e identici agli originali. Anche i digest
+GitHub coincidono. Il link diretto ZIP senza parametri risponde HTTP 200.
+Archivio riscaricato ricontrollato ed estratto in una nuova cartella.
+
+Sei smoke superati sul pacchetto pubblico: COM, worker e UI normale/ridotta
+in recupero, pausa e risultato incompleto. Quattro immagini ispezionate:
+versione rc.6, pulsanti visibili, risultato incompleto senza falsa barra piena.
+Nessuna enumerazione o apertura di telefoni reali. GitHub Pages ha completato
+la build del commit della release; HTML e anteprima HTTP 200 e identici byte
+per byte ai file del tag. Verificati i tre link rc.6 (ZIP, checksum, note).
+
+Nessun video personale letto, modificato, cancellato o pubblicato. Nessun accesso
+al computer della cliente o al telefono: la diagnosi usa i report allegati.
+Nessuna spesa, installazione di driver o riduzione delle protezioni.
+
+La candidata richiede una prova fisica di recupero nella stessa destinazione
+rc.5, conservando tutti i file. Le cause di tutti gli errori reali e la differenza
+con il numero di video in Foto non sono dimostrate. Un cleanup bloccato può
+ancora esaurire i tentativi; errori, pendenti e ambiguità restano espliciti.
+Nessuna certificazione di completezza Foto/iCloud o assenza di bug. Eseguibile
+non firmato. Questo resoconto è successivo al tag; ZIP e checksum restano immutati.

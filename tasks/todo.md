@@ -51,3 +51,16 @@
 
 Prossimo riscontro esterno: collaudo rc.5 con l'utente, in una nuova cartella
 vuota, per confermare la stabilità USB e confrontare i video autonomi attesi.
+
+## rc.6 — recupero delle letture interrotte
+- [x] Analisi dei report allegati senza accesso a telefono, PC della cliente o media.
+- [x] Cleanup WPD e proprietà dello stream, wrapper obsoleti e cause strutturate IPC.
+- [x] Priorità dei file effettivamente falliti; successivo non aperto ancora pendente.
+- [x] Motivi delle ambiguità espliciti e contatori dell'ultimo passaggio chiariti.
+- [x] Revisione indipendente, baseline negative e mutazione isolata rilevata.
+- [x] Suite finale unica 253/253, quattro prove packaging e quattro stati UI.
+- [x] Nuovo ZIP, pubblicazione, riscaricamento, checksum e sei smoke verificati.
+
+Riscontro esterno ancora necessario: recupero fisico con rc.6 nella destinazione
+rc.5 conservata e riconciliazione dei conteggi Foto. Nessun completo recupero
+dei video reali dichiarato sulla sola base delle prove sintetiche.
