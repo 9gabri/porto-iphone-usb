@@ -1,5 +1,18 @@
 # Novità
 
+## 0.1.0-rc.5 — correzioni dopo la prova iPhone
+
+- Rispettata la fine del flusso USB anche quando l'ultimo blocco contiene ancora dati. Nessuna ulteriore lettura del driver dopo S_FALSE; una lettura corta con S_OK continua normalmente.
+- Verificata la dimensione della risorsa aperta, quando fornita dal driver. Se differisce dall'inventario, due letture USB concordanti diventano obbligatorie; troncamenti e contenuti discordanti restano errori.
+- Evitate copie aggiuntive nei passaggi successivi quando la dimensione dell'inventario è inesatta. Restano il confronto SHA-256 e la rilettura della copia locale.
+- File accessori AAE riconosciuti ed esclusi con motivazione, senza scartarli quando i metadati indicano invece un video. Altri elementi ignoti restano espliciti.
+- Contatori separati per risorse USB, immagini, accessori, possibili Live Photo/modifiche e candidati alla copia. La barra non resta piena dopo un risultato incompleto.
+- Diagnostica con byte attesi/ricevuti e posizione degli errori USB; protocollo worker verificato anche con dimensioni oltre 4 GB e risposte malformate.
+
+La rc.4 ha fallito una prova manuale; queste correzioni sono verificate con dati
+sintetici e richiedono una nuova prova fisica. Conservare la vecchia prova e usare
+una cartella nuova per il collaudo rc.5. Nessuna modifica retroattiva ai suoi file.
+
 ## 0.1.0-rc.4 — verifica conclusiva e recupero dei file bloccati
 
 - Un video che blocca la sessione viene rimandato dopo gli altri nei passaggi successivi. Il riordino gestisce anche nomi e dimensioni uguali, senza usarli come prova di identità; restano tre tentativi massimi.

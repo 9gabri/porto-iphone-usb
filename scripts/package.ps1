@@ -31,7 +31,7 @@ foreach($mode in @('--interop-smoke','--worker-smoke')){
     if($p.ExitCode -ne 0){throw "$mode failed"}
 }
 $image=Join-Path $root 'artifacts/package-ui.png'
-foreach($imageName in @('package-ui.png','package-ui-compact-retry.png','package-ui-compact-paused.png')){
+foreach($imageName in @('package-ui.png','package-ui-compact-retry.png','package-ui-compact-paused.png','package-ui-compact-incomplete.png')){
     $image=Join-Path $root ('artifacts/'+$imageName)
     $p=Start-Process -FilePath $exe -ArgumentList @('--ui-smoke',('"'+$image+'"')) -WindowStyle Hidden -PassThru
     if(!$p.WaitForExit(15000)){Stop-Process -Id $p.Id;throw 'UI timeout'}

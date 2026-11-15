@@ -1,37 +1,40 @@
-# Porto 0.1.0-rc.4
+# Porto 0.1.0-rc.5
 
-Candidata Windows 11 x64 per copiare in massa i video accessibili dell'iPhone via USB.
-Estrarre tutta la cartella e aprire Porto.exe; runtime incluso.
+Candidata Windows 11 x64 per copiare in massa i video accessibili dell'iPhone via
+USB. Estrarre tutta la cartella e aprire Porto.exe; runtime incluso.
 
-Dopo un video che blocca la sessione, i passaggi successivi provano prima gli altri.
-La priorità gestisce anche nomi e dimensioni uguali e più gruppi di file bloccati,
-con inventario aggiornato e tre tentativi massimi. Ogni copia richiede comunque
-la verifica del contenuto; gli impedimenti irrisolti restano nel report.
+Dopo gli errori emersi nel collaudo rc.4, questa versione corregge la lettura
+oltre la fine del flusso USB, distingue la dimensione della risorsa aperta da
+quella dell'inventario e riconosce gli accessori AAE. Se le dimensioni dichiarate
+differiscono, sono obbligatorie due letture complete concordanti: i controlli
+su troncamento, SHA-256, copia locale e contenitore rimangono attivi. Corretto
+anche il riuso delle copie quando la dimensione inventariata è inesatta.
 
-Le copie storiche vengono verificate anche quando il video non ricompare sul
-telefono. Le osservazioni di tipo ignoto non scompaiono dai debiti. Rafforzati i
-controlli dei cataloghi, dei percorsi, delle relazioni di recupero e delle
-impostazioni locali. Distinti gli errori nativi di sessione dagli errori del file.
+L'interfaccia distingue risorse USB, immagini, accessori, possibili Live Photo
+o modifiche e candidati alla copia. Una barra piena non rimane visibile dopo
+un esito incompleto. Errori e ambiguità restano nel report.
 
-Verificati 192 casi distinti (188 ordinari e quattro estesi, in due esecuzioni
-sulla stessa logica finale), con build senza avvisi o errori. Le prove comprendono
-processi sintetici bloccati/interrotti, ID rimappati,
-cataloghi e collegamenti ostili, compatibilità legacy, 50.000 elementi,
-2.000 copie effettive con secondo passaggio e un file oltre 4 GB su NTFS.
-Risultati, revisione e limiti sono documentati nei collegamenti sotto.
+Superati **233/233 test** in un'unica esecuzione finale, con build senza avvisi
+o errori. Le verifiche comprendono regressioni native COM e processi worker sintetici,
+troncamenti, letture discordanti, ripresa, duplicati, cataloghi e percorsi
+ostili, 50.000 elementi, 2.000 copie con secondo passaggio e un file oltre
+4 GB su NTFS. Risultati effettivi e limiti sono documentati sotto.
 
-**Nessun trasferimento con iPhone reale è stato validato.** Rimane una candidata,
-senza promessa di zero bug o copertura degli originali presenti soltanto su iCloud.
-Il telefono è utilizzato in sola lettura. Nessun costo o nuovo servizio introdotto.
+**La rc.5 richiede ancora la prova con iPhone reale.** I report precedenti non
+dimostrano che tutti gli errori fisici avessero la stessa causa. Nessuna promessa
+di zero bug o copertura degli originali soltanto su iCloud. Il telefono viene
+aperto in sola lettura; nessun nuovo servizio, driver o costo introdotto.
 
-Per aggiornare: chiudere la vecchia app ed estrarre rc.4 separatamente. Conservare
-la destinazione con .porto e usare la nuova versione per le importazioni successive.
-Debiti storici senza prove sufficienti rimangono esplicitamente incerti.
-Usare una cartella locale NTFS dedicata a un solo telefono/libreria.
+Per aggiornare: chiudere la vecchia app ed estrarre rc.5 separatamente.
+**Per il collaudo scegliere una cartella vuota nuova, per esempio
+“Porto - prova rc5”, conservando intatti i file della prova precedente.**
+Usare una cartella locale NTFS dedicata a un solo telefono/libreria. I cataloghi
+precedenti restano compatibili, ma vecchi obblighi senza prove sufficienti non
+vengono cancellati per supposizione.
 
 Eseguibile non firmato; non disattivare antivirus o altre protezioni.
 
-[Istruzioni](https://9gabri.github.io/porto-iphone-usb/) · [Prove e limiti](https://github.com/9gabri/porto-iphone-usb/blob/v0.1.0-rc.4/docs/TESTS.md) · [Revisione](https://github.com/9gabri/porto-iphone-usb/blob/v0.1.0-rc.4/docs/REVIEW-RC4.md)
+[Istruzioni](https://9gabri.github.io/porto-iphone-usb/) · [Prove e limiti](https://github.com/9gabri/porto-iphone-usb/blob/v0.1.0-rc.5/docs/TESTS.md) · [Revisione](https://github.com/9gabri/porto-iphone-usb/blob/v0.1.0-rc.5/docs/REVIEW-RC5.md)
 
-Scaricare Porto-0.1.0-rc.4-win-x64.zip e SHA256SUMS.txt dagli allegati.
+Scaricare Porto-0.1.0-rc.5-win-x64.zip e SHA256SUMS.txt dagli allegati.
 Gli archivi Source code sono per sviluppatori.

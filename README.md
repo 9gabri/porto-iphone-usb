@@ -1,8 +1,18 @@
 # Porto
 
-App locale italiana per importare via USB i video accessibili di un iPhone su Windows 11 x64. Versione **0.1.0-rc.4**, candidata sperimentale: il collegamento WPD è reale, ma **nessun iPhone fisico è stato utilizzato per validarla**.
+App locale italiana per importare via USB i video accessibili di un iPhone su Windows 11 x64. Versione **0.1.0-rc.5**, candidata sperimentale: il collegamento WPD è reale, ma **questa versione richiede ancora una prova con iPhone fisico**. La precedente rc.4 ha evidenziato errori durante un collaudo manuale.
 
-[Pagina e istruzioni](https://9gabri.github.io/porto-iphone-usb/) · [Download Windows](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.4/Porto-0.1.0-rc.4-win-x64.zip) · [Checksum SHA-256](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.4/SHA256SUMS.txt)
+[Pagina e istruzioni](https://9gabri.github.io/porto-iphone-usb/) · [Download Windows](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.5/Porto-0.1.0-rc.5-win-x64.zip) · [Checksum SHA-256](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.5/SHA256SUMS.txt)
+
+La rc.5 corregge classificazione dei file accessori AAE, fine del flusso USB e
+verifica della dimensione della risorsa aperta. Una differenza dall'inventario
+richiede due letture complete concordanti. L'interfaccia distingue i conteggi
+USB dai candidati alla copia e non mostra una barra piena dopo un risultato
+incompleto. [Diagnosi, correzioni e limiti](docs/REVIEW-RC5.md).
+
+**Per il nuovo collaudo scegli una cartella vuota distinta, per esempio
+Porto - prova rc5. Conserva intatta la prova precedente.** La causa di tutti gli
+errori USB reali non è ancora dimostrata; le correzioni vanno provate sull'iPhone.
 
 ## Provala
 

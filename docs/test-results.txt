@@ -1,9 +1,7 @@
-PORTO rc.4: synthetic verification only; no hardware enumeration
-192 distinct tests verified: 188 ordinary + 4 extended, in separate executions.
-The initial combined run had one outdated hard-link assertion; only the assertion was updated.
-All 188 ordinary tests were then rerun and passed. Production logic was unchanged.
+Porto 0.1.0-rc.5 - Windows 11 x64 - 15 novembre 2026
+Suite finale unica: 229 test ordinari + 4 estesi, tutti passati.
+Comando: scripts/dev.ps1 test -Large. Dati sintetici; nessun accesso hardware.
 
-ORDINARY FINAL SUITE:
 PASS copy and independently reread SHA256
 PASS truncation rejected
 PASS unexpected extra bytes rejected
@@ -192,22 +190,58 @@ PASS native discovery ABI propagates 00000000 and releases allocated strings
 PASS native discovery ABI propagates 00000001 and releases allocated strings
 PASS native discovery ABI propagates 80004005 and releases allocated strings
 PASS native inventory emits progress between metadata calls and ends on S_FALSE
-188/188 passed
-
-EXTENDED TESTS ON THE SAME PRODUCTION LOGIC:
-  LARGE stream: 4294967313 bytes, 2,42s, working set 71 MiB
+PASS rc5 resource size overrides stale object -31 only with two matching reads
+PASS rc5 resource size overrides stale object 31 only with two matching reads
+PASS rc5 resource rejects truncated without publication
+PASS rc5 resource rejects extra without publication
+PASS rc5 resource rejects second-size without publication
+PASS rc5 resource rejects second-content without publication
+PASS rc5 resource rejects missing-size without publication
+PASS rc5 resource repeated stale inventory -31 reuses one verified copy
+PASS rc5 resource repeated stale inventory 31 reuses one verified copy
+PASS rc5 resource reuses verified copy with two current reads when object size changes
+PASS rc5 resource resumes a synthetic partial without overwriting its prefix
+PASS rc5 protocol resource length crosses process boundary and preserves payload: zero
+PASS rc5 protocol resource length crosses process boundary and preserves payload: large
+PASS rc5 protocol resource length crosses process boundary and preserves payload: unknown
+PASS rc5 protocol resource length crosses process boundary and preserves payload: legacy
+PASS rc5 protocol malformed resource length invalidates worker: negative
+PASS rc5 protocol malformed resource length invalidates worker: string
+PASS rc5 protocol malformed resource length invalidates worker: missing
+PASS rc5 protocol malformed resource length invalidates worker: false
+PASS rc5 protocol malformed resource length invalidates worker: overflow
+PASS rc5 native resource length 0 uses the exact resource property and read-only stream
+PASS rc5 native resource length 12345 uses the exact resource property and read-only stream
+PASS rc5 native resource length 4294967313 uses the exact resource property and read-only stream
+PASS rc5 native missing resource attributes 80070032 fall back without inventing a length
+PASS rc5 native missing resource attributes 80070490 fall back without inventing a length
+PASS rc5 native missing resource size property remains unknown
+PASS rc5 native lost session from resource attributes propagates and releases an allocated result
+PASS rc5 native lost session reading resource length propagates and releases attributes
+PASS rc5 native GetStream failure releases an allocated stream
+PASS rc5 native final S_FALSE bytes are retained and EOF is not requested from the driver again
+PASS rc5 native optimal buffer below 4096 is respected
+PASS rc5 native short successful read does not imply EOF
+PASS rc5 native zero-byte read does not call the driver or consume EOF
+PASS rc5 native terminal S_FALSE passes engine copy and independent second read
+PASS rc5 inventory classifies sidecars without hiding contrary video metadata: IMG_0001.AAE
+PASS rc5 inventory classifies sidecars without hiding contrary video metadata: IMG_0002.aae
+PASS rc5 inventory classifies sidecars without hiding contrary video metadata: opaque.bin
+PASS rc5 inventory classifies sidecars without hiding contrary video metadata: contradiction.AAE
+PASS rc5 inventory classifies sidecars without hiding contrary video metadata: format-video.AAE
+PASS rc5 inventory mixed resources separate transfer candidates and do not retry sidecars
+PASS rc5 inventory sidecar classification does not erase legacy unknown obligations
+  LARGE stream: 4294967313 bytes, 3,22s, working set 69 MiB
 PASS stream beyond 4 GiB: 4 GiB + 17 bytes actually read and hashed without disk allocation
-  LARGE inventory: 50000 items, 250 GB logical, 3,84s, working set 209 MiB
+  LARGE inventory: 50000 items, 250 GB logical, 8,54s, working set 218 MiB
 PASS 50000-item inventory and 250 GB logical capacity without writing payload
-  STRESS full loop: 2000 physical files twice verified, 50000 entries, 316,11s, working set 189 MiB
+  STRESS full loop: 2000 physical files twice verified, 50000 entries, 419,84s, working set 211 MiB
 PASS 50000 inventory entries with 2000 actual copies and verified second pass
-  LARGE NTFS: 4294971392 bytes written and reread, 12,47s, working set 126 MiB
+  LARGE NTFS: 4294971392 bytes written and reread, 23,54s, working set 126 MiB
 PASS video over 4 GiB actually written verified and published on NTFS
-4/4 extended passed
 
-BUILD: 0 warnings, 0 errors.
-MUTATION: isolated reversed retry priority caused both target assertions to fail (expected 0/2).
-PACKAGING SCRIPT: 4/4 synthetic probes passed; separate from the 192 app cases.
-UI: normal, compact retry, compact paused smoke checks and visual inspection passed.
-Public package verification is recorded separately in docs/RELEASE-VERIFICATION.md.
-No physical iPhone, real power loss, or real 250 GB USB transfer has been tested.
+233/233 passed
+Build app: 0 warnings, 0 errors.
+Separati dalla suite: 4/4 package staging tests; 4/4 UI states.
+Baseline e mutazione negativa: vedere REVIEW-RC5.md.
+Nessuna validazione fisica della rc.5; nessun media personale incluso.

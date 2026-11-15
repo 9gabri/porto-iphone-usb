@@ -8,6 +8,8 @@ I comandi ammessi sono fissi: ricerca/diagnosi, connessione, inventario, apertur
 
 Gli errori nativi espliciti di sessione persa vengono propagati anche dalle letture dei metadati. Il frame 4 conserva il codice HRESULT e invalida il worker; il frame 3 riguarda gli errori del singolo elemento. EOF e timeout durante Read appartengono al file corrente, evitando di accusare quello successivo.
 
+Ogni apertura può restituire la dimensione WPD_RESOURCE_ATTRIBUTE_TOTAL_SIZE della risorsa predefinita. È un Int64 non negativo opzionale trasportato nel descrittore del worker; un descrittore malformato invalida la sessione. Proprietà non disponibile: controllo sulla dimensione dell'inventario. Una dimensione di risorsa diversa dall'inventario obbliga a due letture USB complete concordanti, oltre alla verifica locale. Ogni lettura deve rispettare la propria dimensione dichiarata: non si ignorano i troncamenti. IStream.Read con S_FALSE conserva gli eventuali ultimi byte e memorizza EOF, evitando un'altra chiamata al driver; un blocco corto con S_OK prosegue. Viene rispettato anche un buffer ottimale inferiore a 4096 byte.
+
 Gli ID oggetto non attraversano connessioni WPD: dopo una sessione morta serve un nuovo inventario. ImportSession crea fino a tre passaggi sullo stesso ID dispositivo, con attesa cancellabile di 15 secondi. Nessun cambio automatico di telefono. Disco pieno, permessi mancanti e pausa interrompono il recupero. Il worker possiede al massimo uno stream, liberato prima dell'operazione seguente o alla terminazione; il cleanup del client non può sostituire un errore di copia con un errore di close.
 
 Un'interruzione conserva un suggerimento d'ordine: nome, dimensione e posizione nel gruppo dell'inventario originale. Al passaggio successivo tutti gli elementi non ancora falliti, in tutti i gruppi, precedono quelli che hanno già interrotto una sessione. Ogni elemento viene comunque tentato e verificato per contenuto. Gli ID possono cambiare; i suggerimenti non riconciliano identità o debiti. Con un ordine stabile, due elementi bloccati non impediscono di raggiungere quelli sani entro tre passaggi. Inventari riordinati o ulteriori blocchi possono esaurire il limite e restano nel report.
@@ -48,7 +50,11 @@ Un elemento appena osservato è anche unread. Solo una lettura attuale completa 
 
 Anche gli elementi Unknown privi di un formato video riconosciuto vengono registrati, nell'inventario iniziale e finale. Una successiva classificazione con metadati simili non prova da sola che il vecchio elemento ignoto sia risolto. I gruppi di copie storiche vengono verificati anche quando il contenuto non ricompare nella sorgente corrente.
 
+Dalla rc.5, gli AAE di tipo Other/Unknown senza indizi video sono accessori esclusi con motivazione. Non generano nuovi debiti Unknown; quelli già registrati dalle versioni precedenti restano conservati. Un tipo o formato video prevale sull'estensione. L'inventario continua a esaminare i metadati di tutte le risorse esposte via USB, senza copiare le fotografie. I conteggi distinguono queste risorse dai video autonomi e dalla libreria Foto; le associazioni sospette a Live Photo/modifiche rimangono ambigue.
+
 Il riuso richiede lettura completa della sorgente, hash e lunghezza coincidenti e rilettura della copia locale scelta. Ogni copia può essere assegnata una sola volta nell'inventario corrente. Le copie aggiuntive necessarie ai conteggi storici non vengono rimesse nella coda dello stesso passaggio. I deficit provati possono attivare ulteriori passaggi limitati. Due inventari vengono confrontati includendo la molteplicità, ma non costituiscono uno snapshot atomico di Foto.
+
+La ricerca di copie riutilizzabili non viene saltata sulla sola base della dimensione inventariata: potrebbe essere diversa da quella della risorsa. L'identità richiede sempre il contenuto letto e verificato. Nessun cambiamento allo schema dei cataloghi nella rc.5.
 
 Usare una cartella per telefono/libreria. L'identità tra librerie differenti, gli originali Foto e gli elementi solo iCloud non sono certificabili da questi confronti. I cataloghi non devono essere rimossi o modificati manualmente.
 

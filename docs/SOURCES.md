@@ -2,6 +2,12 @@
 
 Consultazione: 30 ottobre 2026. Nessun codice Rollport, AFC/libimobiledevice o DLL Apple non ufficiale riutilizzato.
 
+Verifiche aggiuntive rc.5, 15 novembre 2026:
+- [Microsoft GetResourceAttributes](https://learn.microsoft.com/en-us/windows/win32/api/portabledeviceapi/nf-portabledeviceapi-iportabledeviceresources-getresourceattributes) e [WPD_RESOURCE_DEFAULT](https://learn.microsoft.com/en-us/windows/win32/wpd_sdk/wpd-resource-default): attributi della risorsa aperta, distinti dalle proprietà dell'oggetto inventariato.
+- [PortableDevice.h ufficiale](https://github.com/microsoft/win32metadata/blob/main/generation/WinSDK/RecompiledIdlHeaders/um/PortableDevice.h): WPD_RESOURCE_ATTRIBUTE_TOTAL_SIZE, GUID 1EB6F604-9278-429F-93CC-5BB8C06656B6, PID 2, tipo VT_UI8.
+- [Microsoft ISequentialStream::Read](https://learn.microsoft.com/en-us/windows/win32/api/objidl/nf-objidl-isequentialstream-read): conteggio restituito e S_FALSE alla fine del flusso. Conservare gli ultimi byte senza richiedere un'altra lettura dopo EOF.
+- Queste specifiche e le regressioni sintetiche dimostrano i contratti dell'implementazione; non provano che tutte le anomalie della prima prova fisica avessero la stessa causa.
+
 Verifiche aggiuntive rc.4, 31 ottobre 2026:
 - [Microsoft errori WPD](https://learn.microsoft.com/en-us/windows/win32/wpd_sdk/error-constants), [errori COM/RPC](https://learn.microsoft.com/en-us/windows/win32/com/com-error-codes-3) e [errori COM generali](https://learn.microsoft.com/en-us/windows/win32/com/com-error-codes-1): distinzione dei codici che richiedono una nuova sessione dagli errori del singolo elemento.
 - [Microsoft CoCreateInstance](https://learn.microsoft.com/en-us/windows/win32/api/combaseapi/nf-combaseapi-cocreateinstance): diagnostica del componente COM non registrato.
