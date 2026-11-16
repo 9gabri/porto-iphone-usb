@@ -1,55 +1,35 @@
-PORTO 0.1.0-rc.8 — CANDIDATA WINDOWS 11 x64
+PORTO 0.1.0-rc.9 — CANDIDATA WINDOWS 11 x64
 
-RECUPERO DELLA PROVA rc.5 / rc.6: scegli la stessa destinazione e conserva video, report, temporanei e .porto. Estrai la nuova app separatamente.
-La rc.8 tenta tutte le risorse video USB, incluse quelle con nomi o foto abbinate sospette. Le copie aggiuntive verificate vanno in Risorse video aggiuntive. Possono essere migliaia di componenti di Live Photo o varianti: non sono un conteggio dei video autonomi di Foto. Il recupero reale richiede una nuova prova sull’iPhone.
+IMPORTAZIONE DA CARTELLA E CONFRONTO DELLE COPIE PRECEDENTI
 
-1. Estrai tutta la cartella dello ZIP e apri Porto.exe.
-2. Collega l'iPhone via USB, sbloccalo e autorizza il PC.
-3. Verifica sul telefono: Impostazioni > App > Foto > Trasferisci su Mac o PC > Mantieni originali.
-4. Scegli una cartella locale NTFS e premi Avvia importazione.
+1. Chiudi la vecchia app. Estrai TUTTO questo ZIP in una cartella nuova e apri Porto.exe.
+2. Prepara sul PC una cartella separata con gli originali non modificati esportati dalla raccolta Video di Foto sull’iPhone. Non usare l’intera DCIM: contiene anche possibili componenti di Live Photo. La preparazione reale dell’esportazione va ancora collaudata.
+3. In Porto lascia Importa da: Cartella esportata da Foto.
+4. Origine: la nuova cartella dell’esportazione. Archivio: la stessa cartella delle prove precedenti, che contiene Video Porto, .porto e Report Porto.
+5. Premi Avvia importazione. Attendi il risultato e apri il report. Pausa e Riprendi conservano il lavoro e ripetono i controlli.
 
-Non servono compilatori o un'installazione .NET: il runtime è incluso.
-Se l'iPhone non compare, verifica cavo/autorizzazione e i componenti ufficiali Dispositivi Apple:
-https://support.apple.com/en-us/120267
-Porto non installa driver e non richiede privilegi amministrativi.
+Le due cartelle devono essere separate, locali, NTFS. Nessuna può contenere l’altra. Archivio: percorso massimo 120 caratteri. Runtime incluso, nessun Mac o compilatore necessario.
 
-Pausa interrompe anche l'attesa automatica; Riprendi rilegge l'inventario e verifica le copie già fatte.
-Porto tenta tre passaggi ordinari, con attesa di 15 secondi, sullo stesso telefono.
-Gli errori di singoli video lasciano proseguire gli altri. Spazio insufficiente richiede una pausa.
-Se un video blocca la sessione, nei passaggi successivi vengono provati prima gli altri, anche con nomi e dimensioni uguali. Dopo i tre passaggi sono ammesse continuazioni solo se raggiungono nuovi ostacoli: massimo 128 e limite fissato dal primo inventario completo. Nessun retry infinito.
-I temporanei associabili vengono confrontati con la sorgente dall'inizio, poi completati senza sovrascrivere il prefisso.
-Il controllo finale confronta due inventari USB. Pendenti, ambigui ed errori restano espliciti nel report.
-Vengono ricontrollate anche le copie storiche. Un elemento già osservato ma mai classificato o letto non scompare dai conteggi solo perché manca nell'inventario successivo.
-Per riconnessioni che cambiano il dispositivo visibile, premi Cerca iPhone.
-La verifica approfondita rilegge anche la sorgente e richiede più tempo.
+Porto confronta il contenuto completo e SHA-256. Riutilizza le copie identiche, anche non registrate nel vecchio catalogo, senza spostarle. Nuovi video e recuperi vengono scritti con nomi nuovi: nessun video esistente viene cancellato, troncato o sovrascritto.
+Due file selezionati distinti con byte uguali mantengono due copie. Versioni convertite/modificate con byte diversi non possono essere riconosciute automaticamente come lo stesso video.
+Le copie precedenti non riutilizzate restano al loro posto. NON significa che siano Live Photo: il report distingue questi file senza eliminarli. Copie danneggiate, mancanti e vecchie osservazioni USB restano visibili.
 
-File: Video Porto. Catalogo/temporanei: .porto. Report: Report Porto (TXT e JSON).
-Conserva .porto insieme ai video. I temporanei divergenti o non associabili possono occupare spazio aggiuntivo e non vengono cancellati. Usa una cartella distinta per ogni telefono/libreria.
-La cartella scelta viene ricordata localmente. Durante il lavoro viene richiesta la prevenzione della sospensione per inattività del PC; lo schermo può bloccarsi normalmente.
+I cataloghi registrano l’avanzamento. I temporanei associabili possono essere completati dopo confronto integrale del prefisso. Gli altri restano conservati. Non cancellare .porto, report o file delle prove precedenti. Per ogni telefono/libreria usa un archivio distinto.
 
-SE L'IPHONE NON COMPARE
-Sbloccalo, ricollega un cavo dati e autorizza il PC. Verifica che sia riconosciuto da Dispositivi Apple, poi chiudi quell'app e premi Cerca iPhone.
-Porto distingue assenza di dispositivi Windows, dispositivo non riconosciuto Apple e metadati non leggibili. Non modifica driver o protezioni.
+LIMITI
+- Cartella verificata riguarda i file individuati nella cartella; non certifica la completezza dell’esportazione o dell’intera libreria Foto.
+- MOV, MP4 e M4V controllati strutturalmente, senza conversioni. I formati video comuni non supportati restano ambigui; le altre esclusioni hanno una motivazione nel report.
+- Contenuti solo iCloud non vengono scaricati da Porto. Nessun totale di video garantito prima della prova reale.
+- Importazione USB ancora disponibile dal selettore. Può copiare anche componenti Live Photo nelle Risorse video aggiuntive: non è la selezione della raccolta Video di Foto.
+- Windows ARM, exFAT, rete, collegamenti/junction e file cloud non disponibili localmente non supportati.
+- Nessuna condivisione di rete viene creata da Porto. Nessun Apple ID, telemetria, servizio o costo aggiunto nell’app.
+- Non firmata commercialmente: Windows può avvisare o bloccare l’avvio. Non disattivare SmartScreen, antivirus o altre protezioni.
 
-AGGIORNAMENTO DA rc.1 / rc.2 / rc.3 / rc.4 / rc.5 / rc.6
-Chiudi la vecchia app ed estrai questo ZIP in una nuova cartella. Non mescolare i file dei due pacchetti. Per il recupero rc.5 / rc.6 usa la destinazione esistente con .porto; per una prima importazione usa una cartella dedicata. Non cancellare o rinominare file manualmente.
-La compatibilità dei cataloghi precedenti è mantenuta. Se in seguito si riutilizza una destinazione precedente, i vecchi lavori pendenti senza storia sufficiente restano esplicitamente non verificabili: non vengono cancellati per supposizione. Dopo un aggiornamento del catalogo usare la nuova app per quella destinazione.
+App in una nuova cartella; archivio precedente conservato. Dopo l’aggiornamento usa rc.9 per quell’archivio.
+La copia non richiede decoder HEVC; la riproduzione dipende dai codec disponibili.
 
-LIMITI DELLA CANDIDATA
-- Se ogni riconnessione cambia l’elenco USB, o persistono blocchi e disconnessioni, anche le continuazioni limitate possono non bastare: gli elementi irrisolti restano segnalati.
-- La rc.8 richiede ancora una prova fisica. La differenza rispetto al numero dei video mostrati da Foto non è ancora riconciliata; non è possibile garantire un totale prima della prova.
-- Funziona offline, senza Apple ID. Non scarica da iCloud. Il numero degli originali solo cloud può essere sconosciuto.
-- Completare l'inventario USB NON certifica l'intera libreria Foto.
-- SHA-256 dimostra la corrispondenza con i byte ricevuti, non un originale Foto certificato.
-- Possibili Live Photos e versioni modificate vengono copiate e verificate come risorse aggiuntive; non ogni caso è riconoscibile. Le copie precedenti restano nella loro cartella. I vecchi temporanei validi riclassificati sono preservati e pubblicati tramite una nuova copia.
-- Windows ARM, exFAT, rete e cartelle con collegamenti/junction non supportati; percorso destinazione fino a 120 caratteri.
-- Non firmata con certificato commerciale. Windows può mostrare avvisi o bloccare l'avvio. Non disattivare antivirus, SmartScreen o altre protezioni.
-
-Nessuna funzione di modifica/eliminazione sul telefono. Nessuna conversione, upload, telemetria o servizio a pagamento nell'app.
-La riproduzione HEVC richiede supporto codec sul PC, ma la copia no.
-
-Istruzioni complete, risultati delle prove e sorgenti:
+Istruzioni, fonti e test:
 https://9gabri.github.io/porto-iphone-usb/
 https://github.com/9gabri/porto-iphone-usb
 
-Licenza MIT. Avvisi di licenza inclusi nella cartella. Progetto indipendente, non affiliato ad Apple o Microsoft.
+Licenza MIT. Progetto indipendente, non affiliato ad Apple o Microsoft.

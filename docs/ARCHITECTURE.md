@@ -1,5 +1,19 @@
 # Architettura e sicurezza
 
+## Cartella selezionata — rc.9
+
+`FolderVideoSource` implementa `ISelectedVideoSource`: è una selezione dell’utente, non un inventario PhotoKit. Prima di creare Destination verifica radici locali NTFS, percorsi canonici e assenza di sovrapposizione. Inventario ricorsivo senza scrittura, senza attraversare reparse point o file cloud offline. Handle aperti in sola lettura con FileShare.Read; percorso effettivo, numero di hard link, identità NTFS, lunghezza e ultima modifica devono coincidere. ID derivati da radice/percorso; la versione dei metadati entra in WorkLedger.Key. Una sostituzione con stessi byte e stessa data ma altra identità NTFS viene rilevata.
+
+L’engine conserva i controlli byte/container, ma non usa indizi IMG_E, foto omonime o metadati temporizzati per escludere o separare file della selezione. Formati video comuni non supportati sono Unknown e ambigui, non esclusioni invisibili. Il controllo finale rileva aggiunte, rimozioni e variazioni di metadati; non è uno snapshot atomico della libreria Foto né impedisce modifiche successive.
+
+`FolderArchiveComparison` esamina MOV/MP4/M4V non registrati nell’archivio, esclusi gli alberi di stato/report. Hash con lettura sola e progressi; errori di confronto non vengono ignorati. Le descrizioni esterne non possono essere salvate nel catalogo, diventare replacement target o causare modifiche al file. Cataloghi validi continuano a gestire copie proprie e ripresa.
+
+Ogni coda per contenuto assegna una copia fisica precedente al massimo una volta per inventario. Nella modalità cartella una selezione ridotta può riutilizzare copie integre anche se resta un debito di molteplicità USB storico; il debito resta visibile e non provoca copie extra né retry automatici della selezione. Le copie nuove non entrano nella coda di riuso nello stesso passaggio. Per file convertiti o modificati non esiste associazione semantica basata soltanto su nome/durata.
+
+Il report aggiunge SelectedFolder, SourceDescription, SelectedFolderVerified e PreviousCopies (percorso, byte, SHA-256 atteso, ReusedForSelection, IntegrityVerified, motivazione). ReusedForSelection indica assegnazione a un elemento corrente, non l’unica presenza di quel contenuto. Per file non registrati IntegrityVerified indica concordanza delle riletture locali: non prova integrità storica rispetto a un originale; il testo lo chiarisce. Solo il riuso aggiunge un confronto con la sorgente corrente. Include anche file pubblicati precedenti Replaced/Abandoned conservati; stato non più attivo non implica cancellazione. I campi storici UsbEnumerationComplete/UsbItemCount rimangono per compatibilità del JSON e, in modalità cartella, rappresentano inventario/elementi della sorgente locale. UI e TXT usano etichette di cartella.
+
+Un singolo passaggio da cartella, riprendibile dall’utente; nessun worker USB o discovery automatico. Cartella verificata richiede tutti i candidati attuali risolti e inventario stabile, mentre difetti dell’archivio e osservazioni USB storiche restano distinti. Byte dei video esistenti mai sovrascritti; database propri aggiornati e temporanei associabili appendibili dopo confronto completo del prefisso.
+
 ## USB e processi
 
 La rc.7 aggiunge IReadFailureRecovery sul solo adapter ReconnectingUsbSource.

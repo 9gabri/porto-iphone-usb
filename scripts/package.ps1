@@ -22,6 +22,7 @@ Copy-Item -LiteralPath 'docs/TESTS.md' -Destination "$output/TESTS.md"
 Copy-Item -LiteralPath 'docs/test-results.txt' -Destination "$output/test-results.txt"
 Copy-Item -LiteralPath 'docs/SOURCES.md' -Destination "$output/SOURCES.md"
 Copy-Item -LiteralPath 'docs/ARCHITECTURE.md' -Destination "$output/ARCHITECTURE.md"
+Copy-Item -LiteralPath 'docs/FOLDER-IMPORT.md' -Destination "$output/FOLDER-IMPORT.md"
 $manifest=[ordered]@{name='Porto';version=$version;source_commit=(git rev-parse HEAD);runtime='10.0.14';target='win-x64';signed=$false;hardware_tested=$false}
 $manifest | ConvertTo-Json | Set-Content -LiteralPath "$output/build-info.json" -Encoding utf8NoBOM
 $exe=Join-Path $output 'Porto.exe'
@@ -31,7 +32,7 @@ foreach($mode in @('--interop-smoke','--worker-smoke')){
     if($p.ExitCode -ne 0){throw "$mode failed"}
 }
 $image=Join-Path $root 'artifacts/package-ui.png'
-foreach($imageName in @('package-ui.png','package-ui-compact-retry.png','package-ui-compact-paused.png','package-ui-compact-incomplete.png')){
+foreach($imageName in @('package-ui.png','package-ui-compact-retry.png','package-ui-compact-paused.png','package-ui-compact-incomplete.png','package-ui-compact-folder-result.png')){
     $image=Join-Path $root ('artifacts/'+$imageName)
     $p=Start-Process -FilePath $exe -ArgumentList @('--ui-smoke',('"'+$image+'"')) -WindowStyle Hidden -PassThru
     if(!$p.WaitForExit(15000)){Stop-Process -Id $p.Id;throw 'UI timeout'}

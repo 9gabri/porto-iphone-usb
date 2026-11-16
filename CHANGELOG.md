@@ -1,5 +1,16 @@
 # Novità
 
+## 0.1.0-rc.9
+
+- Importazione da cartella esportata da Foto, senza Mac o componente iOS.
+- Confronto completo SHA-256 con copie precedenti, anche non registrate nel catalogo.
+- File già presenti riutilizzati senza spostamenti; copie non riutilizzate conservate e riportate, senza attribuirle automaticamente a Live Photo.
+- Molteplicità dei file identici, errori storici e ripresa mantenuti.
+- Sorgente locale in sola lettura, sovrapposizioni/link rifiutati, inventario finale stabile obbligatorio.
+- Interfaccia e report distinguono cartella selezionata da USB e dall’intera libreria Foto.
+- Esportazione reale da iPhone e confronto con archivio personale ancora da confermare.
+
+
 ## 0.1.0-rc.8
 
 - Tentativo di tutte le risorse video USB, senza esclusioni basate solo su nome o foto omonima.

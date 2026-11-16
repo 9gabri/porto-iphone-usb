@@ -77,3 +77,11 @@ dei video reali dichiarato sulla sola base delle prove sintetiche.
 
 Il totale Foto dichiarato dall’utente e il recupero reale richiedono ancora una
 prova con il telefono. Nessun totale artificiale basato sui componenti Live Photo.
+
+
+## rc.9 — cartella esportata e confronto archivio
+- [x] Sorgente locale in sola lettura e confronto anche senza catalogo precedente.
+- [x] Riutilizzo SHA-256, molteplicità, copie extra preservate e report distinto.
+- [x] Revisione indipendente in tre cicli circoscritti e regressioni sintetiche.
+- [ ] Verifiche finali, pacchetto nuovo, pubblicazione e riscaricamento.
+- [ ] Prova guidata con esportazione reale da iPhone (richiede intervento dell’utente).

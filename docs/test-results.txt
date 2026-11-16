@@ -1,9 +1,5 @@
-Porto 0.1.0-rc.8 - Windows 11 x64 - novembre 2026
-322 casi della suite completa: 318 ordinari e 4 estesi.
-Dopo ultimo aggiustamento classificazione: 48 verifiche pertinenti rieseguite.
-Non sono 370 casi distinti. Nessun dispositivo o media personale usato.
-
-SUITE COMPLETA
+Porto rc.9 — test sintetici; nessun dispositivo reale.
+Suite completa prima del controllo finale aggiuntivo sui formati non supportati:
 PASS copy and independently reread SHA256
 PASS truncation rejected
 PASS unexpected extra bytes rejected
@@ -322,68 +318,68 @@ PASS rc8 coverage invalid quarantine stays explicit and cannot be promoted
 PASS rc8 coverage new final-inventory work stays current while unread old IDs remain historical
 PASS rc8 coverage a missing prior copy stays historical with an empty current inventory
 PASS rc8 coverage previously published video failing the new parser stays ambiguous and unchanged
-  LARGE stream: 4294967313 bytes, 3,07s, working set 68 MiB
+PASS folder source inventories nested videos and transparently excludes other files
+PASS folder source reads original bytes without modifying source and denies writing
+PASS folder source IDs survive enumeration and normalized root spelling
+PASS folder source final inventory detects changed sizes and modification timestamps
+PASS folder source refuses unobserved forged and stale source items
+PASS folder source detects replacement even with identical length and timestamp
+PASS folder source rejects every ancestor overlap before destination writes
+PASS folder source cancellation never becomes a partial success
+PASS folder source reports a lost root as incomplete instead of silently empty
+PASS folder source reports unreadable files and keeps readable siblings
+PASS folder source refuses hard links during inventory and revalidates before reading
+PASS folder source refuses junction roots and never traverses linked subfolders
+PASS folder source rejects nonexistent network and device roots without creating them
+PASS folder source disposal revokes inventory and read access
+PASS folder import changed final inventory prevents verified selection
+PASS folder import inconsistent deep reread cannot confirm reuse
+PASS folder import real local source repeats without duplication and preserves exported bytes
+PASS folder import reuses unregistered files without modifying or registering foreign paths
+PASS folder import selection subset reuses surviving copy and retains historical multiplicity debt
+PASS folder import matches selected videos including prior additional copies without moving extras
+PASS folder import preserves multiplicity and never uses one prior file twice
+PASS folder import historical USB errors remain visible without becoming selected videos
+PASS folder import corrupt old copy is preserved and repaired in a new file
+PASS folder import repaired same-selection archive defect stays historical and visible on next run
+PASS folder import malformed selected file remains unresolved and other videos continue
+  LARGE stream: 4294967313 bytes, 2,42s, working set 70 MiB
 PASS stream beyond 4 GiB: 4 GiB + 17 bytes actually read and hashed without disk allocation
-  LARGE inventory: 50000 items, 250 GB logical, 8,87s, working set 226 MiB
+  LARGE inventory: 50000 items, 250 GB logical, 3,56s, working set 225 MiB
 PASS 50000-item inventory and 250 GB logical capacity without writing payload
-  STRESS full loop: 2000 physical files twice verified, 50000 entries, 381,19s, working set 203 MiB
+  STRESS full loop: 2000 physical files twice verified, 50000 entries, 314,81s, working set 192 MiB
 PASS 50000 inventory entries with 2000 actual copies and verified second pass
-  LARGE NTFS: 4294971392 bytes written and reread, 25,30s, working set 117 MiB
+  LARGE NTFS: 4294971392 bytes written and reread, 31,73s, working set 125 MiB
 PASS video over 4 GiB actually written verified and published on NTFS
-322/322 passed
+347/347 passed
 
-RICONTROLLI SUL CODICE FINALE
-PASS rc8 media arbitrary free text is not metadata: com.apple.quicktime.still-image-time
-PASS rc8 media arbitrary free text is not metadata: com.apple.quicktime.content.identifier
-PASS rc8 media structured still-image-time is only an additional-resource hint
-PASS rc8 media local timed key ID is not an atom semantic: 66726565
-PASS rc8 media local timed key ID is not an atom semantic: 6D6F6F76
-PASS rc8 media local timed key ID is not an atom semantic: 00000002
-PASS rc8 media no extra classification for content identifier
-PASS rc8 media no extra classification for wrong namespace
-PASS rc8 media no extra classification for unrelated key prefix
-PASS rc8 media no extra classification for audio track
-PASS rc8 media no extra classification for video track
-PASS rc8 media no extra classification for unused local key
-PASS rc8 media static content identifier alone stays eligible
-PASS rc8 media nested free payload cannot impersonate a metadata track
-PASS rc8 media misplaced key declaration is not timed metadata
-PASS rc8 media handler order does not change structured hint
-PASS rc8 media documented sample description zero padding stays valid
-PASS rc8 media inspection leaves synthetic bytes unchanged
-PASS rc8 media name and photo evidence is a copy hint, never a pre-read rejection
-PASS rc8 media malformed and truncated metadata never publishes as verified video
-PASS rc8 media large free payload does not provide metadata evidence
-PASS rc8 media cancellation remains observable
-22/22 passed
-PASS rc8 coverage reuses prior videos and reads every new video hint without reading photos
-PASS rc8 coverage current edited hint does not inflate the primary count on hash reuse
-PASS rc8 coverage old verified quarantine is published with original part intact; additional=False
-PASS rc8 coverage old verified quarantine is published with original part intact; additional=True
-PASS rc8 coverage promotion survives process termination at promotion-intent; additional=False
-PASS rc8 coverage promotion survives process termination at promotion-intent; additional=True
-PASS rc8 coverage promotion survives process termination at promotion-flush; additional=False
-PASS rc8 coverage promotion survives process termination at promotion-flush; additional=True
-PASS rc8 coverage promotion survives process termination at promotion-ready; additional=False
-PASS rc8 coverage promotion survives process termination at promotion-ready; additional=True
-PASS rc8 coverage promotion survives process termination at promotion-rename; additional=False
-PASS rc8 coverage promotion survives process termination at promotion-rename; additional=True
-PASS rc8 coverage promotion survives process termination at promotion-complete; additional=False
-PASS rc8 coverage promotion survives process termination at promotion-complete; additional=True
+Ricontrollo delle aree cartella sul codice finale (incluso nuovo caso):
+PASS final USB native disconnect escapes folder inventory recovery
 PASS rc8 coverage additional promotion collision preserves foreign file and folder
-PASS rc8 coverage promotion preserves identical-resource multiplicity
-PASS rc8 coverage invalid quarantine stays explicit and cannot be promoted
-PASS rc8 coverage new final-inventory work stays current while unread old IDs remain historical
-PASS rc8 coverage a missing prior copy stays historical with an empty current inventory
-PASS rc8 coverage previously published video failing the new parser stays ambiguous and unchanged
-20/20 passed
-PASS rc8 copied additional resource report explains photo pairing and edited-name evidence: True/False
-PASS rc8 copied additional resource report explains photo pairing and edited-name evidence: False/True
-PASS rc8 copied additional resource report explains photo pairing and edited-name evidence: True/True
-3/3 passed
-PASS rc5 inventory mixed resources separate transfer candidates and do not retry sidecars
-1/1 passed
-PASS paired video is copied separately, photo remains unread and excluded
-1/1 passed
-PASS raw marker bytes do not exclude valid video and filename hints preserve extra copy
-1/1 passed
+PASS folder source inventories nested videos and transparently excludes other files
+PASS folder source reads original bytes without modifying source and denies writing
+PASS folder source IDs survive enumeration and normalized root spelling
+PASS folder source final inventory detects changed sizes and modification timestamps
+PASS folder source refuses unobserved forged and stale source items
+PASS folder source detects replacement even with identical length and timestamp
+PASS folder source rejects every ancestor overlap before destination writes
+PASS folder source cancellation never becomes a partial success
+PASS folder source reports a lost root as incomplete instead of silently empty
+PASS folder source reports unreadable files and keeps readable siblings
+PASS folder source refuses hard links during inventory and revalidates before reading
+PASS folder source refuses junction roots and never traverses linked subfolders
+PASS folder source rejects nonexistent network and device roots without creating them
+PASS folder source disposal revokes inventory and read access
+PASS folder import unsupported video container prevents a verified selection
+PASS folder import changed final inventory prevents verified selection
+PASS folder import inconsistent deep reread cannot confirm reuse
+PASS folder import real local source repeats without duplication and preserves exported bytes
+PASS folder import reuses unregistered files without modifying or registering foreign paths
+PASS folder import selection subset reuses surviving copy and retains historical multiplicity debt
+PASS folder import matches selected videos including prior additional copies without moving extras
+PASS folder import preserves multiplicity and never uses one prior file twice
+PASS folder import historical USB errors remain visible without becoming selected videos
+PASS folder import corrupt old copy is preserved and repaired in a new file
+PASS folder import repaired same-selection archive defect stays historical and visible on next run
+PASS folder import malformed selected file remains unresolved and other videos continue
+28/28 passed

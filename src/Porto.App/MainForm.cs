@@ -6,11 +6,15 @@ namespace Porto.App;
 
 public sealed class MainForm:Form
 {
+    private readonly ComboBox sourceMode=new(){DropDownStyle=ComboBoxStyle.DropDownList,Dock=DockStyle.Fill};
+    private readonly TextBox sourceFolder=new(){ReadOnly=true,Dock=DockStyle.Fill,PlaceholderText="Cartella dei video esportati da Foto"};
+    private readonly Label instructions=Label("",10),limits=Label("",9);
+    private bool FolderMode=>sourceMode.SelectedIndex==0;
     private readonly ComboBox phones=new(){DropDownStyle=ComboBoxStyle.DropDownList,Dock=DockStyle.Fill,DisplayMember="Name"};
     private readonly TextBox folder=new(){ReadOnly=true,Dock=DockStyle.Fill,PlaceholderText="Scegli dove conservare i video"};
     private readonly Button search=Button("Cerca iPhone"),browse=Button("Scegli cartella"),start=Button("Avvia importazione",true),pause=Button("Pausa"),resume=Button("Riprendi"),reportButton=Button("Apri report");
-    private readonly CheckBox deep=new(){Text="Verifica approfondita: rileggi anche la sorgente USB (richiede più tempo)",AutoSize=true};
-    private readonly Label status=Label("Collega l’iPhone per iniziare.",13,FontStyle.Bold),detail=Label("Nessuna importazione avviata.",10),counts=Label("Video: —",11),bytes=Label("Spazio richiesto: —   ·   Disponibile: —",10),speed=Label("Velocità: —   ·   Tempo rimanente: —",10);
+    private readonly CheckBox deep=new(){Text="Verifica approfondita: rileggi anche la sorgente (richiede più tempo)",AutoSize=true};
+    private readonly Label status=Label("Scegli la cartella dei video esportati per iniziare.",13,FontStyle.Bold),detail=Label("Nessuna importazione avviata.",10),counts=Label("Video: —",11),bytes=Label("Spazio richiesto: —   ·   Disponibile: —",10),speed=Label("Velocità: —   ·   Tempo rimanente: —",10);
     private readonly ProgressBar progress=new(){Dock=DockStyle.Fill,Height=12,Maximum=1000};
     private readonly Label summary=Label("L’app non modifica né elimina contenuti sul telefono.",10);
     private CancellationTokenSource? cancellation;
@@ -30,14 +34,17 @@ public sealed class MainForm:Form
         layout.ColumnStyles.Add(new(SizeType.Percent,100));
         for(int i=0;i<7;i++)layout.RowStyles.Add(new(SizeType.AutoSize));scroll.Controls.Add(layout);
         var heading=new FlowLayoutPanel{Dock=DockStyle.Fill,AutoSize=true,FlowDirection=FlowDirection.TopDown,WrapContents=false};
-        heading.Controls.Add(Label("Porto",27,FontStyle.Bold));heading.Controls.Add(Label("I tuoi video, sul tuo PC. Tramite USB.",12));layout.Controls.Add(heading);
-        var instructions=Label("1  Collega, sblocca e autorizza l’iPhone.     2  Scegli una cartella.     3  Avvia.\nPrima di importare: iPhone → Impostazioni → App → Foto → Trasferisci su Mac o PC → Mantieni originali.",10);
+        heading.Controls.Add(Label("Porto",27,FontStyle.Bold));heading.Controls.Add(Label("I tuoi video, sul tuo PC. Senza conversioni.",12));layout.Controls.Add(heading);
         instructions.Dock=DockStyle.Fill;layout.Controls.Add(instructions);
-        var setup=new TableLayoutPanel{Dock=DockStyle.Fill,AutoSize=true,BackColor=Color.White,Padding=new(16),ColumnCount=3,RowCount=2};
+        var setup=new TableLayoutPanel{Dock=DockStyle.Fill,AutoSize=true,BackColor=Color.White,Padding=new(16),ColumnCount=3,RowCount=3};
         setup.ColumnStyles.Add(new(SizeType.AutoSize));setup.ColumnStyles.Add(new(SizeType.Percent,100));setup.ColumnStyles.Add(new(SizeType.AutoSize));
-        setup.RowStyles.Add(new(SizeType.AutoSize));setup.RowStyles.Add(new(SizeType.AutoSize));
-        setup.Controls.Add(Label("Telefono",10,FontStyle.Bold),0,0);setup.Controls.Add(phones,1,0);setup.Controls.Add(search,2,0);
-        setup.Controls.Add(Label("Cartella",10,FontStyle.Bold),0,1);setup.Controls.Add(folder,1,1);setup.Controls.Add(browse,2,1);layout.Controls.Add(setup);
+        for(int row=0;row<3;row++)setup.RowStyles.Add(new(SizeType.AutoSize));
+        sourceMode.Items.AddRange(["Cartella esportata da Foto","iPhone tramite USB"]);sourceMode.SelectedIndex=0;
+        setup.Controls.Add(Label("Importa da",10,FontStyle.Bold),0,0);setup.Controls.Add(sourceMode,1,0);setup.SetColumnSpan(sourceMode,2);
+        var sourcePanel=new Panel{Dock=DockStyle.Fill,Height=32,MinimumSize=new(100,32)};
+        sourcePanel.Controls.Add(phones);sourcePanel.Controls.Add(sourceFolder);
+        setup.Controls.Add(Label("Origine",10,FontStyle.Bold),0,1);setup.Controls.Add(sourcePanel,1,1);setup.Controls.Add(search,2,1);
+        setup.Controls.Add(Label("Archivio",10,FontStyle.Bold),0,2);setup.Controls.Add(folder,1,2);setup.Controls.Add(browse,2,2);layout.Controls.Add(setup);
         deep.Dock=DockStyle.Fill;layout.Controls.Add(deep);
         var activity=new TableLayoutPanel{Dock=DockStyle.Fill,AutoSize=true,BackColor=Color.White,Padding=new(16,10,16,10),ColumnCount=1,RowCount=6};
         activity.ColumnStyles.Add(new(SizeType.Percent,100));
@@ -46,10 +53,10 @@ public sealed class MainForm:Form
         var actions=new FlowLayoutPanel{Dock=DockStyle.Bottom,AutoSize=true,Padding=new(24,10,24,12),WrapContents=true};
         foreach(var b in new[]{start,pause,resume,reportButton})actions.Controls.Add(b);Controls.Add(actions);
         summary.Dock=DockStyle.Fill;summary.Padding=new(0,8,0,0);layout.Controls.Add(summary);
-        var limits=Label("COPERTURA USB\nPossono mancare originali presenti solo su iCloud. L’intera libreria e l’originalità dei contenuti non sono certificabili via USB. Le risorse con indizi di Live Photo o modifiche sono copiate in Risorse video aggiuntive: non equivalgono a video autonomi di Foto.",9);
         limits.Dock=DockStyle.Fill;limits.ForeColor=Color.FromArgb(76,87,94);layout.Controls.Add(limits);
         pause.Enabled=false;resume.Enabled=false;reportButton.Enabled=false;
-        search.Click+=async(_,_)=>await Discover();browse.Click+=(_,_)=>PickFolder();
+        sourceMode.SelectedIndexChanged+=(_,_)=>UpdateMode();UpdateMode();
+        search.Click+=async(_,_)=>{if(FolderMode)PickSource();else await Discover();};browse.Click+=(_,_)=>PickFolder();
         start.Click+=async(_,_)=>await Import();resume.Click+=async(_,_)=>await Import();
         pause.Click+=(_,_)=>{cancellation?.Cancel();pause.Enabled=false;status.Text="Pausa in corso…";};
         reportButton.Click+=(_,_)=>
@@ -61,6 +68,8 @@ public sealed class MainForm:Form
             if(smokePath!=null)
             {
                 WindowState=FormWindowState.Normal;ClientSize=smokePath.Contains("compact",StringComparison.Ordinal)?new(740,620):new(960,750);Location=new(-20000,-20000);
+                sourceFolder.Text=@"C:\Video\Esportazione da Foto";
+                if(smokePath.Contains("retry",StringComparison.Ordinal)||smokePath.Contains("incomplete",StringComparison.Ordinal))sourceMode.SelectedIndex=1;
                 phones.Items.Add(new DeviceInfo("synthetic-no-device-access","iPhone · esempio per verifica UI"));phones.SelectedIndex=0;
                 if(phones.SelectedItem is not DeviceInfo||string.IsNullOrEmpty(phones.Text))throw new InvalidOperationException("Selettore telefono non funzionante.");
                 folder.Text=@"C:\Video\Archivio";bytes.Text="Spazio richiesto: dopo l’inventario   ·   Disponibile: 114,6 GiB";
@@ -83,6 +92,20 @@ public sealed class MainForm:Form
                     if(progress.Value!=0||!counts.Text.Contains("100",StringComparison.Ordinal)||!summary.Text.Contains("Candidati alla copia: 20",StringComparison.Ordinal))
                         throw new InvalidOperationException("L'esito incompleto deve distinguere i conteggi e rimuovere la barra verde.");
                 }
+                if(smokePath.Contains("folder-result",StringComparison.Ordinal))
+                {
+                    sourceMode.SelectedIndex=0;
+                    var selection=new ImportReport{SelectedFolder=true,SelectedFolderVerified=true,CandidateCount=3,TransferCandidateCount=3,
+                        Status="Verificati i 3 video della cartella selezionata. Copertura dell’iPhone non verificata."};
+                    selection.Items.Add(new("a","esempio.mov",Outcome.AlreadyPresent,"Sintetico"));
+                    selection.Items.Add(new("b","nuovo.mov",Outcome.Imported,"Sintetico"));
+                    selection.Items.Add(new("c","altro.mov",Outcome.AlreadyPresent,"Sintetico"));
+                    selection.PreviousCopies.Add(new("Video Porto/esempio.mov",100,null,true,true,"Sintetico"));
+                    selection.PreviousCopies.Add(new("Video Porto/extra.mov",100,null,false,true,"Sintetico"));
+                    ShowResult(selection);
+                    if(!summary.Text.Contains("non riutilizzate: 1",StringComparison.Ordinal)||counts.Text.Contains("USB",StringComparison.Ordinal))
+                        throw new InvalidOperationException("Confronto cartella non distinto dall’inventario USB.");
+                }
                 await Task.Delay(350);if(Width<700||Height<550)throw new InvalidOperationException("UI smoke dimensions invalid");
                 foreach(var button in new[]{start,pause,resume,reportButton})
                 {var bounds=RectangleToClient(button.RectangleToScreen(button.ClientRectangle));if(bounds.Bottom>ClientSize.Height||bounds.Right>ClientSize.Width)throw new InvalidOperationException("Action button outside visible window");}
@@ -91,9 +114,28 @@ public sealed class MainForm:Form
             else
             {
                 var area=Screen.FromControl(this).WorkingArea;Size=new(Math.Min(Width,area.Width),Math.Min(Height,area.Height));
-                folder.Text=AppPreferences.LoadFolder();await Discover();
+                folder.Text=AppPreferences.LoadFolder();
             }
         };
+    }
+    private void UpdateMode()
+    {
+        phones.Visible=!FolderMode;sourceFolder.Visible=FolderMode;search.Text=FolderMode?"Scegli origine":"Cerca iPhone";
+        instructions.Text=FolderMode
+            ?"1  Esporta gli originali della raccolta Video di Foto in una cartella separata.\n2  Sceglila come origine.  3  Scegli lo stesso archivio delle prove precedenti e avvia."
+            :"1  Collega, sblocca e autorizza l’iPhone.  2  Scegli l’archivio.  3  Avvia.\nSu iPhone: Impostazioni → App → Foto → Trasferisci su Mac o PC → Mantieni originali.";
+        limits.Text=FolderMode
+            ?"COPERTURA DELLA CARTELLA\nPorto verifica i video presenti nella cartella scelta. Non può confermare che l’esportazione comprenda tutta la libreria Foto. Copie precedenti non riutilizzate restano al loro posto: non sono classificate automaticamente come Live Photo. Versioni con byte diversi restano distinte."
+            :"COPERTURA USB\nPossono mancare originali presenti solo su iCloud. Gli indizi di Live Photo o modifiche vengono conservati in Risorse video aggiuntive; non certificano l’appartenenza alla raccolta Video di Foto.";
+        status.Text=FolderMode?"Scegli origine e archivio per il confronto automatico.":"Collega l’iPhone e premi Cerca iPhone.";
+        detail.Text="Nessun file esistente viene cancellato o sovrascritto.";
+        summary.Text=FolderMode?"L’archivio è la cartella che contiene Video Porto, .porto e Report Porto.":"L’app non modifica né elimina contenuti sul telefono.";
+        counts.Text="Video: —";bytes.Text="Spazio richiesto: dopo l’inventario";
+    }
+    private void PickSource()
+    {
+        using var dialog=new FolderBrowserDialog{Description="Scegli la cartella locale dei video esportati da Foto, separata dall’archivio Porto",UseDescriptionForTitle=true};
+        if(dialog.ShowDialog(this)==DialogResult.OK)sourceFolder.Text=dialog.SelectedPath;
     }
     private static Button Button(string text,bool primary=false)=>new(){Text=text,AutoSize=true,MinimumSize=new(primary?170:120,36),Padding=new(8,3,8,3),
         FlatStyle=FlatStyle.Flat,BackColor=primary?Accent:Color.White,ForeColor=primary?Color.White:Ink,Margin=new(0,0,10,0),Cursor=Cursors.Hand};
@@ -123,18 +165,27 @@ public sealed class MainForm:Form
     }
     private async Task Import()
     {
-        if(phones.SelectedItem is not DeviceInfo phone){status.Text="Collega l’iPhone e premi Cerca iPhone.";return;}
+        var phone=phones.SelectedItem as DeviceInfo;
+        if(!FolderMode&&phone==null){status.Text="Collega l’iPhone e premi Cerca iPhone.";return;}
+        if(FolderMode&&string.IsNullOrWhiteSpace(sourceFolder.Text)){PickSource();if(string.IsNullOrWhiteSpace(sourceFolder.Text))return;}
         if(string.IsNullOrWhiteSpace(folder.Text)){PickFolder();if(string.IsNullOrWhiteSpace(folder.Text))return;}
-        string path=folder.Text;bool deeper=deep.Checked;
+        string path=folder.Text,origin=sourceFolder.Text;bool deeper=deep.Checked,fromFolder=FolderMode;
         cancellation=new();SetBusy(true);reportPath=null;reportButton.Enabled=false;progress.Value=0;
         var updates=new Progress<ImportProgress>(ShowProgress);
         try
         {
             var result=await Task.Run(()=>
             {
+                // Validate source/destination overlap before creating archive state.
+                using var selectedSource=fromFolder?new FolderVideoSource(origin,path):null;
                 using var destination=new Destination(path);
                 using var awake=new AwakeScope();
-                var session=new ImportSession(()=>new ReconnectingUsbSource(Environment.ProcessPath!,phone.Id,
+                if(selectedSource!=null)
+                {
+                    var engine=new ImportEngine(selectedSource,destination){Progress=p=>((IProgress<ImportProgress>)updates).Report(p)};
+                    var folderReport=engine.Run(deeper,cancellation.Token);return(report:folderReport,ReportPath:engine.ReportPath);
+                }
+                var session=new ImportSession(()=>new ReconnectingUsbSource(Environment.ProcessPath!,phone!.Id,
                     n=>((IProgress<ImportProgress>)updates).Report(new("Inventario USB",$"{n:N0} elementi esaminati",0,0,0,null,null))),destination)
                     {Progress=p=>((IProgress<ImportProgress>)updates).Report(p)};
                 var report=session.Run(deeper,cancellation.Token);return(report,session.ReportPath);
@@ -152,11 +203,19 @@ public sealed class MainForm:Form
     {
         if(!busy)return;
         status.Text=p.Phase;detail.Text=p.Name;
-        bool inventory=p.Phase=="Inventario USB";
+        bool inventory=p.Phase is "Inventario USB" or "Inventario cartella";
+        if(FolderMode)
+        {
+            counts.Text=$"Video della cartella valutati: {p.Done:N0} / {(p.Total>0?p.Total.ToString("N0"):"—")} · Byte copiati: {FormatBytes(p.Bytes)}";
+            bytes.Text=$"Dimensioni candidate: {(p.TotalBytes.HasValue?FormatBytes(p.TotalBytes.Value):"da determinare")} · Disponibili: {(p.FreeBytes.HasValue?FormatBytes(p.FreeBytes.Value):"—")}";
+        }
+        else
+        {
         counts.Text=inventory?"Esame dei metadati USB: comprende foto, cartelle e file accessori.":
             $"Risorse video USB valutate: {p.Done:N0} / {(p.Total>0?p.Total.ToString("N0"):"—")}   ·   Byte elaborati: {FormatBytes(p.Bytes)}";
         bytes.Text=inventory?"I candidati alla copia saranno distinti al termine dell'inventario.":
             $"Dimensioni candidate USB: {(p.TotalBytes.HasValue?FormatBytes(p.TotalBytes.Value):"da determinare / non note")}   ·   Disponibile: {(p.FreeBytes.HasValue?FormatBytes(p.FreeBytes.Value):"—")}";
+        }
         string eta=p.Done<p.Total&&p.TotalBytes.HasValue&&p.BytesPerSecond>0?TimeSpan.FromSeconds(Math.Clamp((p.TotalBytes.Value-p.Bytes)/p.BytesPerSecond,0,31536000)).ToString(@"d\.hh\:mm\:ss"):"—";
         speed.Text=$"Copia media: {(p.BytesPerSecond>0?FormatBytes((long)p.BytesPerSecond)+"/s":"—")}   ·   Stima copia: {eta} (verifiche escluse)";
         progress.Value=p.Total>0?(int)Math.Clamp(1000L*p.Done/p.Total,0,1000):0;
@@ -164,13 +223,21 @@ public sealed class MainForm:Form
     private void ShowResult(ImportReport report)
     {
         status.Text=report.Status;
+        if(report.SelectedFolder)
+        {
+            counts.Text=$"Video nella cartella: {report.CandidateCount:N0} · Verificati: {report.CurrentCount(Outcome.Imported)+report.CurrentCount(Outcome.AlreadyPresent):N0}";
+            bytes.Text=$"Nuove copie: {report.CurrentCount(Outcome.Imported):N0} · Copie già presenti riutilizzate: {report.CurrentCount(Outcome.AlreadyPresent):N0}";
+            detail.Text=report.SelectedFolderVerified?"Tutti i video individuati nella cartella hanno una copia verificata. Consulta anche il confronto nel report.":"Ci sono elementi da completare o verificare: apri il report.";
+            summary.Text=$"Copie precedenti non riutilizzate: {report.PreviousCopies.Count(c=>!c.ReusedForSelection):N0} (conservate; non significa Live Photo)\nPendenti: {report.CurrentCount(Outcome.Pending)} · Mancanti: {report.CurrentCount(Outcome.Missing)} · Ambigui: {report.CurrentCount(Outcome.Ambiguous)} · Errori: {report.CurrentCount(Outcome.Error)}\nOsservazioni storiche da verificare: {report.HistoricalCount}. Percorsi e dettagli nel report.";
+            return;
+        }
         counts.Text=$"Risorse USB: {report.UsbItemCount:N0} · Immagini: {report.ImageCount:N0} · File AAE: {report.SidecarCount:N0}";
         bytes.Text=$"Risorse video USB: {report.CandidateCount:N0} · Possibili Live Photo/modifiche: {report.SuspectedCompanionCount:N0}";
         summary.Text=$"Candidati alla copia: {report.TransferCandidateCount:N0} — Passaggio {report.Attempt}\nCopie verificate: {report.CurrentCount(Outcome.Imported)+report.CurrentCount(Outcome.AlreadyPresent)} · Nuove: {report.CurrentCount(Outcome.Imported)} · Già presenti: {report.CurrentCount(Outcome.AlreadyPresent)}\nPendenti aggiuntivi: {report.CurrentCount(Outcome.Pending)} · Mancanti: {report.CurrentCount(Outcome.Missing)} · Ambigui: {report.CurrentCount(Outcome.Ambiguous)} · Errori: {report.CurrentCount(Outcome.Error)}\nRisorse aggiuntive verificate: {report.CurrentCount(Outcome.Additional)+report.CurrentCount(Outcome.AdditionalAlreadyPresent)} · Osservazioni storiche da verificare: {report.HistoricalCount}";
     }
     private void SetBusy(bool value)
     {
-        busy=value;foreach(Control c in new Control[]{search,browse,start,phones,folder,deep,resume})c.Enabled=!value;pause.Enabled=value;
+        busy=value;foreach(Control c in new Control[]{sourceMode,sourceFolder,search,browse,start,phones,folder,deep,resume})c.Enabled=!value;pause.Enabled=value;
         if(!value){speed.Text="Velocità: —   ·   Tempo rimanente: —";progress.Value=0;}
     }
     private static string FormatBytes(long bytes)=>bytes>=1024L*1024*1024?$"{bytes/(1024d*1024*1024):N1} GiB":$"{bytes/(1024d*1024):N1} MiB";

@@ -22,7 +22,12 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
         using var catalog=new Catalog(destination);
         using var ledger=new WorkLedger(destination);
         string runId=DateTime.UtcNow.ToString("yyyyMMdd-HHmmss")+"-"+Guid.NewGuid().ToString("N")[..8];
-        var report=new ImportReport{SecondSourceRead=deep,Attempt=Attempt};
+        bool selected=source is ISelectedVideoSource;
+        var report=new ImportReport{SecondSourceRead=deep,Attempt=Attempt,SelectedFolder=selected,
+            SourceDescription=(source as ISelectedVideoSource)?.SelectionDescription??"iPhone tramite USB"};
+        var previousCopies=new List<CatalogEntry>();
+        var reusedPrevious=new HashSet<string>(StringComparer.Ordinal);
+        var externalIds=new HashSet<string>(StringComparer.Ordinal);
         var processed=new HashSet<string>(StringComparer.Ordinal);
         var resolvedMissingFiles=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var verifiedCopies=new Dictionary<CopyResult,HashSet<string>>();
@@ -37,7 +42,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
         ledger.Migrate(catalog.Entries());
         try
         {
-            Notify("Inventario USB", "Lettura dell'elenco, prima di copiare",true);
+            Notify(selected?"Inventario cartella":"Inventario USB", "Lettura dell'elenco, prima di copiare",true);
             var inventory=source.Inventory(cancel);
             observed=inventory.Items;
             var observedKeys=observed.Select(WorkLedger.Key).ToHashSet(StringComparer.Ordinal);
@@ -49,24 +54,33 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
             report.InventoryErrors=inventory.Errors;
             // Save the inventory result before any transfer. Each item has an explicit pending category.
             catalog.SaveReport(runId+"-inventory",new ImportReport{
+                SelectedFolder=selected,SourceDescription=report.SourceDescription,
                 Status=$"Inventario: {inventory.Items.Count} elementi; candidati {inventory.Items.Count(MediaInspector.Candidate)}",
                 UsbEnumerationComplete=inventory.EnumerationComplete,InventoryErrors=inventory.Errors});
             string invPath=destination.Resolve(Path.Combine(".porto",$"inventory-{runId}.json"));
             AtomicFile.WriteNew(invPath,inv=>System.Text.Json.JsonSerializer.Serialize(inv,inventory));
             Recover(catalog,cancel);
             var entries=catalog.Entries();
+            if(selected)
+            {
+                previousCopies.AddRange(entries.Where(e=>!string.IsNullOrEmpty(e.Final)));
+                foreach(var external in FolderArchiveComparison.FindUnregistered(destination,entries,cancel,
+                    (name,n)=>Notify("Confronto archivio precedente",name,false,n)))
+                {entries.Add(external);previousCopies.Add(external);externalIds.Add(external.Id);}
+            }
             for(int index=0;index<entries.Count;index++)
             {
                 var prior=entries[index];
+                if(externalIds.Contains(prior.Id))continue; // Foreign paths are read-only, never catalog mutations.
                 if(prior.State=="Missing"&&!string.IsNullOrEmpty(prior.Final)&&File.Exists(destination.Resolve(prior.Final))&&
                     new CopyResult(prior.Length,prior.Hash!)==VerifiedCopy.HashFile(destination.Resolve(prior.Final),cancel))
                 {prior=prior with{State="Complete"};entries[index]=prior;catalog.Save(prior);}
                 if(prior.State=="Missing" || prior.State=="Complete"&&!File.Exists(destination.Resolve(prior.Final)))
                 {
                     entries[index]=prior with{State="Missing"};catalog.Save(entries[index]);
-                    report.Items.Add(new(prior.Source.Id,prior.Source.Name,Outcome.Missing,"Una copia registrata non è più presente nella destinazione. Se la sorgente è disponibile verrà ricopiata.",prior.Final,Historical:!currentKeys.Contains(WorkLedger.Key(prior.Source))));
+                    report.Items.Add(new(prior.Source.Id,prior.Source.Name,Outcome.Missing,"Una copia registrata non è più presente nella destinazione. Se la sorgente è disponibile verrà ricopiata.",prior.Final,Historical:selected||!currentKeys.Contains(WorkLedger.Key(prior.Source))));
                 }
-                else if(prior.State=="Damaged")report.Items.Add(new(prior.Source.Id,prior.Source.Name,Outcome.Error,"Copia precedente danneggiata o collisionante; conservata. Recupero tramite nuova copia se disponibile.",prior.Final,Historical:!currentKeys.Contains(WorkLedger.Key(prior.Source))));
+                else if(prior.State=="Damaged")report.Items.Add(new(prior.Source.Id,prior.Source.Name,Outcome.Error,"Copia precedente danneggiata o collisionante; conservata. Recupero tramite nuova copia se disponibile.",prior.Final,Historical:selected||!currentKeys.Contains(WorkLedger.Key(prior.Source))));
             }
             var known=entries.Where(e=>e.State is "Complete" or "Quarantined").ToList();
             var missing=entries.Where(e=>e.State is "Missing" or "Damaged").GroupBy(e=>(e.Hash,e.Length)).ToDictionary(g=>g.Key,g=>new Queue<CatalogEntry>(g));
@@ -84,14 +98,14 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                 bool exists=File.Exists(oldPath);
                 if(exists&&VerifiedCopy.HashFile(oldPath,cancel,n=>Notify("Verifica file già presente",old.Source.Name,false,n))==content)return true;
                 var broken=old with{State=exists?"Damaged":"Missing"};
-                catalog.Save(broken);
+                if(!externalIds.Contains(old.Id))catalog.Save(broken);
                 if(verifiedCopies.TryGetValue(content,out var verified))verified.Remove(old.Id);
-                if(replacementIds.Add(old.Id))
+                if(!externalIds.Contains(old.Id)&&replacementIds.Add(old.Id))
                 {
                     if(!missing.TryGetValue((old.Hash,old.Length),out var replacements))missing[(old.Hash,old.Length)]=replacements=new();
                     replacements.Enqueue(broken);
                     report.Items.Add(new(old.Source.Id,old.Source.Name,exists?Outcome.Error:Outcome.Missing,
-                        exists?"Copia precedente alterata; conservata senza sovrascrittura.":"Una copia registrata non è più presente nella destinazione.",oldRelative,Historical:!currentKeys.Contains(WorkLedger.Key(old.Source))));
+                        exists?"Copia precedente alterata; conservata senza sovrascrittura.":"Una copia registrata non è più presente nella destinazione.",oldRelative,Historical:selected||!currentKeys.Contains(WorkLedger.Key(old.Source))));
                 }
                 return false;
             }
@@ -126,7 +140,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                 long prefix=partials.TryGetValue(WorkLedger.Key(item),out var part)?new FileInfo(destination.Resolve(part.Temp)).Length:0;
                 return Math.Max(0,item.Size.Value-prefix);
             }
-            var companions=MediaInspector.SuspectedCompanions(inventory.Items);
+            var companions=selected?new Dictionary<string,string>():MediaInspector.SuspectedCompanions(inventory.Items);
             var candidates=inventory.Items.Where(MediaInspector.Candidate).ToList();
             total=candidates.Count;
             report.CandidateCount=total;
@@ -151,7 +165,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                         bool sidecar=MediaInspector.IsAdjustmentSidecar(item);
                         bool uncertain=item.Kind==MediaKind.Unknown&&!sidecar;
                         report.Items.Add(new(item.Id,item.Name,uncertain?Outcome.Ambiguous:Outcome.Excluded,
-                            sidecar?"File accessorio .AAE: escluso dalla copia video.":uncertain?"Metadati insufficienti: tipo non riconosciuto.":"Fotografia o contenuto non video."));
+                            sidecar?"File accessorio .AAE: escluso dalla copia video.":uncertain?(selected?"Formato video non supportato: da verificare; nessuna copia certificata.":"Metadati insufficienti: tipo non riconosciuto."):selected?"Estensione esclusa dalla copia: questa modalità importa MOV, MP4 e M4V.":"Fotografia o contenuto non video."));
                         if(uncertain)SaveProgress(item);
                     }
                     continue;
@@ -185,7 +199,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                         CatalogEntry? match=null;
                         // One copy cannot discharge two videos that were ever observed together.
                         // Leave the existing queue untouched when another physical copy is needed.
-                        if(verified.Count>=ledger.RequiredCopies(fingerprint)&&byHash.TryGetValue(fingerprint,out var matching))
+                        if((selected||verified.Count>=ledger.RequiredCopies(fingerprint))&&byHash.TryGetValue(fingerprint,out var matching))
                         {
                             while(matching.TryDequeue(out var old))
                             {
@@ -194,7 +208,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                                 // A group count can be cached, but the file actually being reused
                                 // must still match now, after possibly hours of other transfers.
                                 if(VerifyLocal(old,fingerprint)){match=old;break;}
-                                if(verified.Count<ledger.RequiredCopies(fingerprint))break;
+                                if(!selected&&verified.Count<ledger.RequiredCopies(fingerprint))break;
                             }
                         }
                         if(match!=null)
@@ -222,7 +236,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                                     }
                                     FaultPoint?.Invoke("promotion-flush");
                                     VerifiedCopy.Verify(fingerprint,VerifiedCopy.HashFile(promotedTemp,cancel));
-                                    bool additional=companions.ContainsKey(item.Id)||inspected.AdditionalResource;
+                                    bool additional=!selected&&(companions.ContainsKey(item.Id)||inspected.AdditionalResource);
                                     promoted=promoted with{State="Ready",Hash=fingerprint.Hash,Length=fingerprint.Length,Replaces=match.Id,
                                         Final=FinalName(item,inspected,promotedId,additional)};
                                     catalog.Save(promoted);FaultPoint?.Invoke("promotion-ready");
@@ -239,10 +253,11 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                             }
                             else
                             {
-                                catalog.Save(match with{Source=item});
+                                if(!externalIds.Contains(match.Id))catalog.Save(match with{Source=item});
                                 var inspected=MediaInspector.Inspect(destination.Resolve(match.Final),cancel);
-                                bool additional=companions.ContainsKey(item.Id)||Path.GetDirectoryName(match.Final)==Destination.AdditionalDirectory||inspected.AdditionalResource;
+                                bool additional=!selected&&(companions.ContainsKey(item.Id)||Path.GetDirectoryName(match.Final)==Destination.AdditionalDirectory||inspected.AdditionalResource);
                                 bool valid=inspected.IsVideo&&!inspected.Ambiguous&&!inspected.LivePhoto;
+                                if(valid)reusedPrevious.Add(match.Id);
                                 report.Items.Add(new(item.Id,item.Name,!valid?Outcome.Ambiguous:additional?Outcome.AdditionalAlreadyPresent:Outcome.AlreadyPresent,
                                     "Sorgente e copia locale rilette: SHA-256 identico. File precedente conservato nella sua cartella."+
                                     (!valid?" Il contenitore richiede verifica: "+inspected.Detail:additional?" Risorsa aggiuntiva: corrispondenza con un video autonomo di Foto non certificabile.":"")+sizeNote,match.Final,fingerprint.Length,fingerprint.Hash));
@@ -291,7 +306,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                             media.Detail+" Temporaneo conservato in .porto.",entry.Temp,received.Length,received.Hash));
                         done++;SaveProgress(item);continue;
                     }
-                    bool isAdditional=companions.ContainsKey(item.Id)||media.AdditionalResource;
+                    bool isAdditional=!selected&&(companions.ContainsKey(item.Id)||media.AdditionalResource);
                     entry=entry with{State="Ready",Hash=received.Hash,Length=received.Length,
                         Replaces=MissingMatch(received.Hash,received.Length)?.Id,
                         Final=FinalName(item,media,id,isAdditional)};
@@ -322,7 +337,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                     }
                 }
             }
-            Notify("Controllo finale", "Verifico che l'elenco dei video USB non sia cambiato",true);
+            Notify("Controllo finale", selected?"Verifico che l’elenco della cartella non sia cambiato":"Verifico che l’elenco dei video USB non sia cambiato",true);
             var finalInventory=source.Inventory(cancel);
             currentKeys.UnionWith(finalInventory.Items.Select(WorkLedger.Key));
             report.FinalInventoryChecked=finalInventory.EnumerationComplete&&finalInventory.Errors.Count==0&&
@@ -343,7 +358,17 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                     ?"Risorse USB copiate e verificate. Distinzione dei video Foto non verificabile: consulta le risorse aggiuntive."
                     :"Completati copia e controllo dei video individuati tramite USB. Intera libreria Foto non verificabile."
                 :"Importazione incompleta o con elementi non verificabili. Consulta il report.";
-            if(total==0&&report.Items.Count==0&&report.InventoryErrors.Count==0)report.Status="Nessun video individuato via USB. Verifica telefono e contenuti disponibili localmente.";
+            if(selected)
+            {
+                report.SelectedFolderVerified=total>0&&report.FinalInventoryChecked&&report.UsbEnumerationComplete&&report.InventoryErrors.Count==0&&
+                    report.CurrentCount(Outcome.Imported)+report.CurrentCount(Outcome.AlreadyPresent)==total&&
+                    !report.Items.Any(i=>!i.Historical&&i.Outcome is Outcome.Error or Outcome.Ambiguous or Outcome.Missing or Outcome.Pending);
+                report.Status=report.SelectedFolderVerified
+                    ?$"Verificati i {total:N0} video della cartella selezionata. "+(report.HistoricalCount>0?"Restano osservazioni precedenti da verificare nel report.":"Copertura dell’iPhone non verificata.")
+                    :"Importazione da cartella incompleta o non verificabile. Consulta il report.";
+                report.RetryRecommended=false;
+            }
+            if(total==0&&report.Items.Count==0&&report.InventoryErrors.Count==0)report.Status=selected?"Nessun video trovato nella cartella selezionata.":"Nessun video individuato via USB. Verifica telefono e contenuti disponibili localmente.";
             return report;
             void SaveProgress(SourceItem item)
             {
@@ -352,7 +377,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                 if(result.Sha256!=null&&result.Outcome is Outcome.Imported or Outcome.AlreadyPresent or Outcome.Additional or Outcome.AdditionalAlreadyPresent)
                     report.RetryVisited.Add(RetryOrder.AfterFailure(inventory.Items,item));
             }
-            string ClassificationDetail(SourceItem item,MediaInspection media)=>media.Detail+
+            string ClassificationDetail(SourceItem item,MediaInspection media)=>selected?"Video della cartella scelta: contenitore e byte verificati. Selezione nell’app Foto non verificata indipendentemente.":media.Detail+
                 (companions.TryGetValue(item.Id,out string? hint)?" "+hint:"")+
                 (companions.ContainsKey(item.Id)||media.AdditionalResource?" Copia verificata in Risorse video aggiuntive: corrispondenza con un video autonomo di Foto non certificabile via USB.":"");
             void SaveFinalEntry(CatalogEntry replacement)
@@ -378,6 +403,19 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
             report.UsbSessionRestarts=(source as IReadFailureRecovery)?.SessionRestarts??0;
             report.EndedUtc=DateTimeOffset.UtcNow;
             AddOutstanding();
+            if(selected)
+            {
+                report.RetryRecommended=false;
+                foreach(var prior in previousCopies)
+                {
+                    bool intact=verifiedCopies.TryGetValue(new(prior.Length,prior.Hash!),out var verified)&&verified.Contains(prior.Id);
+                    bool reused=reusedPrevious.Contains(prior.Id);
+                    report.PreviousCopies.Add(new(prior.Final,prior.Length,prior.Hash,reused,intact,
+                        reused?"Riutilizzata per un video selezionato: confronto completo SHA-256 riuscito; file conservato al suo posto.":
+                        intact?(externalIds.Contains(prior.Id)?"File precedente non registrato riletto senza variazioni, conservato e non riutilizzato; nessuna conferma dell’integrità rispetto all’originale. Non classificato automaticamente come Live Photo.":"Copia precedente integra rispetto al catalogo, non riutilizzata in questo passaggio e conservata. Può essere una copia ulteriore, un video diverso, una versione o una risorsa Live Photo; non classificata automaticamente."):
+                        "Copia precedente non verificata, assente o alterata: nessuna cancellazione o sovrascrittura."));
+                }
+            }
             // If persistence fails (e.g. disk completely full), surface it instead of claiming success.
             catalog.SaveReport(runId,report);
             string reports=destination.Resolve("Report Porto");ReportWriter.Write(reports,runId,report);
@@ -395,7 +433,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                 {
                     report.Items.Add(new(requirement.Content.Hash,"Video identici da completare",Outcome.Pending,
                         $"Inventari precedenti provano almeno {requirement.Count} video con questo contenuto; copie integre verificate: {copies.Count}.",Historical:true));
-                    if(mayRetryDeficits&&!cancel.IsCancellationRequested&&!report.StoppedForCapacity)report.RetryRecommended=true;
+                    if(!selected&&mayRetryDeficits&&!cancel.IsCancellationRequested&&!report.StoppedForCapacity)report.RetryRecommended=true;
                 }
             foreach(var conflict in ledger.Conflicts())
                 if(reportedConflicts.Add(WorkLedger.Key(conflict.Source)))
@@ -457,6 +495,8 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
     {
         if(!force&&timer.ElapsedMilliseconds-lastNotify<200)return;
         lastNotify=timer.ElapsedMilliseconds;
+        if(activityBytes.HasValue)name+=$" · {activityBytes.Value:N0} byte letti per verifica";
+        if(source is ISelectedVideoSource){phase=phase.Replace("USB","cartella",StringComparison.Ordinal);name=name.Replace("USB","della cartella",StringComparison.Ordinal);}
         Progress?.Invoke(new(phase,name,done,total,copied,totalBytes,space.Available(destination.Root),
             timer.Elapsed.TotalSeconds>0?copied/timer.Elapsed.TotalSeconds:0));
     }

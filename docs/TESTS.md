@@ -1,83 +1,33 @@
-# Prove della candidata 0.1.0-rc.8
+# Prove della candidata 0.1.0-rc.9
 
-Windows 11 x64, SDK .NET 10.0.403 e runtime 10.0.14. Cartelle NTFS isolate,
-dati sintetici e processi di prova. Nessun telefono o video personale letto.
+Windows 11 x64, SDK .NET 10.0.403, runtime 10.0.14. Fixture sintetiche in cartelle NTFS isolate nel progetto. Nessun telefono, archivio personale o video della cliente letto o modificato.
 
-## Risultati
+## Risultati effettivi
 
-**322 casi superati nella suite completa: 318 ordinari e quattro estesi.**
-Dopo un ultimo aggiustamento circoscritto alla classificazione (una risorsa
-esplicitamente video con estensione immagine non deve abbinarsi a se stessa),
-sono state rieseguite sul codice finale **48 verifiche pertinenti**, tutte passate:
-22 parser/classificazione, 20 copertura e recupero, sei integrazioni correlate.
-Non sono 370 casi distinti e non viene dichiarato un unico run completo successivo
-all'ultimo aggiustamento. Nessun difetto o fallimento finale ignorato.
+**348 casi distinti coperti.** Suite completa con **347/347** casi superati (343 ordinari e quattro estesi), poi **28/28** ricontrolli delle aree cartella sul codice finale dopo l’aggiunta del caso per i contenitori video non supportati. Quei 28 comprendono 27 casi già eseguiti e un caso nuovo: non sono 375 casi distinti. Il successivo chiarimento testuale del report per copie non registrate non modifica la logica di confronto. Non viene dichiarato un unico run completo di 348 casi dopo l’ultimo aggiustamento.
 
-Un tentativo preliminare è stato interrotto: ha rivelato fixture obsolete sui
-marcatori testuali, una verifica di versione rimasta rc.7 e creazione di hard link
-sintetici impedita dalla sandbox. Le fixture sono state rese realmente malformate
-mantenendo le asserzioni; versione corretta e suite finale eseguita con i permessi
-necessari esclusivamente per i test isolati.
+Build applicativa finale senza avvisi/errori. Cinque smoke dell’interfaccia: origine/cartella, recupero USB, pausa, incompleto USB, risultato di confronto cartella in finestra compatta. Screenshot esaminati; nessuna discovery hardware negli smoke. Quattro prove separate del confezionamento: compressione interrotta, ZIP invalido, archivio già esistente conservato, successo con checksum.
 
-Build senza avvisi/errori. Quattro prove di packaging separate superate.
-[Output](test-results.txt) e [revisione indipendente](REVIEW-RC8.md).
-Riproduzione: `scripts/dev.ps1 test -Large`; senza `-Large` 318 casi ordinari.
+[Output](test-results.txt) · [Revisione indipendente](REVIEW-RC9.md).
 
-## Correzioni e regressioni
+## Nuova modalità: 26 casi
 
-- Tutti i candidati video letti, foto e AAE mai aperti; hash e byte confrontati.
-- Parser strutturato QuickTime: gerarchia, namespace, chiavi, ID locali, padding,
-  troncamento, marker opachi, identificatore isolato, limiti e cancellazione.
-- Copie precedenti integre riutilizzate senza spostarle; classificazione aggiuntiva
-  separata e numero di copie distinte mantenuto per contenuti identici.
-- Quarantined validi riclassificati tramite nuova copia, vecchio .part invariato.
-  Morte reale del processo a intento, flush, Ready, rename e Complete in entrambe
-  le cartelle; collisione con file estraneo conservato.
-- Vecchio Complete ora non valido resta ambiguo e intatto.
-- Sei blocchi Open/Read/disconnessioni: file sani successivi raggiunti e copiati.
-  ID variabili, nomi e dimensioni uguali; continuazioni limitate oltre tre passaggi.
-  Cancellazione, inventario incompleto e disconnessione permanente senza loop.
-- Report corrente/storico, nuovi elementi finali, copie precedenti mancanti e
-  vecchi errori senza prova: nessun debito nascosto per ottenere un esito verde.
+14 casi del source adapter: ricorsione, formati e file accessori, byte invariati, scritture negate durante la lettura, ID stabili, date/dimensioni/identità NTFS, input forgiati, sovrapposizione radici, annullamento, root scomparsa, file non leggibili, hardlink/junction, percorsi remoti/dispositivo, dispose.
 
-Mantenute le prove preesistenti su SHA-256, doppia lettura divergente, troncamenti,
-letture native corte/S_FALSE, dimensioni discordanti, cleanup, frame IPC, timeout,
-identificatori variabili, molteplicità minima storica, corruzione, spazio e permessi,
-lock, schema/journal/cataloghi interrotti, percorsi ostili, NUL, hard link,
-symlink/junction e conservazione dei file estranei.
+12 casi di integrazione cartella: confronto con copie non registrate; mantenimento del debito storico; copia nella cartella aggiuntiva riutilizzata senza spostamento; molteplicità degli identici; vecchi errori USB; riparazione che conserva il danneggiato e i suoi dettagli nei report successivi; contenitore malformato e prosecuzione; inventario finale cambiato; doppia lettura discordante; sorgente cartella reale ripetuta senza duplicati; contenitore AVI non supportato lasciato ambiguo.
 
-Due revisori indipendenti hanno controllato reciprocamente USB/media e i cambi
-engine/storage. In copia isolata, ripristinando il limite rigido di tre passaggi:
-build riuscita, test dei sei ostacoli con ID variabili fallito 0/1 per risorse sane
-non raggiunte. Lo stesso test passa nel codice consegnato. Nessuna mutazione nel
-pacchetto; nessun bloccante confermato rimasto irrisolto nel ciclo.
+I test iniziali prima dell’implementazione engine mostravano quattro fallimenti attesi su cinque. I test nativi di hardlink/junction inizialmente non potevano creare le fixture nel sandbox; sono stati rieseguiti con permessi adatti esclusivamente nei percorsi sintetici e sono passati. Nessuna protezione Windows è stata ridotta.
 
-## Carico
+## Regressioni mantenute
 
-50.000 elementi, 250 GB logici senza scrivere quel volume, 2.000 copie fisiche
-seguite da rilettura senza duplicati; stream virtuale e file NTFS oltre 4 GiB.
-Misure del run, non promesse di prestazioni USB:
+SHA-256, EOF e troncamenti, letture discordanti, dimensioni native, metadati QuickTime, classificazione USB, priorità e recupero limitato, timeout e cancellazione, morti reali del processo nei passaggi di pubblicazione, cataloghi/journal interrotti o estranei, percorsi ostili e collegamenti, collisioni, disco pieno, permessi, inventari incompleti, cambi di ID e molteplicità storica.
 
-```text
-LARGE stream: 4294967313 bytes, 3,07s, working set 68 MiB
-LARGE inventory: 50000 items, 250 GB logical, 8,87s, working set 226 MiB
-STRESS full loop: 2000 physical files twice verified, 50000 entries, 381,19s, working set 203 MiB
-LARGE NTFS: 4294971392 bytes written and reread, 25,30s, working set 117 MiB
-```
+Prove estese: stream oltre 4 GiB effettivamente letto e hashato; inventario di 50.000 elementi e 250 GB logici simulati; 2.000 file fisici copiati con secondo passaggio di verifica e nessuna copia aggiuntiva; video oltre 4 GiB scritto, riletto e pubblicato su NTFS. I 250 GB sono simulati, non scritti sul disco.
 
-## Interfaccia, pacchetto e limiti
+## Riproduzione
 
-Quattro stati UI sintetici: normale, recupero, pausa e incompleto, più controllo
-visivo del riepilogo ampio. Pulsanti accessibili, scorrimento disponibile, conteggi
-distinti, barra azzerata nell'esito incompleto e callback tardivo innocuo. Nessuna
-ricerca di telefono negli smoke. Non certifica ogni DPI o interazione manuale.
-Quattro test packaging: compressione interrotta, ZIP invalido, archivio precedente
-conservato e successo. Download pubblico, versione, manifest, checksum e sei smoke
-sono registrati dopo la pubblicazione in [RELEASE-VERIFICATION.md](RELEASE-VERIFICATION.md).
+`scripts/dev.ps1 test -Large` esegue la suite completa corrente (348 casi); senza `-Large` 344. Il runner compilato supporta `--filter=folder` per i 28 casi pertinenti. `tests/PackageStagingTests.ps1` esegue i quattro casi confezionamento. Il pacchetto verifica anche `--interop-smoke`, `--worker-smoke` e i cinque stati UI senza enumerare dispositivi.
 
-Da confermare: recupero degli errori sullo specifico iPhone e corrispondenza con
-il totale dell'album Video. Eliminazioni, originali solo iCloud, componenti Live
-Photo e varianti impediscono di dedurre un totale Foto dai soli file WPD.
-Il parser non decodifica i fotogrammi. Nessuna prova fisica da 250 GB.
-Windows ARM, rete ed exFAT non supportati. Candidata non firmata; nessuna riduzione
-delle protezioni Windows richiesta. Nessuna spesa, servizio o driver aggiunto.
+## Cosa non è stato verificato
+
+Esportazione reale da Foto verso Windows, posizione SMB nel flusso di esportazione, originali disponibili solo su iCloud, archivio personale precedente, conteggio della raccolta Video sul telefono e compatibilità di ogni driver/iPhone. La cartella deve già contenere l’esportazione completa voluta dall’utente. Non è una certificazione, una promessa di assenza di bug o un totale di video garantito. Gli eventuali duplicati visivi fra versioni con byte diversi non vengono risolti semanticamente.

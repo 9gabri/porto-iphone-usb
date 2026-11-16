@@ -11,6 +11,13 @@ public interface IVideoSource : IDisposable
     Inventory Inventory(CancellationToken cancel);
     Stream OpenRead(SourceItem item, CancellationToken cancel);
 }
+// A folder explicitly selected by the user. This does not certify membership in Photos.
+public interface ISelectedVideoSource : IVideoSource
+{
+    string SelectionDescription { get; }
+}
+public sealed record PreviousCopyComparison(string File, long Bytes, string? Sha256,
+    bool ReusedForSelection, bool IntegrityVerified, string Detail);
 // Mark a failed read without performing I/O or replacing its original exception.
 // The next read must use a fresh connection and a fully revalidated inventory.
 public interface IReadFailureRecovery
@@ -22,6 +29,10 @@ public sealed record ReportItem(string SourceId, string Name, Outcome Outcome, s
     string? File = null, long? Bytes = null, string? Sha256 = null, bool Historical = false);
 public sealed class ImportReport
 {
+    public bool SelectedFolder { get; init; }
+    public string SourceDescription { get; init; } = "iPhone tramite USB";
+    public bool SelectedFolderVerified { get; set; }
+    public List<PreviousCopyComparison> PreviousCopies { get; } = [];
     public string ApplicationVersion => typeof(ImportReport).Assembly
         .GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute),false)
         .OfType<System.Reflection.AssemblyInformationalVersionAttribute>().FirstOrDefault()?.InformationalVersion.Split('+')[0]??"sconosciuta";

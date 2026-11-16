@@ -55,6 +55,8 @@ Rc7RecoveryTests.Add(tests);
 Rc8MediaTests.Add(tests);
 Rc8RecoveryTests.Add(tests);
 Rc8CoverageTests.Add(tests);
+FolderSourceTests.Add(tests);
+FolderImportTests.Add(tests);
 if(args.Contains("--large"))LargeTests.Add(tests);
 int failures = 0;
 string? filter=args.FirstOrDefault(a=>a.StartsWith("--filter=",StringComparison.Ordinal))?[9..];

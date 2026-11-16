@@ -67,3 +67,12 @@ WPD è la scelta minima per utilizzare lo stack già presente su Windows. La pre
 
 La classificazione aggiuntiva è una scelta conservativa di Porto, non una garanzia
 Apple di corrispondenza uno-a-uno con l’album Video.
+
+
+## Selezione ed esportazione da Foto — rc.9 (2026-11-16)
+
+- https://support.apple.com/en-mide/guide/iphone/iph8530ff6a2/ios — raccolte per tipo di contenuto; selezione da Video invece dell’intera DCIM.
+- https://support.apple.com/en-ca/111762 — Export Unmodified Originals e scelta della destinazione nell’app File; pagina consultata per la nuova guida.
+- https://support.apple.com/en-ie/guide/iphone/iphe9aff429a/ios — connessione dell’app File a server/cartelle condivise. Riferimento della guida; in questa verifica web ha restituito HTTP 429, quindi nessuna attestazione nuova del percorso completo di esportazione verso SMB.
+
+Queste indicazioni non costituiscono un collaudo del flusso iPhone → cartella Windows. La disponibilità della posizione condivisa nel foglio di esportazione e il completamento sul telefono restano da confermare. Porto non configura condivisioni né amplia permessi.
