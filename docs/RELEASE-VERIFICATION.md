@@ -359,3 +359,19 @@ Questa verifica dimostra integrità e avvio del pacchetto distribuito, non compa
 - Codice: suite ordinaria 445/445, quattro prove estese, poi ricontrolli finali Apple 37/37 e motore galleria 6/6 dopo quattro nuove regressioni. Sequenza, prima esecuzione con fallimenti e successive correzioni documentate in TESTS.md e REVIEW-RC11.md; nessuna singola esecuzione globale verde inventata. Quattro prove di confezionamento aggiuntive superate.
 
 Questo resoconto è successivo al tag: lo ZIP resta immutato. La candidata non è firmata commercialmente e non è certificata. Il nuovo accesso al catalogo Foto usa uno schema privato e deve essere collaudato con un iPhone reale; album personali, originali locali, riconnessione e conteggi restano da confermare. Raccolte intelligenti/condivise iPhone e album privati/cloud Android non sono universalmente accessibili. Non è stato raggiunto né dichiarato il supporto a qualsiasi telefono e qualsiasi album.
+
+## 0.1.0-rc.12 — 16 novembre 2026
+
+- Tag immutabile `v0.1.0-rc.12`, sorgente `04430f1f283e4af9d237e8802904671b7e50d538`.
+- [Release pubblica](https://github.com/9gabri/porto-iphone-usb/releases/tag/v0.1.0-rc.12), candidata pubblicata alle `2026-11-16T18:29:07Z`.
+- [ZIP verificato](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.12/Porto-0.1.0-rc.12-win-x64.zip): 54.362.423 byte, 292 elementi, runtime .NET 10.0.14 incluso.
+- SHA-256 ZIP: `c7a0c68fe3ceebefc5f3acd716fbf8a9d53d7b377de665a9fff446cf481a4d65`.
+- [SHA256SUMS.txt](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.12/SHA256SUMS.txt): 97 byte, SHA-256 `da24794022857c712f4585d01cc451b20d0e967d0c84858818340909b4c57d22`.
+- Nuovo staging e nuovo ZIP, senza sostituire le release precedenti. Tutti gli undici archivi locali rc.1–rc.11 ricontrollati e invariati.
+- ZIP e checksum riscaricati dal link pubblico senza autenticazione: hash locale, checksum pubblico e digest GitHub coincidenti. CRC di tutti i membri, nomi univoci, assenza di traversal/link, manifest/versione/commit, runtime, licenze e documentazione verificati. Nessun dato personale della prova, media, allegato, SDK, PDB, catalogo o credenziale incluso; nessun percorso privato del progetto trovato nei binari Porto.
+- Eseguibile pubblico: `0.1.0-rc.12+04430f1f283e4af9d237e8802904671b7e50d538`. Estratto in una cartella nuova e verificato con undici smoke: interop COM, worker e nove stati UI. Runtime incluso sufficiente con `DOTNET_ROOT`/`DOTNET_ROOT_X64` inesistenti e `DOTNET_MULTILEVEL_LOOKUP=0`. Nessun telefono cercato o letto.
+- HTML e anteprima pubblici identici byte per byte ai file del tag. SHA-256 HTML `ea9c7da6de59369b621e05af91e8c543601933259d3d0f17fc25ad4c84e9bc35`; anteprima `43e11df2375d2e83cf7de416a069593f152097a66b3c4ae58c26f9e05266dd21`.
+- Codice finale: 457/457 test ordinari, build senza avvisi/errori, quattro prove di confezionamento. Baseline con fallimenti, successiva correzione, recupero sintetico 48+29 e revisione indipendente documentati in TESTS.md, test-results.txt e REVIEW-RC12.md.
+- Controllo strutturale autorizzato dei 29 JPEG reali soltanto in lettura: nuovo lettore 29/29 accettati, precedente 29/29 rifiutati, hash invariati e coincidenti con il report originale. Nessuna immagine visualizzata o trasferita, nessun catalogo personale aperto in scrittura e nessuna importazione reale effettuata.
+
+Questo resoconto è successivo al tag e non modifica lo ZIP. Resta da completare l'importazione fisica con il telefono dell'utente. La correzione riguarda il lettore JPEG comune a tutte le sorgenti, non garantisce ogni formato o dispositivo. I dati dopo l'immagine primaria sono conservati e dichiarati non interpretati né strutturalmente verificati. La candidata non è firmata commercialmente, certificata o dichiarata priva di bug.

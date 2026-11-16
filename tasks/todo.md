@@ -111,5 +111,5 @@ prova con il telefono. Nessun totale artificiale basato sui componenti Live Phot
 - [x] Regressioni sintetiche prima/dopo e confronto in sola lettura di tutte le 29 copie interessate.
 - [x] Revisione indipendente del contratto e del diff finale.
 - [x] Regressione finale 457/457 e build senza avvisi/errori.
-- [ ] Nuovo pacchetto e download pubblico verificato.
+- [x] Nuovo pacchetto pubblicato e riscaricato senza autenticazione: checksum/CRC, versione/contenuto, undici smoke e pagina pubblica verificati; rc.1–rc.11 invariati.
 - [ ] Importazione fisica rc.12 da completare con l'utente; nessuna compatibilità universale dichiarata.
