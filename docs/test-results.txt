@@ -1,5 +1,7 @@
-Porto rc.9 — test sintetici; nessun dispositivo reale.
-Suite completa prima del controllo finale aggiuntivo sui formati non supportati:
+Porto 0.1.0-rc.10 — dati sintetici isolati, nessun telefono o archivio personale letto
+Build test e app: 0 avvisi, 0 errori
+
+SUITE COMPLETA
 PASS copy and independently reread SHA256
 PASS truncation rejected
 PASS unexpected extra bytes rejected
@@ -227,6 +229,11 @@ PASS rc5 inventory classifies sidecars without hiding contrary video metadata: I
 PASS rc5 inventory classifies sidecars without hiding contrary video metadata: opaque.bin
 PASS rc5 inventory classifies sidecars without hiding contrary video metadata: contradiction.AAE
 PASS rc5 inventory classifies sidecars without hiding contrary video metadata: format-video.AAE
+PASS multidevice native known nonmedia preserves contrary extensions: sound.mp3
+PASS multidevice native known nonmedia preserves contrary extensions: document.pdf
+PASS multidevice native known nonmedia preserves contrary extensions: readme.txt
+PASS multidevice native known nonmedia preserves contrary extensions: clip.mkv
+PASS multidevice native known nonmedia preserves contrary extensions: movie.mov
 PASS rc5 inventory mixed resources separate transfer candidates and do not retry sidecars
 PASS rc5 inventory sidecar classification does not erase legacy unknown obligations
 PASS rc6 protocol preserves that cleanup failure belongs to the previous read
@@ -332,44 +339,6 @@ PASS folder source refuses hard links during inventory and revalidates before re
 PASS folder source refuses junction roots and never traverses linked subfolders
 PASS folder source rejects nonexistent network and device roots without creating them
 PASS folder source disposal revokes inventory and read access
-PASS folder import changed final inventory prevents verified selection
-PASS folder import inconsistent deep reread cannot confirm reuse
-PASS folder import real local source repeats without duplication and preserves exported bytes
-PASS folder import reuses unregistered files without modifying or registering foreign paths
-PASS folder import selection subset reuses surviving copy and retains historical multiplicity debt
-PASS folder import matches selected videos including prior additional copies without moving extras
-PASS folder import preserves multiplicity and never uses one prior file twice
-PASS folder import historical USB errors remain visible without becoming selected videos
-PASS folder import corrupt old copy is preserved and repaired in a new file
-PASS folder import repaired same-selection archive defect stays historical and visible on next run
-PASS folder import malformed selected file remains unresolved and other videos continue
-  LARGE stream: 4294967313 bytes, 2,42s, working set 70 MiB
-PASS stream beyond 4 GiB: 4 GiB + 17 bytes actually read and hashed without disk allocation
-  LARGE inventory: 50000 items, 250 GB logical, 3,56s, working set 225 MiB
-PASS 50000-item inventory and 250 GB logical capacity without writing payload
-  STRESS full loop: 2000 physical files twice verified, 50000 entries, 314,81s, working set 192 MiB
-PASS 50000 inventory entries with 2000 actual copies and verified second pass
-  LARGE NTFS: 4294971392 bytes written and reread, 31,73s, working set 125 MiB
-PASS video over 4 GiB actually written verified and published on NTFS
-347/347 passed
-
-Ricontrollo delle aree cartella sul codice finale (incluso nuovo caso):
-PASS final USB native disconnect escapes folder inventory recovery
-PASS rc8 coverage additional promotion collision preserves foreign file and folder
-PASS folder source inventories nested videos and transparently excludes other files
-PASS folder source reads original bytes without modifying source and denies writing
-PASS folder source IDs survive enumeration and normalized root spelling
-PASS folder source final inventory detects changed sizes and modification timestamps
-PASS folder source refuses unobserved forged and stale source items
-PASS folder source detects replacement even with identical length and timestamp
-PASS folder source rejects every ancestor overlap before destination writes
-PASS folder source cancellation never becomes a partial success
-PASS folder source reports a lost root as incomplete instead of silently empty
-PASS folder source reports unreadable files and keeps readable siblings
-PASS folder source refuses hard links during inventory and revalidates before reading
-PASS folder source refuses junction roots and never traverses linked subfolders
-PASS folder source rejects nonexistent network and device roots without creating them
-PASS folder source disposal revokes inventory and read access
 PASS folder import unsupported video container prevents a verified selection
 PASS folder import changed final inventory prevents verified selection
 PASS folder import inconsistent deep reread cannot confirm reuse
@@ -382,4 +351,63 @@ PASS folder import historical USB errors remain visible without becoming selecte
 PASS folder import corrupt old copy is preserved and repaired in a new file
 PASS folder import repaired same-selection archive defect stays historical and visible on next run
 PASS folder import malformed selected file remains unresolved and other videos continue
-28/28 passed
+PASS multidevice discovery includes Apple Android and other portable devices
+PASS multidevice discovery preserves nameless devices with visible metadata warning
+PASS multidevice discovery retries truncated batches without selecting another phone
+PASS multidevice discovery rejects duplicate and malformed device IDs
+PASS photo valid JPEG structure is recognized without changing bytes
+PASS photo truncated JPEG cannot pass
+PASS photo valid PNG structure is recognized without changing bytes
+PASS photo truncated PNG cannot pass
+PASS photo valid HEIC structure is recognized without changing bytes
+PASS photo truncated HEIC cannot pass
+PASS photo wrong magic and unsupported formats remain ambiguous
+PASS photo PNG rejects bad checksum lengths ordering and dimensions
+PASS photo PNG validates compressed scanline size filter and checksum
+PASS photo PNG rejects trailing compressed junk even with duplicated Adler checksum
+PASS photo HEIC image grid resolves and validates its tile data
+PASS photo HEIC repeated tile extents share a cumulative parsing budget
+PASS photo JPEG requires frame scan tables entropy and exact ending
+PASS photo HEIC rejects bogus brands primary extents config and absent image metadata
+PASS photo inspection observes cancellation
+PASS photo media selection keeps unsupported pictures visible and separates photo video modes
+PASS media selection copies only the chosen types and preserves all inventory hints
+PASS media legacy observations retain exact JSON bytes and key
+PASS media photo pass preserves prior video catalog and subsequent mixed pass reuses both
+PASS media physical phone folder excludes siblings and keeps recovery forwarding
+PASS media missing ambiguous moved or corrupt folder never expands to the phone
+PASS media phone folder tolerates changed transient IDs but not selection drift
+PASS media identical raw phone IDs do not merge different content histories
+PASS media repeated photo observations preserve two physical copies
+PASS media photo folder imports local bytes and preserves 193 earlier archive files
+PASS media photo catalog permits only generated photo names and bounded namespaces
+PASS media conflicting photo video hints cannot publish or certify a video in photo mode
+PASS media non Apple phones do not inherit Apple paired-name routing hints
+PASS media physical folder displays cannot confuse names with path separators
+PASS media generic unsupported videos remain ambiguous in video modes
+  LARGE stream: 4294967313 bytes, 2,41s, working set 71 MiB
+PASS stream beyond 4 GiB: 4 GiB + 17 bytes actually read and hashed without disk allocation
+  LARGE inventory: 50000 items, 250 GB logical, 3,85s, working set 234 MiB
+PASS 50000-item inventory and 250 GB logical capacity without writing payload
+  STRESS full loop: 2000 physical files twice verified, 50000 entries, 343,60s, working set 218 MiB
+PASS 50000 inventory entries with 2000 actual copies and verified second pass
+  LARGE NTFS: 4294971392 bytes written and reread, 37,42s, working set 99 MiB
+PASS video over 4 GiB actually written verified and published on NTFS
+387/387 passed
+
+INTERFACCIA
+PASS ui.png
+PASS ui-compact-retry.png
+PASS ui-compact-paused.png
+PASS ui-compact-incomplete.png
+PASS ui-compact-folder-result.png
+PASS ui-compact-media.png
+PASS ui-folder-picker.png
+7/7 passed
+
+CONFEZIONAMENTO
+PASS package staging interrupted
+PASS package staging invalid
+PASS package staging existing
+PASS package staging success
+4/4 passed

@@ -92,6 +92,6 @@ prova con il telefono. Nessun totale artificiale basato sui componenti Live Phot
 - [x] Discovery WPD generica, identificatori isolati per dispositivo, selezione fisica fail-closed.
 - [x] Importazione foto e cataloghi compatibili; conservazione copie precedenti.
 - [x] UI esplicita, album virtuali distinti da cartelle fisiche, nessuna ricerca hardware negli smoke.
-- [ ] Revisione indipendente e verifiche finali.
+- [x] Revisione indipendente, suite 387/387, sette stati UI e quattro prove packaging.
 - [ ] Pacchetto autonomo, release pubblica e riscaricamento verificato.
 - [ ] Prova fisica con iPhone/Android e album reali (richiede dispositivo dell’utente).

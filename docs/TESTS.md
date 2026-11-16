@@ -1,33 +1,38 @@
-# Prove della candidata 0.1.0-rc.9
+# Prove della candidata 0.1.0-rc.10
 
-Windows 11 x64, SDK .NET 10.0.403, runtime 10.0.14. Fixture sintetiche in cartelle NTFS isolate nel progetto. Nessun telefono, archivio personale o video della cliente letto o modificato.
+Windows 11 x64, SDK .NET 10.0.403, runtime 10.0.14. Dati sintetici in cartelle NTFS isolate nel progetto. Nessun telefono, archivio personale o media della cliente letto o modificato.
 
 ## Risultati effettivi
 
-**348 casi distinti coperti.** Suite completa con **347/347** casi superati (343 ordinari e quattro estesi), poi **28/28** ricontrolli delle aree cartella sul codice finale dopo l’aggiunta del caso per i contenitori video non supportati. Quei 28 comprendono 27 casi già eseguiti e un caso nuovo: non sono 375 casi distinti. Il successivo chiarimento testuale del report per copie non registrate non modifica la logica di confronto. Non viene dichiarato un unico run completo di 348 casi dopo l’ultimo aggiustamento.
+**Suite completa 387/387 superata**, in un’unica esecuzione con `--large`: 383 casi ordinari e quattro estesi. Comprende le regressioni precedenti e tutte le nuove prove foto, filtri e scope USB. Le modifiche successive al build della suite riguardano soltanto documentazione e uno smoke UI aggiuntivo del selettore cartella; il codice Core/USB verificato è quello della candidata.
 
-Build applicativa finale senza avvisi/errori. Cinque smoke dell’interfaccia: origine/cartella, recupero USB, pausa, incompleto USB, risultato di confronto cartella in finestra compatta. Screenshot esaminati; nessuna discovery hardware negli smoke. Quattro prove separate del confezionamento: compressione interrotta, ZIP invalido, archivio già esistente conservato, successo con checksum.
+Build test e applicazione senza errori né avvisi. **Sette smoke UI superati**: cartella, recupero USB, pausa, incompleto USB, risultato cartella, modalità foto/video con scope USB e finestra scelta cartella. Screenshot controllati; nessuna enumerazione hardware. **Quattro prove confezionamento superate**: interruzione compressione, ZIP invalido, archivio già esistente preservato, successo con checksum. Non sono sommati ai 387 casi della suite.
 
-[Output](test-results.txt) · [Revisione indipendente](REVIEW-RC9.md).
+[Output](test-results.txt) · [Revisione indipendente e controesempi](REVIEW-RC10.md).
 
-## Nuova modalità: 26 casi
+## Nuove coperture
 
-14 casi del source adapter: ricorsione, formati e file accessori, byte invariati, scritture negate durante la lettura, ID stabili, date/dimensioni/identità NTFS, input forgiati, sovrapposizione radici, annullamento, root scomparsa, file non leggibili, hardlink/junction, percorsi remoti/dispositivo, dispose.
+- JPEG, PNG, HEIC/HEIF HEVC sintetici validi; troncamenti, magic/brand incoerenti, CRC/Adler, scanline, ordini dei chunk, code compresse, extent, item primari, configurazioni e geometria grid. Limite NAL cumulativo e cancellazione.
+- Solo video / Solo foto / Foto e video: letture e pubblicazioni dei soli tipi scelti; inventario completo conservato; contraddizioni di tipo non certificate nemmeno nel riuso di copie precedenti.
+- 193 file video sintetici precedenti conservati byte per byte nell’importazione da cartella foto. Molteplicità delle foto identiche, cataloghi precedenti, nomi generati e validazione del namespace.
+- Namespace diversi con ID oggetto uguali, serializzazione legacy invariata, assenza di classificazione Apple indiscriminata sui telefoni non Apple.
+- Sottocartella USB: esclusione dei fratelli, ID transitori cambiati, PUID cambiati, cartella mancante, duplicata, spostata, parent mancanti, cicli, etichette con separatori e inoltro del recupero.
+- Discovery WPD multiproduttore, identificatori mancanti/duplicati, elenchi troncati, metadati incompleti. Fixture COM native per audio/document/generic file; video generici non supportati ancora ambigui.
 
-12 casi di integrazione cartella: confronto con copie non registrate; mantenimento del debito storico; copia nella cartella aggiuntiva riutilizzata senza spostamento; molteplicità degli identici; vecchi errori USB; riparazione che conserva il danneggiato e i suoi dettagli nei report successivi; contenitore malformato e prosecuzione; inventario finale cambiato; doppia lettura discordante; sorgente cartella reale ripetuta senza duplicati; contenitore AVI non supportato lasciato ambiguo.
+I test hanno riprodotto controesempi prima delle correzioni. La revisione documenta anche una fixture inizialmente errata, distinta dai difetti confermati. I test di collegamenti/junction hanno permessi limitati alle fixture necessarie; nessuna protezione Windows ridotta.
 
-I test iniziali prima dell’implementazione engine mostravano quattro fallimenti attesi su cinque. I test nativi di hardlink/junction inizialmente non potevano creare le fixture nel sandbox; sono stati rieseguiti con permessi adatti esclusivamente nei percorsi sintetici e sono passati. Nessuna protezione Windows è stata ridotta.
+## Regressioni ed estese
 
-## Regressioni mantenute
+SHA-256, EOF, troncamenti, letture discordanti, dimensioni native, QuickTime, timeout USB, cancellazione, priorità di recupero, processi terminati nei punti di pubblicazione, journal/cataloghi corrotti, percorsi ostili, hardlink/junction, collisioni, permessi, disco pieno, inventari incompleti, cambi di ID e obblighi storici.
 
-SHA-256, EOF e troncamenti, letture discordanti, dimensioni native, metadati QuickTime, classificazione USB, priorità e recupero limitato, timeout e cancellazione, morti reali del processo nei passaggi di pubblicazione, cataloghi/journal interrotti o estranei, percorsi ostili e collegamenti, collisioni, disco pieno, permessi, inventari incompleti, cambi di ID e molteplicità storica.
+Quattro prove estese: stream di 4 GiB + 17 byte realmente letto e hashato senza allocazione su disco; inventario di 50.000 elementi e 250 GB logici simulati; 2.000 file fisici su inventario di 50.000 elementi con secondo passaggio senza copie aggiuntive; video oltre 4 GiB scritto, riletto e pubblicato su NTFS. I 250 GB sono simulati, non scritti sul disco.
 
-Prove estese: stream oltre 4 GiB effettivamente letto e hashato; inventario di 50.000 elementi e 250 GB logici simulati; 2.000 file fisici copiati con secondo passaggio di verifica e nessuna copia aggiuntiva; video oltre 4 GiB scritto, riletto e pubblicato su NTFS. I 250 GB sono simulati, non scritti sul disco.
+## Riproduzione e pacchetto
 
-## Riproduzione
+`scripts/dev.ps1 test -Large` esegue la suite estesa. Il runner supporta `--filter=photo`, `--filter=multidevice`, `--filter=media`, `--filter=folder`. `tests/PackageStagingTests.ps1` copre i quattro casi packaging. `scripts/package.ps1` richiede tag/versione coerenti e checkout pulito, crea un nuovo stage, verifica manifest/checksum ed esegue interop, worker e sette smoke UI senza telefoni.
 
-`scripts/dev.ps1 test -Large` esegue la suite completa corrente (348 casi); senza `-Large` 344. Il runner compilato supporta `--filter=folder` per i 28 casi pertinenti. `tests/PackageStagingTests.ps1` esegue i quattro casi confezionamento. Il pacchetto verifica anche `--interop-smoke`, `--worker-smoke` e i cinque stati UI senza enumerare dispositivi.
+Il riscaricamento pubblico, l’integrità e l’avvio della release sono registrati separatamente in [RELEASE-VERIFICATION.md](RELEASE-VERIFICATION.md), dopo la pubblicazione. Le vecchie release restano immutate.
 
-## Cosa non è stato verificato
+## Non verificato con hardware reale
 
-Esportazione reale da Foto verso Windows, posizione SMB nel flusso di esportazione, originali disponibili solo su iCloud, archivio personale precedente, conteggio della raccolta Video sul telefono e compatibilità di ogni driver/iPhone. La cartella deve già contenere l’esportazione completa voluta dall’utente. Non è una certificazione, una promessa di assenza di bug o un totale di video garantito. Gli eventuali duplicati visivi fra versioni con byte diversi non vengono risolti semanticamente.
+Collegamento e trasferimento fisico su iPhone/Android, driver specifici, album effettivamente esposti come cartelle, esportazione reale degli album da Foto/Google Foto, contenuti solo cloud e archivio personale precedente. I controlli foto/video sono strutturali, non decodifica completa o prova di originalità. Limiti e formati nella [guida](PHONES-AND-ALBUMS.md). Nessuna promessa di compatibilità universale, assenza di bug o totale prestabilito.
