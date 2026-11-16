@@ -173,3 +173,7 @@ UsbImportSource racchiude ReconnectingUsbSource, conserva le verifiche del suo i
 UsbFolders ricostruisce percorsi da relazioni padre/figlio, respinge cicli, ID duplicati, genitori mancanti e scelte ambigue. La selezione conserva catena completa e persistent ID quando disponibili. Si risolve a ogni inventario; non ripiega mai sul telefono intero. Non implementa album virtuali o riferimenti WPD astratti.
 
 ImportMedia governa candidatura e verifica in Engine/Session. Video resta il valore predefinito per retrocompatibilità. Foto Porto è una destinazione aggiuntiva validata dal catalogo; nessun ampliamento a percorsi arbitrari. PhotoInspector verifica struttura JPEG/PNG/HEIF HEVC, con limiti di dimensione/complessità, senza ricodifica. Report JSON e testo espongono tipo scelto, fonte/ambito e candidati separati foto/video. Il confronto delle copie pregresse conserva tutti i percorsi.
+
+## rc.12 — conservazione delle code JPEG
+
+PhotoInspector.CheckJpeg restituisce il numero di byte successivi all'EOI primario. I controlli della struttura primaria restano invariati; la coda è opaca e non viene materializzata dal parser. MediaInspection.Detail distingue la struttura dell'immagine dal contenuto aggiuntivo. ImportEngine conserva il dettaglio anche per AlreadyPresent. Copia e SHA-256 riguardano sempre l'intero file; il recupero di Quarantined crea una nuova copia lasciando invariato il .part precedente. Nessun riconoscimento del produttore e nessuna estrazione automatica di video da foto.

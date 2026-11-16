@@ -60,6 +60,7 @@ FolderSourceTests.Add(tests);
 FolderImportTests.Add(tests);
 MultiDeviceUsbTests.Add(tests);
 PhotoInspectionTests.Add(tests);
+Rc12PhotoRecoveryTests.Add(tests);
 MultiMediaImportTests.Add(tests);
 UsbNavigationTests.Add(tests);
 AppleGalleryTests.Add(tests);

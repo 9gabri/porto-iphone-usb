@@ -1,40 +1,22 @@
-# Prove della candidata 0.1.0-rc.11
+# Prove della candidata 0.1.0-rc.12
 
-Windows 11 x64, SDK .NET 10.0.403, runtime 10.0.14. Dati sintetici in cartelle NTFS isolate. Nessun telefono, archivio personale, credenziale reale o media della cliente letto durante sviluppo e test.
+Windows 11 x64, SDK .NET 10.0.403, runtime 10.0.14. I test automatici usano dati sintetici in cartelle isolate. Separatamente, il controllo strutturale autorizzato delle copie temporanee reali è stato svolto soltanto in lettura: nessun media visualizzato, trasferito altrove o modificato.
 
-## Sequenza effettiva delle verifiche
+## Evidenza della correzione
 
-- **445/445 test ordinari superati** nella regressione completa dopo le correzioni al messaggio di selezione vuota, ai ruoli Foto sconosciuti e ai test TLS.
-- **Quattro prove estese superate** nella precedente esecuzione: stream di 4 GiB + 17 byte letto e hashato (3,66 s); inventario di 50.000 elementi e 250 GB logici simulati (11,85 s); 2.000 file fisici copiati e verificati una seconda volta senza copie aggiuntive (464,70 s); file di 4.294.971.392 byte scritto, riletto e pubblicato su NTFS (30,27 s). Tempi di questa macchina, non stime per i telefoni.
-- Quella prima esecuzione estesa non era interamente verde: 442/449. Aveva rilevato una regressione nel messaggio di inventario vuoto con copie storiche mancanti e sei aspettative di versione ancora fissate a rc.10 nei test. Entrambe corrette, poi verificate nella suite ordinaria 445/445. I quattro casi estesi non dipendono da tali correzioni. Non viene dichiarata una singola esecuzione finale 449/449.
-- Dopo la suite ordinaria sono state verificate separatamente le ultime correzioni al recupero e agli errori dei metadati iPhone: **37/37 casi Apple e 6/6 casi del motore galleria**, compresi quattro nuovi casi di regressione. Le due anomalie erano state riprodotte prima della correzione. Dettagli in test-results.txt e REVIEW-RC11.md.
+- Vecchio lettore rc.11: 29/29 file della prova risultano ambigui. Nuovo lettore: 29/29 riconosciuti come JPEG primari validi, con dati aggiuntivi esplicitamente non interpretati. 28 code di 190 byte e una di 1.494 byte. Tutti gli hash prima/dopo coincidono con quelli registrati dal report originale.
+- Baseline sintetica: tre integrazioni fallite (0/3) e 3/6 casi JPEG passati prima della correzione. Dopo la correzione: 37/37 test filtro photo, comprendenti i nuovi casi del parser e il recupero.
+- Archivio sintetico: 48 copie precedenti + 29 foto rifiutate; recupero di tutte le 29 con 48 riutilizzi, poi 77 riutilizzi senza nuove copie. Vecchi .part, copie precedenti e file estranei conservati byte per byte.
+- Coda modificata: non viene riutilizzato un file precedente diverso. Coda contenente un video: rimane una foto singola, esclusa da Solo video. Primarie malformate, limiti dimensionali e cancellazione restano controllati.
 
-Build test e applicazione senza avvisi o errori. **Nove smoke UI superati**: avvio, recupero, pausa, incompleto USB, esito cartella, filtri foto/video, navigazione cartelle, esito galleria iPhone e scelta album Foto. Screenshot ispezionati; nessuna enumerazione hardware. **Quattro prove confezionamento superate**: interruzione compressione, ZIP invalido, archivio esistente preservato, successo con checksum. Non sono sommati alla suite applicativa.
+Regressione ordinaria finale: **457/457 passati** dopo tutte le modifiche al codice, build con zero avvisi e zero errori. Quattro prove del confezionamento superate. Risultati in test-results.txt; i controlli del pacchetto sono registrati in RELEASE-VERIFICATION.md. La verifica del programma scaricato avviene dopo la pubblicazione; il resoconto viene aggiunto senza sostituire il pacchetto immutabile.
 
-[Output](test-results.txt) · [Revisione e controesempi](REVIEW-RC11.md).
+## Ambito e riproduzione
 
-## Nuove coperture
+`scripts/dev.ps1 test` esegue la suite ordinaria. Filtri: `--filter=photo`, `--filter=rc12`. `scripts/dev.ps1 test -Large` aggiunge le quattro prove estese già eseguite per rc.11 (50.000 elementi, 2.000 copie e oltre 4 GiB); queste ultime non vengono presentate come nuove esecuzioni rc.12, perché il motore dei trasferimenti non cambia. `tests/PackageStagingTests.ps1` verifica il confezionamento.
 
-- Navigazione USB per livello: 60.000 discendenti estranei non visitati; copie limitate al ramo selezionato, ID rimappati, percorsi duplicati/mancanti, inventari incompleti, timeout e cancellazione del worker.
-- Album WPD nativi immagine/video/misti: riferimenti espliciti, elenco vuoto, duplicati, cicli, membri mancanti e tipi non validi; nessun ampliamento implicito alla memoria intera. Fixture COM native e passaggio nel worker.
-- Cataloghi Foto sintetici: ruolo video distinto da immagine/Live Photo, appartenenza agli album personali e cartelle genitrici, campi sconosciuti, UUID duplicati, schema non riconosciuto, percorsi ostili, originali assenti e cambi del catalogo.
-- Solo video non controlla gli originali di 10.000 foto escluse. Gli elementi di ruolo ignoto non diventano video grazie all'estensione MOV e restano visibili come non risolti. I metadati delle foto escluse non vengono salvati nell'inventario della selezione video.
-- Database/WAL: integrità SQLite, checksum nei due ordini di byte, commit completo, frame/header troncati, salt errato, journal attivo, variazione fra acquisizioni e cancellazione. Dati esclusivamente sintetici e in memoria durante la lettura.
-- TLS Apple: credenziali sintetiche effimere, pin del dispositivo, mutua autenticazione richiesta, rifiuto della firma handshake SHA-1, handshake bloccato cancellabile. Protocollo plist e AFC con framing, limiti di memoria, UTF-8 invalido e nessun comando di scrittura.
-- Confronto automatico con vecchie copie, comprese risorse Live precedenti conservate, selezione vuota, mancanti noti, cambi di appartenenza e ripetizione dopo errore senza duplicazioni spurie.
+Il package richiede tag/versione coerenti e checkout pulito, nuovo staging, manifest e checksum; esegue interop COM, worker e nove stati UI senza cercare dispositivi. Nessuna nuova dipendenza o installazione, nessuna API a consumo, nessuna modifica alle protezioni Windows.
 
-## Regressioni conservate
+La correzione è del formato, non di una marca. La struttura JPEG primaria viene verificata, mentre i dati dopo EOI vengono conservati senza interpretazione o attestazione del loro formato. Pixel, HDR/Motion e originalità non sono certificati. Nessun nuovo collaudo fisico del collegamento iPhone; album privati/cloud e compatibilità universale restano limiti. Il completamento della prova reale richiede una nuova importazione dell'utente con il telefono collegato e la stessa destinazione.
 
-SHA-256, EOF, troncamenti, letture discordanti, parser MOV/MP4/M4V e JPEG/PNG/HEIF, copie identiche distinte, collisioni, ripresa, arresti del processo nei punti critici, cataloghi corrotti, percorsi ostili, hardlink/junction, permessi, disco pieno, selezioni foto/video e obblighi storici. Nessuna riduzione delle protezioni Windows.
-
-## Riproduzione e pacchetto
-
-`scripts/dev.ps1 test -Large` esegue tutti i casi, inclusi quelli estesi. Filtri utili: `--filter=apple`, `--filter=gallery import`, `--filter=USB navigation`. `tests/PackageStagingTests.ps1` copre i quattro casi packaging. `scripts/package.ps1` richiede tag/versione coerenti e checkout pulito, crea un nuovo stage e controlla manifest, checksum, interop, worker e nove stati UI.
-
-La dipendenza TLS BouncyCastle 2.7.0 è fissata con contentHash e licenze incluse; restore NuGet completato senza avvisi di vulnerabilità. Il riscaricamento pubblico e l'avvio del pacchetto sono registrati separatamente in [RELEASE-VERIFICATION.md](RELEASE-VERIFICATION.md) dopo la pubblicazione. Le vecchie release restano immutate.
-
-## Limiti delle prove
-
-Il nuovo trasporto Apple, lo schema iOS, gli album reali, gli originali cloud e la ripresa dopo scollegamento fisico devono ancora essere collaudati su dispositivi autorizzati. Non è stata provata compatibilità universale iPhone/Android. Il catalogo Foto privato può cambiare o non essere esposto; raccolte intelligenti/condivise e album privati delle app non sono universalmente disponibili. Nascosti/Eliminati sono esclusi con conteggi.
-
-Le letture ripetute e l'integrità del database non dimostrano uno snapshot atomico della libreria. I controlli dei media sono strutturali e dei byte, non decodifica completa né certificazione degli originali. Nessun totale prestabilito, garanzia di assenza di bug o completezza dell'intera libreria cloud. Capacità e confini in [GALLERY-IMPORT.md](GALLERY-IMPORT.md).
+[Revisione](REVIEW-RC12.md) · [Fonti](SOURCES.md) · [Verifica pubblicazione](https://github.com/9gabri/porto-iphone-usb/blob/main/docs/RELEASE-VERIFICATION.md).

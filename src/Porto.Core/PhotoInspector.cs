@@ -19,16 +19,18 @@ public static class PhotoInspector
     {
         cancel.ThrowIfCancellationRequested();
         using var file=new FileStream(path,FileMode.Open,FileAccess.Read,FileShare.Read);
-        string extension=".jpg";
+        string extension=".jpg";long trailingBytes=0;
         try
         {
             Require(file.Length is >= 8 and <= MaximumFileBytes,"Foto vuota, troncata o oltre il limite prudenziale di 512 MiB.");
             Span<byte> magic=stackalloc byte[8];file.ReadExactly(magic);file.Position=0;
-            if(magic[0]==0xff&&magic[1]==0xd8){extension=".jpg";CheckJpeg(file,cancel);}
+            if(magic[0]==0xff&&magic[1]==0xd8){extension=".jpg";trailingBytes=CheckJpeg(file,cancel);}
             else if(magic.SequenceEqual(new byte[]{137,80,78,71,13,10,26,10})){extension=".png";CheckPng(file,cancel);}
             else if(magic[4..].SequenceEqual("ftyp"u8)){extension=".heic";CheckHeif(file,cancel);}
             else throw new InvalidDataException("Formato foto non riconosciuto o non supportato. Supportati JPEG, PNG e HEIF con immagini HEVC.");
-            return new(false,false,false,extension,"Struttura della foto verificata; decodifica dei pixel e originalità non certificate."){IsImage=true};
+            string detail=trailingBytes==0?"Struttura della foto verificata; decodifica dei pixel e originalità non certificate."
+                :$"Struttura dell'immagine JPEG principale verificata; {trailingBytes} byte aggiuntivi conservati integralmente ma non interpretati né verificati nella struttura. Decodifica dei pixel e originalità non certificate.";
+            return new(false,false,false,extension,detail){IsImage=true};
         }
         catch(InvalidDataException error){return new(false,false,true,extension,error.Message);}
         catch(EndOfStreamException){return new(false,false,true,extension,"Foto troncata.");}
@@ -40,7 +42,7 @@ public static class PhotoInspector
     {int value=stream.ReadByte();if(value<0)throw new EndOfStreamException();return value;}
     private static int U16(Stream stream)=>(Byte(stream)<<8)|Byte(stream);
 
-    private static void CheckJpeg(FileStream file,CancellationToken cancel)
+    private static long CheckJpeg(FileStream file,CancellationToken cancel)
     {
         Require(U16(file)==0xffd8);int marker=-1,structures=0;bool scanned=false,frame=false;int frameKind=0;
         var components=new Dictionary<int,int>();var quantizers=new HashSet<int>();var tables=new HashSet<int>();
@@ -49,7 +51,16 @@ public static class PhotoInspector
         {
             cancel.ThrowIfCancellationRequested();Require(++structures<=MaximumStructures,"JPEG troppo complesso.");
             if(marker<0){Require(Byte(file)==0xff);do{cancel.ThrowIfCancellationRequested();marker=Byte(file);}while(marker==0xff);}
-            if(marker==0xd9){Require(frame&&scanned&&scannedComponents.Count==components.Count&&file.Position==file.Length);return;}
+            if(marker==0xd9)
+            {
+                Require(frame,"JPEG senza frame immagine prima del marcatore finale.");
+                Require(scanned,"JPEG senza scansione immagine prima del marcatore finale.");
+                Require(scannedComponents.Count==components.Count,"JPEG con componenti immagine prive di scansione.");
+                // EOI terminates the primary image, not necessarily the file: camera metadata,
+                // secondary images and Motion Photo payloads may follow it. Preserve all bytes;
+                // their interpretation/validation is deliberately not claimed by this inspector.
+                return file.Length-file.Position;
+            }
             Require(marker is not 0 and not 0xd8 && !(marker is >=0xd0 and <=0xd7));
             int length=U16(file);Require(length>=2&&length-2<=file.Length-file.Position,"Segmento JPEG troncato.");
             byte[] data=new byte[length-2];file.ReadExactly(data);

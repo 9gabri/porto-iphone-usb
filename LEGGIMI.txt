@@ -1,4 +1,4 @@
-PORTO 0.1.0-rc.11 — CANDIDATA WINDOWS 11 x64
+PORTO 0.1.0-rc.12 — CANDIDATA WINDOWS 11 x64
 
 1. Chiudi Porto ed estrai TUTTO lo ZIP in una nuova cartella. Conserva le versioni precedenti e apri il nuovo Porto.exe.
 2. Collega e sblocca il telefono. Android: Trasferimento file. iPhone: computer già autorizzato e collegamento Apple già disponibile.
@@ -24,3 +24,5 @@ Nessun acquisto, Apple ID, upload, telemetria, driver installato o servizio Wind
 Candidata con prove sintetiche, NON certificata o definitiva. Il nuovo collegamento iPhone e la compatibilità reale dei telefoni richiedono un collaudo fisico.
 Guida: PHONES-AND-ALBUMS.md. Dettagli: GALLERY-IMPORT.md, TESTS.md, THIRD-PARTY-NOTICES.md.
 https://github.com/9gabri/porto-iphone-usb
+
+CORREZIONE rc.12: JPEG con dati aggiuntivi dopo la fine immagine. Tutti i byte sono conservati; il report indica la parte aggiuntiva non interpretata. Per recuperare una prova precedente scegli la stessa origine, Foto e video e lo stesso Archivio PC, poi Avvia importazione. I vecchi temporanei sono conservati; il recupero pubblica nuove copie verificate.

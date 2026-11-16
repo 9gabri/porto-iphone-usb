@@ -104,3 +104,12 @@ prova con il telefono. Nessun totale artificiale basato sui componenti Live Phot
 - [x] Verifiche sintetiche, revisione indipendente e build senza avvisi/errori.
 - [x] Pacchetto rc.11 nuovo, pubblicazione, riscaricamento pubblico, checksum/CRC e undici smoke verificati.
 - [ ] Collaudo hardware autorizzato su iPhone e Android; compatibilità universale non dichiarabile.
+
+## rc.12 — JPEG e completamento della prova
+- [x] Causa riprodotta con metadati strutturali e nessuna modifica alla prova personale.
+- [x] Correzione comune del lettore JPEG, coda preservata e limiti espliciti anche nel riuso.
+- [x] Regressioni sintetiche prima/dopo e confronto in sola lettura di tutte le 29 copie interessate.
+- [x] Revisione indipendente del contratto e del diff finale.
+- [x] Regressione finale 457/457 e build senza avvisi/errori.
+- [ ] Nuovo pacchetto e download pubblico verificato.
+- [ ] Importazione fisica rc.12 da completare con l'utente; nessuna compatibilità universale dichiarata.

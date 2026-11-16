@@ -1,8 +1,8 @@
 # Porto
 
-App locale in italiano per copiare foto e video dal telefono al PC, senza conversioni. **0.1.0-rc.11**, candidata Windows 11 x64 con runtime incluso.
+App locale in italiano per copiare foto e video dal telefono al PC, senza conversioni. **0.1.0-rc.12**, candidata Windows 11 x64 con runtime incluso.
 
-[Scarica Windows](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.11/Porto-0.1.0-rc.11-win-x64.zip) · [Checksum](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.11/SHA256SUMS.txt) · [Guida](docs/PHONES-AND-ALBUMS.md)
+[Scarica Windows](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.12/Porto-0.1.0-rc.12-win-x64.zip) · [Checksum](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.12/SHA256SUMS.txt) · [Guida](docs/PHONES-AND-ALBUMS.md)
 
 ## Scegli origine, contenuti e destinazione
 
@@ -13,6 +13,10 @@ App locale in italiano per copiare foto e video dal telefono al PC, senza conver
 Premi **Avvia importazione** per copiare in massa il tipo scelto. Non occorre selezionare i singoli file. Pausa e Riprendi conservano il lavoro e ripetono i controlli.
 
 **Non è compatibilità universale:** tutti i modelli di telefono, tutte le app Galleria e qualsiasi raccolta non possono essere dichiarati supportati. In particolare raccolte intelligenti/condivise iPhone e album privati/cloud Android possono non essere accessibili. Porto segnala questi limiti; non sostituisce silenziosamente un album con l'intero telefono. [Capacità e confini](docs/GALLERY-IMPORT.md).
+
+## Correzione JPEG rc.12
+
+Le foto JPEG con dati aggiuntivi dopo la fine dell’immagine principale vengono copiate integralmente. Il report distingue il controllo della struttura JPEG principale dal contenuto aggiuntivo non interpretato. La correzione è comune a tutte le origini e non dipende dalla marca del telefono. I temporanei rifiutati dalla versione precedente possono essere recuperati nella stessa destinazione, mantenendo i vecchi file.
 
 ## Copie precedenti
 
@@ -31,7 +35,7 @@ Le nuove foto sono in **Foto Porto**, i video in **Video Porto**. Le vecchie ris
 
 **Candidata per il collaudo, non versione certificata o definitiva.** Le verifiche sintetiche non dimostrano compatibilità hardware. Restano da confermare collegamento Apple reale, schema iOS, album e conteggi sul telefono, trasferimento e ripresa su iPhone/Android.
 
-[Test](docs/TESTS.md) · [Revisione rc.11](docs/REVIEW-RC11.md) · [Architettura](docs/ARCHITECTURE.md) · [Licenze](THIRD-PARTY-NOTICES.md) · [Verifica pubblicazione](docs/RELEASE-VERIFICATION.md).
+[Test](docs/TESTS.md) · [Revisione rc.12](docs/REVIEW-RC12.md) · [Architettura](docs/ARCHITECTURE.md) · [Licenze](THIRD-PARTY-NOTICES.md) · [Verifica pubblicazione](docs/RELEASE-VERIFICATION.md).
 
 SDK .NET 10, runtime incluso 10.0.14. `scripts/dev.ps1 test -Large`, `scripts/dev.ps1 build`, `scripts/dev.ps1 publish`. Test isolati; `--ui-smoke <percorso.png>` non cerca telefoni. Nessuna discovery hardware automatica all'avvio.
 

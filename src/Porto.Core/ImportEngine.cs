@@ -274,7 +274,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                                 if(valid)reusedPrevious.Add(match.Id);
                                 report.Items.Add(new(item.Id,item.Name,!valid?Outcome.Ambiguous:additional?Outcome.AdditionalAlreadyPresent:Outcome.AlreadyPresent,
                                     "Sorgente e copia locale rilette: SHA-256 identico. File precedente conservato nella sua cartella."+
-                                    (!valid?" Il contenitore richiede verifica: "+inspected.Detail:additional?" Risorsa aggiuntiva: corrispondenza con un video autonomo di Foto non certificabile.":"")+sizeNote,match.Final,fingerprint.Length,fingerprint.Hash));
+                                    (!valid?" Il contenitore richiede verifica: "+inspected.Detail:additional?" Risorsa aggiuntiva: corrispondenza con un video autonomo di Foto non certificabile.":inspected.IsImage?" "+inspected.Detail:"")+sizeNote,match.Final,fingerprint.Length,fingerprint.Hash));
                             }
                             ReconcileContent(fingerprint);
                             done++;SaveProgress(item);continue;

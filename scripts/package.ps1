@@ -20,6 +20,8 @@ Copy-Item -LiteralPath '.tools/packages/microsoft.netcore.app.runtime.win-x64/10
 Copy-Item -LiteralPath '.tools/packages/microsoft.netcore.app.runtime.win-x64/10.0.14/THIRD-PARTY-NOTICES.TXT' -Destination "$output/THIRD-PARTY-DOTNET.txt"
 Copy-Item -LiteralPath '.tools/packages/microsoft.windowsdesktop.app.runtime.win-x64/10.0.14/LICENSE' -Destination "$output/LICENSE-WINDOWSDESKTOP.txt"
 Copy-Item -LiteralPath 'docs/TESTS.md' -Destination "$output/TESTS.md"
+$reviewName='REVIEW-RC'+$version.Split('.')[-1]+'.md'
+Copy-Item -LiteralPath (Join-Path 'docs' $reviewName) -Destination (Join-Path $output $reviewName)
 Copy-Item -LiteralPath 'docs/test-results.txt' -Destination "$output/test-results.txt"
 Copy-Item -LiteralPath 'docs/SOURCES.md' -Destination "$output/SOURCES.md"
 Copy-Item -LiteralPath 'docs/ARCHITECTURE.md' -Destination "$output/ARCHITECTURE.md"

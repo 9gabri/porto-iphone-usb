@@ -71,13 +71,68 @@ internal static class PhotoInspectionTests
             byte[] bytes=HeicRepeatedTiles();Fixtures.Check(bytes.Length<100_000);
             Fixtures.Check(PhotoInspector.Inspect(Write(bytes),default).Ambiguous,"HEIF work exceeded the cumulative structural budget.");
         }));
-        tests.Add(("photo JPEG requires frame scan tables entropy and exact ending",()=>
+        tests.Add(("photo JPEG requires frame scan tables entropy and an image ending",()=>
         {
             byte[] invalidLength=Jpeg();invalidLength[4]=0;invalidLength[5]=1;
             byte[] missingFrame=[0xff,0xd8,0xff,0xda,0,8,1,1,0,0,63,0,0x3f,0xff,0xd9];
             byte[] missingScan=[0xff,0xd8,0xff,0xd9];
-            foreach(var bytes in new[]{invalidLength,missingFrame,missingScan,Jpeg().Concat(new byte[]{9}).ToArray()})
+            foreach(var bytes in new[]{invalidLength,missingFrame,missingScan})
                 Fixtures.Check(PhotoInspector.Inspect(Write(bytes),default).Ambiguous);
+        }));
+        tests.Add(("photo JPEG preserves 190 opaque trailing bytes after a valid primary image",()=>
+        {
+            byte[] tail=new byte[190];new Random(1201).NextBytes(tail);
+            byte[] bytes=Jpeg().Concat(tail).ToArray();string path=Write(bytes);
+            var result=PhotoInspector.Inspect(path,default);
+            Fixtures.Check(result.IsImage&&result.IsSupportedMedia&&!result.IsVideo&&!result.Ambiguous,result.Detail);
+            Fixtures.Check(result.Detail.Contains("190 byte aggiuntivi",StringComparison.Ordinal)&&result.Detail.Contains("non interpretati",StringComparison.Ordinal));
+            Fixtures.Check(result.Detail.Contains("principale",StringComparison.Ordinal)&&File.ReadAllBytes(path).SequenceEqual(bytes));
+        }));
+        tests.Add(("photo JPEG appended payloads stay one photo with exact opaque size and all bytes",()=>
+        {
+            foreach(byte[] tail in new[]{new byte[]{9},new byte[]{0xff},Jpeg(),Fixtures.Video(),Encoding.ASCII.GetBytes("synthetic vendor-independent metadata")})
+            {
+                byte[] bytes=Jpeg().Concat(tail).ToArray();string path=Write(bytes);
+                var result=MediaSelectionRules.Inspect(path,new("synthetic","root","photo.jpg",MediaKind.Image),default);
+                Fixtures.Check(result.IsImage&&!result.IsVideo&&!result.Ambiguous&&result.Extension==".jpg",result.Detail);
+                Fixtures.Check(result.Detail.Contains(tail.Length+" byte aggiuntivi",StringComparison.Ordinal));
+                Fixtures.Check(result.Detail.Contains("non interpretati",StringComparison.Ordinal)&&File.ReadAllBytes(path).SequenceEqual(bytes));
+            }
+        }));
+        tests.Add(("photo JPEG trailer cannot repair malformed or incomplete primary structure",()=>
+        {
+            byte[] wrongPrecision=Jpeg();int frame=Array.IndexOf(wrongPrecision,(byte)0xc0)-1;wrongPrecision[frame+4]=12;
+            byte[] badLength=Jpeg();badLength[4]=0;badLength[5]=1;
+            byte[] shortScan=Jpeg()[..^3];
+            foreach(byte[] primary in new[]{wrongPrecision,badLength,shortScan,new byte[]{0xff,0xd8,0xff,0xd9}})
+            {
+                var result=PhotoInspector.Inspect(Write(primary.Concat(new byte[190]).ToArray()),default);
+                Fixtures.Check(result.Ambiguous&&!result.IsImage&&!result.IsSupportedMedia);
+            }
+        }));
+        tests.Add(("photo JPEG image ending identifies missing frame scan or components",()=>
+        {
+            byte[] noFrame=[0xff,0xd8,0xff,0xd9,0,0,0,0];
+            var absent=PhotoInspector.Inspect(Write(noFrame),default);
+            Fixtures.Check(absent.Ambiguous&&absent.Detail.Contains("frame",StringComparison.OrdinalIgnoreCase));
+            byte[] bytes=Jpeg();int scan=Array.IndexOf(bytes,(byte)0xda)-1;
+            var noScan=PhotoInspector.Inspect(Write(bytes[..scan].Concat(new byte[]{0xff,0xd9}).ToArray()),default);
+            Fixtures.Check(noScan.Ambiguous&&noScan.Detail.Contains("scansione",StringComparison.OrdinalIgnoreCase));
+            int frame=Array.IndexOf(bytes,(byte)0xc0)-1;var extra=bytes.ToList();extra[frame+3]=14;extra[frame+9]=2;extra.InsertRange(frame+13,new byte[]{2,0x11,0});
+            var missing=PhotoInspector.Inspect(Write(extra.ToArray()),default);
+            Fixtures.Check(missing.Ambiguous&&missing.Detail.Contains("componenti",StringComparison.OrdinalIgnoreCase));
+        }));
+        tests.Add(("photo JPEG total size cap includes appended bytes and cancellation precedes inspection",()=>
+        {
+            string path=Write(Jpeg());
+            try
+            {
+                using(var output=new FileStream(path,FileMode.Open,FileAccess.Write))output.SetLength(512L*1024*1024+1);
+                var result=PhotoInspector.Inspect(path,default);
+                Fixtures.Check(result.Ambiguous&&result.Detail.Contains("512 MiB",StringComparison.Ordinal));
+                Fixtures.Throws<OperationCanceledException>(()=>PhotoInspector.Inspect(path,new CancellationToken(true)));
+            }
+            finally{File.Delete(path);}
         }));
         tests.Add(("photo HEIC rejects bogus brands primary extents config and absent image metadata",()=>
         {

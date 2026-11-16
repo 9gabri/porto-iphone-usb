@@ -98,3 +98,10 @@ Le fonti e le distinzioni fra protocolli, fatti osservati e inferenze sono racco
 - [SQLite WAL format](https://www.sqlite.org/fileformat2.html#walformat): header, checksum, salt e commit. La validità del WAL non dimostra atomicità di una copia live.
 - [SQLite deserialize](https://www.sqlite.org/c3ref/deserialize.html): database in memoria in modalità di sola lettura, senza persistenza del catalogo del telefono.
 - [BouncyCastle 2.7.0 su NuGet](https://www.nuget.org/packages/BouncyCastle.Cryptography/2.7.0) e [sorgente ufficiale](https://github.com/bcgit/bc-csharp/tree/4007498b13582d90ee1eda5d9920c324428b98b3): implementazione TLS gestita, licenze e versione fissata nel progetto. Uso locale, nessuna API a consumo.
+
+## rc.12 — JPEG con dati aggiuntivi
+
+- [Android Motion Photo format](https://developer.android.com/media/platform/motion-photo-format): un file può contenere una immagine primaria JPEG seguita da dati video, con metadati per individuarli.
+- [Android Ultra HDR image format](https://developer.android.com/media/platform/hdr-image-format): immagine primaria JPEG e immagine ausiliaria successiva.
+
+Queste fonti dimostrano che la fine dell'immagine JPEG principale non coincide necessariamente con la fine dell'intero file. La scelta di Porto è conservativa rispetto ai byte: conserva tutta la coda opaca, senza interpretarla, decodificarla o attribuirle un formato verificato. Non afferma che qualsiasi coda sia un'estensione conforme a tali specifiche. SHA-256 riguarda l'intero file; il controllo strutturale JPEG riguarda la sola immagine primaria. Non è un controllo antimalware né una decodifica completa dei pixel.

@@ -1,15 +1,13 @@
-# Porto 0.1.0-rc.11
+# Porto 0.1.0-rc.12
 
-Candidata Windows 11 x64 con runtime incluso. Aggiunge un nuovo percorso **iPhone · libreria Foto via USB**: legge il catalogo Foto per selezionare la galleria visibile o un album personale e copiare Solo video, Solo foto oppure Foto e video, senza esportazione preliminare. Le Live Photo sono foto; la loro componente animata è esclusa da Solo video.
+Corregge il rifiuto di foto JPEG che contengono dati aggiuntivi dopo la fine dell'immagine principale. In rc.11 un controllo troppo restrittivo poteva lasciare queste foto come ambigue nella cartella .porto, anche dopo il trasferimento e la verifica SHA-256.
 
-La navigazione USB generica legge un livello alla volta, senza scansione preliminare del telefono. L'importazione di una cartella resta nel ramo scelto anche dopo riconnessione. Sono selezionabili anche raccolte WPD native quando il dispositivo le espone; i loro riferimenti sono distinti dalle cartelle fisiche.
+La correzione è nel lettore comune: vale per USB Android/iPhone, catalogo iPhone e cartella locale, senza riconoscimenti per marca o modello. Porto controlla la struttura JPEG principale e conserva l'intero file senza conversioni. I dati aggiuntivi non sono interpretati né dichiarati strutturalmente verificati; il loro numero di byte è indicato nel report anche quando la copia viene riutilizzata. Non vengono estratti video da foto animate o certificate funzioni HDR/Motion.
 
-Le copie precedenti restano conservate e sono riutilizzate solo dopo confronto completo. Nessun file esistente cancellato o sovrascritto. Estrai il programma in una cartella nuova e usa lo stesso Archivio PC per confrontare le copie precedenti.
+Per completare una prova precedente: chiudi Porto, estrai il nuovo ZIP in una nuova cartella, seleziona lo stesso telefono/album, Foto e video e lo stesso Archivio PC. Premi Avvia importazione. Le copie integre vengono confrontate e riutilizzate; i temporanei prima rifiutati vengono riesaminati e, se accettati e corrispondenti alla sorgente, pubblicati come nuove copie. I vecchi .part e i file precedenti restano conservati.
 
-**Non è una versione definitiva o universalmente compatibile.** Il nuovo collegamento Apple deve essere provato con un iPhone reale. Richiede supporto USB Apple e abbinamento già presenti, schema Foto riconosciuto, catalogo+journal entro 512 MiB. Sono esclusi Nascosti/Eliminati e non sono supportate tutte le raccolte intelligenti/condivise. Android: gli album virtuali delle diverse app possono non essere esposti via USB. Originali soltanto cloud non scaricati. I formati non supportati rimangono non verificabili.
+Verifiche: 457/457 test ordinari, quattro prove del confezionamento, revisione indipendente e controllo in sola lettura dei 29 JPEG interessati. Recupero e riutilizzo senza duplicati verificati su un archivio sintetico di 77 elementi.
 
-Verifiche effettive, risultati e limiti nella documentazione allegata. Nessun telefono reale, archivio personale o credenziale reale usato durante sviluppo e test. Nessuna installazione di driver/servizi o riduzione delle protezioni Windows. TLS Apple gestito con libreria gratuita inclusa e credenziali soltanto in memoria.
+Runtime incluso, nessun driver o servizio da installare tramite Porto, nessun costo. Eseguibile non firmato. Non è compatibilità universale né certificazione di assenza di bug; altri formati o problemi rimangono visibili. Restano i limiti della rc.11 per album, cloud e collegamento iPhone da collaudare.
 
-[Guida](https://github.com/9gabri/porto-iphone-usb/blob/v0.1.0-rc.11/docs/PHONES-AND-ALBUMS.md) · [Test](https://github.com/9gabri/porto-iphone-usb/blob/v0.1.0-rc.11/docs/TESTS.md) · [Revisione](https://github.com/9gabri/porto-iphone-usb/blob/v0.1.0-rc.11/docs/REVIEW-RC11.md)
-
-Allegati: Porto-0.1.0-rc.11-win-x64.zip e SHA256SUMS.txt.
+[Test e limiti](https://github.com/9gabri/porto-iphone-usb/blob/v0.1.0-rc.12/docs/TESTS.md) · [Revisione](https://github.com/9gabri/porto-iphone-usb/blob/v0.1.0-rc.12/docs/REVIEW-RC12.md)

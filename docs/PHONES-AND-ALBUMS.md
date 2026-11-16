@@ -1,4 +1,4 @@
-# Telefoni, foto, video e album — rc.11
+# Telefoni, foto, video e album — rc.12
 
 Porto copia dal telefono al PC, senza cancellare o spostare gli originali. La nuova modalità iPhone legge il catalogo della libreria Foto; non richiede un'esportazione preliminare. È una candidata da collaudare: compatibilità reale non ancora confermata.
 
@@ -44,3 +44,7 @@ Nuove foto in Foto Porto, video in Video Porto. Cartella del PC resta una fonte 
 Formati: MOV/MP4/M4V, JPEG, PNG statico, HEIF/HEIC HEVC riconosciuti. Gli altri formati rimangono non verificabili. Archivio locale NTFS su Windows 11 x64, percorso massimo 120 caratteri, niente rete/exFAT/link/junction. Nessuna conversione o decodifica completa dei media.
 
 Non è stata effettuata una nuova prova con telefoni reali durante questo sviluppo. Il collaudo deve confermare accessibilità del catalogo, album, conteggi, riconnessione e trasferimento effettivo; nessun totale, velocità o compatibilità universale garantiti.
+
+## Recuperare foto rifiutate dalla rc.11
+
+La rc.12 accetta JPEG la cui immagine principale è completa ma seguita da dati aggiuntivi. Conserva l’intero file e indica nel report quanti byte aggiuntivi non sono stati interpretati. Usa la stessa origine e la stessa cartella Archivio PC, mantenendo .porto e report. Le copie sane sono riutilizzate; i temporanei corrispondenti vengono recuperati in nuove copie, senza modificare i vecchi .part. La coda non viene convertita o separata in un video. Il controllo resta strutturale e non certifica la decodifica dei pixel o delle funzioni aggiuntive.
