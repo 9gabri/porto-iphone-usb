@@ -134,5 +134,5 @@ prova con il telefono. Nessun totale artificiale basato sui componenti Live Phot
 - [x] Rifiuto dei certificati con issuer vuoto riprodotto contro il binario pubblico rc.14.
 - [x] Adattatore limitato ai byte esatti già autorizzati, senza cambiare policy globali o certificati.
 - [x] Revisione indipendente della sicurezza della correzione.
-- [ ] Suite finale, pacchetto nuovo, pubblicazione e riscaricamento verificato.
+- [x] Suite finale 503/503, pacchetto nuovo pubblicato e riscaricato: checksum/CRC, versione/contenuto, undici smoke e pagina pubblica verificati; quattordici archivi precedenti invariati.
 - [ ] Conferma sull'iPhone reale: autenticazione, lettura album e copia di prova.
