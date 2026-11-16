@@ -6,10 +6,9 @@ public sealed record DeviceDescriptor(string Id, string Name, string Manufacture
 public sealed record DeviceBatch(int HResult, List<DeviceDescriptor> Devices);
 public sealed record DiscoveryResult(List<DeviceInfo> Devices, int WindowsDeviceCount, int MetadataFailures)
 {
-    public string Detail => Devices.Count > 0 ? $"{Devices.Count} dispositivo/i Apple disponibile/i."
-        : WindowsDeviceCount == 0 ? "Windows non espone dispositivi portatili. Verifica prima che Dispositivi Apple riconosca l'iPhone."
-        : MetadataFailures > 0 ? "Windows vede dispositivi portatili, ma alcuni dati non sono leggibili. Sblocca l'iPhone e verifica Dispositivi Apple."
-        : "Windows vede dispositivi portatili, ma nessuno identificato come Apple. Verifica cavo dati, autorizzazione e Dispositivi Apple.";
+    public string Detail => Devices.Count > 0 ? $"{Devices.Count} dispositivo/i portatile/i disponibile/i."
+        +(MetadataFailures > 0 ? " Alcuni dati identificativi sono incompleti: controlla il dispositivo selezionato." : "")
+        : "Windows non espone dispositivi portatili. Sblocca il telefono, autorizza il collegamento e verifica il cavo dati. Su Android scegli Trasferimento file.";
 }
 
 public static class DeviceDiscovery
@@ -22,11 +21,16 @@ public static class DeviceDiscovery
             var batch = read();
             if (batch.HResult == 1) continue;
             if (batch.HResult != 0) throw new IOException($"Ricerca USB incompleta (0x{batch.HResult:X8}). Riprova.");
-            var devices = batch.Devices.Where(d => d.Id.Contains("vid_05ac", StringComparison.OrdinalIgnoreCase)
-                || d.Manufacturer.Contains("Apple", StringComparison.OrdinalIgnoreCase))
-                .Select(d => new DeviceInfo(d.Id, string.IsNullOrWhiteSpace(d.Name) ? "Dispositivo Apple USB" : d.Name)).ToList();
+            var ids=new HashSet<string>(StringComparer.Ordinal);
+            foreach(var d in batch.Devices)
+                if(string.IsNullOrWhiteSpace(d.Id)||d.Id.Contains('\0')||!ids.Add(d.Id))
+                    throw new IOException("Windows ha restituito identificatori USB mancanti o duplicati. Ricollega e ripeti la ricerca.");
+            var devices = batch.Devices.Select(d => new DeviceInfo(d.Id,
+                string.IsNullOrWhiteSpace(d.Name) ? "Dispositivo portatile USB" : d.Name,
+                d.Id.Contains("vid_05ac", StringComparison.OrdinalIgnoreCase)
+                    || d.Manufacturer.Contains("Apple", StringComparison.OrdinalIgnoreCase))).ToList();
             return new(devices, batch.Devices.Count, batch.Devices.Count(d => d.MetadataIncomplete));
         }
-        throw new IOException("L'elenco USB continua a cambiare. Attendi il collegamento stabile e premi Cerca iPhone.");
+        throw new IOException("L'elenco USB continua a cambiare. Attendi il collegamento stabile e premi Cerca dispositivi.");
     }
 }

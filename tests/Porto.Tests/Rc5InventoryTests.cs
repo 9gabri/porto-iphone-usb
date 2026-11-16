@@ -22,24 +22,26 @@ internal static unsafe class Rc5InventoryTests
                 fileName=sample.Name;
                 contentType=sample.Video?new("9261b03c-3d78-4519-85e3-02c5e1f50bb9"):Guid.Empty;
                 formatType=sample.VideoFormat?new("b9820000-ae6c-4804-98ba-c57b46965fe7"):Guid.Empty;
-                Com.Check(Com.CoInitializeEx(0,0));
-                try
-                {
-                    using var device=new Native();using var content=new Native();using var properties=new Native();
-                    using var resources=new Native();using var iterator=new Native();iteratorPointer=iterator.Pointer;
-                    content.Set(3,(nint)(delegate* unmanaged[Stdcall]<nint,uint,char*,nint,nint*,int>)&Enumerate);
-                    properties.Set(5,(nint)(delegate* unmanaged[Stdcall]<nint,char*,nint,nint*,int>)&Values);
-                    iterator.Set(3,(nint)(delegate* unmanaged[Stdcall]<nint,uint,nint*,uint*,int>)&Next);
-                    using var source=new WpdSource(new(device.Pointer),new(content.Pointer),new(properties.Pointer),new(resources.Pointer));
-                    var inventory=source.Inventory(default);var item=inventory.Items.Single();
-                    Fixtures.Check(item.Kind==sample.Expected,$"Expected {sample.Expected}, received {item.Kind}");
-                    Fixtures.Check(inventory.EnumerationComplete==sample.Complete,"Recognized sidecars must not produce an incomplete inventory.");
-                    Fixtures.Check(inventory.Errors.Count==(sample.Complete?0:1));
-                    Fixtures.Check(MediaInspector.Candidate(item)==(sample.Video||sample.VideoFormat),"Contrary content metadata must remain eligible for video verification.");
-                }
-                finally{Com.CoUninitialize();}
+                var inventory=ReadSynthetic();var item=inventory.Items.Single();
+                Fixtures.Check(item.Kind==sample.Expected,$"Expected {sample.Expected}, received {item.Kind}");
+                Fixtures.Check(inventory.EnumerationComplete==sample.Complete);
+                Fixtures.Check(inventory.Errors.Count==(sample.Complete?0:1));
+                Fixtures.Check(MediaInspector.Candidate(item)==(sample.Video||sample.VideoFormat));
             }));
         }
+        foreach(var sample in new[]{
+            (Name:"sound.mp3",Type:"4ad2c85e-5e2d-45e5-8864-4f229e3c6cf0",Video:false),
+            (Name:"document.pdf",Type:"680adf52-950a-4041-9b41-65e393648155",Video:false),
+            (Name:"readme.txt",Type:"0085e0a6-8d34-45d7-bc5c-447e59c73d48",Video:false),
+            (Name:"clip.mkv",Type:"0085e0a6-8d34-45d7-bc5c-447e59c73d48",Video:false),
+            (Name:"movie.mov",Type:"0085e0a6-8d34-45d7-bc5c-447e59c73d48",Video:true)})
+        tests.Add(($"multidevice native known nonmedia preserves contrary extensions: {sample.Name}",()=>
+        {
+            fileName=sample.Name;contentType=new(sample.Type);formatType=Guid.Empty;
+            var inventory=ReadSynthetic();var item=inventory.Items.Single();
+            Fixtures.Check(inventory.EnumerationComplete&&inventory.Errors.Count==0&&item.Kind==MediaKind.Other);
+            Fixtures.Check(MediaInspector.Candidate(item)==sample.Video);
+        }));
         tests.Add(("rc5 inventory mixed resources separate transfer candidates and do not retry sidecars",()=>
         {
             byte[] video=Fixtures.Video();
@@ -83,6 +85,21 @@ internal static unsafe class Rc5InventoryTests
             Fixtures.Check(report.Items.Any(item=>item.Outcome==Outcome.Ambiguous),"Extension alone cannot erase a historical unread observation.");
             Fixtures.Check(!report.Status.StartsWith("Completati",StringComparison.Ordinal));
         }));
+    }
+    private static Inventory ReadSynthetic()
+    {
+        Com.Check(Com.CoInitializeEx(0,0));
+        try
+        {
+            using var device=new Native();using var content=new Native();using var properties=new Native();
+            using var resources=new Native();using var iterator=new Native();iteratorPointer=iterator.Pointer;
+            content.Set(3,(nint)(delegate* unmanaged[Stdcall]<nint,uint,char*,nint,nint*,int>)&Enumerate);
+            properties.Set(5,(nint)(delegate* unmanaged[Stdcall]<nint,char*,nint,nint*,int>)&Values);
+            iterator.Set(3,(nint)(delegate* unmanaged[Stdcall]<nint,uint,nint*,uint*,int>)&Next);
+            using var source=new WpdSource(new(device.Pointer),new(content.Pointer),new(properties.Pointer),new(resources.Pointer));
+            return source.Inventory(default);
+        }
+        finally{Com.CoUninitialize();}
     }
     [UnmanagedCallersOnly(CallConvs=[typeof(CallConvStdcall)])]
     private static uint Release(nint self)=>0;

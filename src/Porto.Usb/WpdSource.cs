@@ -11,6 +11,9 @@ public sealed unsafe class WpdSource : IVideoSource
     private static readonly Guid Image=new("ef2107d5-a52a-4243-a26b-62d4176d7603");
     private static readonly Guid Folder=new("27e2e392-a111-48e0-ab0c-e17705a05f85");
     private static readonly Guid Functional=new("99ed0160-17ff-4c44-9d98-1d7a6f941921");
+    private static readonly Guid Audio=new("4ad2c85e-5e2d-45e5-8864-4f229e3c6cf0");
+    private static readonly Guid Document=new("680adf52-950a-4041-9b41-65e393648155");
+    private static readonly Guid GenericFile=new("0085e0a6-8d34-45d7-bc5c-447e59c73d48");
     private readonly Com device,content,properties,resources;
     private WpdReadStream? activeStream;
     private Exception? cleanupFailure;
@@ -114,14 +117,15 @@ public sealed unsafe class WpdSource : IVideoSource
                                 using var values=ReadProperties(objectId);
                                 var kind=values.GuidValue(new(ObjectKeys,7));
                                 MediaKind media=kind==Video?MediaKind.Video:kind==Image?MediaKind.Image:
-                                    kind==Folder||kind==Functional?MediaKind.Container:MediaKind.Unknown;
+                                    kind==Folder||kind==Functional?MediaKind.Container:
+                                    kind==Audio||kind==Document||kind==GenericFile?MediaKind.Other:MediaKind.Unknown;
                                 string name=values.String(new(ObjectKeys,12))??values.String(new(ObjectKeys,4))??"Senza nome";
                                 var item=new SourceItem(objectId,parent.Id,name,media,values.Length(new(ObjectKeys,11)),
                                     values.String(new(ObjectKeys,5)),values.GuidValue(new(ObjectKeys,6))?.ToString());
                                 if(MediaInspector.IsAdjustmentSidecar(item)){media=MediaKind.Other;item=item with{Kind=media};}
                                 items.Add(item);
                                 if(media==MediaKind.Container)pending.Enqueue((objectId,parent.Depth+1));
-                                else if(media==MediaKind.Unknown&&!MediaInspector.Candidate(item))
+                                else if(media==MediaKind.Unknown&&!MediaInspector.Candidate(item)&&!PhotoInspector.Candidate(item))
                                     Error($"Tipo USB non riconosciuto per {name}; contenuto non esplorato.");
                             }
                             catch(IOException ex)when(ex is not SourceUnavailableException){Error($"Metadati elemento {items.Count+1}: {ex.Message}");}

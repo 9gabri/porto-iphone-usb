@@ -8,6 +8,7 @@ public sealed class ImportSession(Func<IVideoSource> createSource, Destination d
     public Action<ImportProgress>? Progress { get; init; }
     public string? ReportPath { get; private set; }
     public int Attempts { get; private set; }
+    public ImportMedia Media { get; init; } = ImportMedia.Videos;
 
     public ImportReport Run(bool deep, CancellationToken cancel)
     {
@@ -24,7 +25,7 @@ public sealed class ImportSession(Func<IVideoSource> createSource, Destination d
             using(var source=createSource())
             {
                 var engine=new ImportEngine(source,destination,disk)
-                    {Progress=Progress,Attempt=attempt,RetryLast=retryLast,RetryVisited=retryVisited};
+                    {Progress=Progress,Attempt=attempt,RetryLast=retryLast,RetryVisited=retryVisited,Media=Media};
                 latest=engine.Run(deep,cancel);ReportPath=engine.ReportPath;
             }
             if(recoveryBudget==null&&latest.UsbEnumerationComplete)
@@ -44,9 +45,9 @@ public sealed class ImportSession(Func<IVideoSource> createSource, Destination d
             if(extra&&(!newObstacle||!latest.ReadRecoveryInterrupted||attempt-MaximumAttempts>=recoveryBudget.GetValueOrDefault()))break;
             string next=extra?$"Continuazione USB {attempt-MaximumAttempts+1}/{recoveryBudget}"
                 :$"Tentativo {attempt+1}/{MaximumAttempts}";
-            Progress?.Invoke(new("Recupero automatico",$"{next} tra {RetryDelay.TotalSeconds:0} secondi. Sblocca o ricollega lo stesso iPhone. Pausa interrompe l'attesa.",0,latest.CandidateCount,0,null,null));
+            Progress?.Invoke(new("Recupero automatico",$"{next} tra {RetryDelay.TotalSeconds:0} secondi. Sblocca o ricollega lo stesso telefono. Pausa interrompe l'attesa.",0,latest.CandidateCount,0,null,null));
             if(cancel.WaitHandle.WaitOne(RetryDelay))break;
         }
-        return latest??new ImportReport{Status="In pausa prima dell'avvio."};
+        return latest??new ImportReport{Media=Media,Status="In pausa prima dell'avvio."};
     }
 }

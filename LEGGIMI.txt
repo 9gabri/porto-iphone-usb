@@ -1,35 +1,30 @@
-PORTO 0.1.0-rc.9 — CANDIDATA WINDOWS 11 x64
+PORTO 0.1.0-rc.10 — CANDIDATA WINDOWS 11 x64
 
-IMPORTAZIONE DA CARTELLA E CONFRONTO DELLE COPIE PRECEDENTI
+FOTO E VIDEO DAL TELEFONO AL COMPUTER
 
-1. Chiudi la vecchia app. Estrai TUTTO questo ZIP in una cartella nuova e apri Porto.exe.
-2. Prepara sul PC una cartella separata con gli originali non modificati esportati dalla raccolta Video di Foto sull’iPhone. Non usare l’intera DCIM: contiene anche possibili componenti di Live Photo. La preparazione reale dell’esportazione va ancora collaudata.
-3. In Porto lascia Importa da: Cartella esportata da Foto.
-4. Origine: la nuova cartella dell’esportazione. Archivio: la stessa cartella delle prove precedenti, che contiene Video Porto, .porto e Report Porto.
-5. Premi Avvia importazione. Attendi il risultato e apri il report. Pausa e Riprendi conservano il lavoro e ripetono i controlli.
+1. Chiudi la vecchia app. Estrai TUTTO lo ZIP in una cartella nuova e apri Porto.exe.
+2. Scegli Importa da:
+   - Telefono / dispositivo USB: collega e sblocca il telefono, autorizza l’accesso. Su Android scegli Trasferimento file. Su iPhone imposta Mantieni originali. Premi Cerca dispositivi.
+   - Cartella / album esportato: scegli la cartella già esportata sul PC.
+3. Cosa copiare: Solo video, Solo foto oppure Foto e video.
+4. Con USB puoi scegliere tutto il dispositivo accessibile oppure una cartella con le sottocartelle. Le cartelle USB NON equivalgono agli album delle app Foto o Google Foto: per un album non visibile serve prima l’esportazione.
+5. Archivio PC: scegli la destinazione, anche la stessa cartella delle prove precedenti che contiene .porto e Report Porto.
+6. Avvia importazione. Alla fine apri il report. Pausa e Riprendi conservano il lavoro e ripetono i controlli.
 
-Le due cartelle devono essere separate, locali, NTFS. Nessuna può contenere l’altra. Archivio: percorso massimo 120 caratteri. Runtime incluso, nessun Mac o compilatore necessario.
+Le copie identiche verificate vengono riutilizzate senza spostamento. Nessun file esistente viene cancellato o sovrascritto. Due elementi distinti della selezione con gli stessi byte conservano due copie. Versioni con byte diversi restano distinte. I file precedenti non riutilizzati NON sono automaticamente Live Photo. I danneggiati sono conservati e l’eventuale recupero riceve un nuovo nome.
 
-Porto confronta il contenuto completo e SHA-256. Riutilizza le copie identiche, anche non registrate nel vecchio catalogo, senza spostarle. Nuovi video e recuperi vengono scritti con nomi nuovi: nessun video esistente viene cancellato, troncato o sovrascritto.
-Due file selezionati distinti con byte uguali mantengono due copie. Versioni convertite/modificate con byte diversi non possono essere riconosciute automaticamente come lo stesso video.
-Le copie precedenti non riutilizzate restano al loro posto. NON significa che siano Live Photo: il report distingue questi file senza eliminarli. Copie danneggiate, mancanti e vecchie osservazioni USB restano visibili.
+Nuove foto: Foto Porto. Video: Video Porto. Possibili componenti Apple Live Photo/modifiche: Risorse video aggiuntive, senza identificarli con certezza. Conserva cataloghi, report e temporanei. Dopo l’aggiornamento usa rc.10 per quell’archivio.
 
-I cataloghi registrano l’avanzamento. I temporanei associabili possono essere completati dopo confronto integrale del prefisso. Gli altri restano conservati. Non cancellare .porto, report o file delle prove precedenti. Per ogni telefono/libreria usa un archivio distinto.
+LIMITI DA CONOSCERE
+- Supporto ai dispositivi portatili che Windows espone via WPD/MTP/PTP: non garantito ogni modello. Nessun telefono reale usato nelle prove di questa candidata.
+- Cartella verificata non certifica l’intera libreria o la completezza dell’esportazione. I contenuti solo cloud possono mancare.
+- MOV, MP4, M4V; JPEG, PNG statico, HEIF/HEIC HEVC riconosciuti. Controlli della struttura, non decodifica completa. Foto massimo 512 MiB. Formati non supportati e file incerti restano segnalati.
+- Origine locale e archivio su NTFS, separati. Archivio massimo 120 caratteri. Niente rete, exFAT, Windows ARM, link o junction.
+- Runtime incluso. Nessun Mac, acquisto, servizio, driver installato o condivisione creata dall’app. Nessun Apple ID o telemetria.
+- Non firmata commercialmente: Windows può avvisare o bloccare. Non disattivare SmartScreen, antivirus o altre protezioni.
 
-LIMITI
-- Cartella verificata riguarda i file individuati nella cartella; non certifica la completezza dell’esportazione o dell’intera libreria Foto.
-- MOV, MP4 e M4V controllati strutturalmente, senza conversioni. I formati video comuni non supportati restano ambigui; le altre esclusioni hanno una motivazione nel report.
-- Contenuti solo iCloud non vengono scaricati da Porto. Nessun totale di video garantito prima della prova reale.
-- Importazione USB ancora disponibile dal selettore. Può copiare anche componenti Live Photo nelle Risorse video aggiuntive: non è la selezione della raccolta Video di Foto.
-- Windows ARM, exFAT, rete, collegamenti/junction e file cloud non disponibili localmente non supportati.
-- Nessuna condivisione di rete viene creata da Porto. Nessun Apple ID, telemetria, servizio o costo aggiunto nell’app.
-- Non firmata commercialmente: Windows può avvisare o bloccare l’avvio. Non disattivare SmartScreen, antivirus o altre protezioni.
-
-App in una nuova cartella; archivio precedente conservato. Dopo l’aggiornamento usa rc.9 per quell’archivio.
-La copia non richiede decoder HEVC; la riproduzione dipende dai codec disponibili.
-
-Istruzioni, fonti e test:
+Guida completa inclusa: PHONES-AND-ALBUMS.md
 https://9gabri.github.io/porto-iphone-usb/
 https://github.com/9gabri/porto-iphone-usb
 
-Licenza MIT. Progetto indipendente, non affiliato ad Apple o Microsoft.
+Licenza MIT. Progetto indipendente, non affiliato ad Apple, Google o Microsoft.

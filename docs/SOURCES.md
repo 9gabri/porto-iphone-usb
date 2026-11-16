@@ -76,3 +76,16 @@ Apple di corrispondenza uno-a-uno con l’album Video.
 - https://support.apple.com/en-ie/guide/iphone/iphe9aff429a/ios — connessione dell’app File a server/cartelle condivise. Riferimento della guida; in questa verifica web ha restituito HTTP 429, quindi nessuna attestazione nuova del percorso completo di esportazione verso SMB.
 
 Queste indicazioni non costituiscono un collaudo del flusso iPhone → cartella Windows. La disponibilità della posizione condivisa nel foglio di esportazione e il completamento sul telefono restano da confermare. Porto non configura condivisioni né amplia permessi.
+
+
+## rc.10 — dispositivi, album e immagini
+
+- [Android, trasferire file con USB](https://support.google.com/android/answer/9064445): sblocco, notifica USB, Trasferimento file. Le modalità dipendono dal dispositivo.
+- [Microsoft WPD overview](https://learn.microsoft.com/en-us/windows-hardware/drivers/portable/wpd-drivers-overview): protocolli e infrastruttura Windows Portable Devices.
+- [Microsoft WPD content types](https://learn.microsoft.com/en-us/windows/win32/wpd_sdk/content-types) e [header ufficiale](https://raw.githubusercontent.com/microsoft/win32metadata/main/generation/WinSDK/RecompiledIdlHeaders/um/PortableDevice.h): GUID audio/document/generic file. I tipi ignoti non vengono trattati come cartelle implicitamente.
+- [Apple PhotoKit collections](https://developer.apple.com/documentation/photos/phassetcollection) e [album](https://developer.apple.com/documentation/photokit/browsing-and-modifying-photo-albums): album logici nella libreria, distinti dalla gerarchia USB. Nessun componente PhotoKit installato in questa candidata.
+- [ITU T.81 JPEG, copia W3C](https://www.w3.org/Graphics/JPEG/itu-t81.pdf): marker, segmenti, frame e scan.
+- [W3C PNG](https://www.w3.org/TR/png-3/): chunk, CRC, zlib e scanline, limiti di lavoro imposti da Porto.
+- [Nokia HEIF technical](https://nokiatech.github.io/heif/technical.html): contenitore, item primario, proprietà e immagine grid. Il parser supporta un sottoinsieme conservativo HEVC, senza certificare la decodifica.
+
+Le fonti documentano i protocolli/formati; non sostituiscono prove di compatibilità con telefoni reali. La scelta di cartelle fisiche è un limite esplicito del prodotto; non viene affermata la lettura universale degli album delle app.

@@ -18,12 +18,12 @@ internal sealed unsafe class Com(nint pointer) : IDisposable
         if(hr>=0)return;
         if(IsSessionLost(hr))
         {
-            string message=$"La sessione USB non è più disponibile (0x{hr:X8}). Ricollega lo stesso iPhone per creare un nuovo inventario.";
+            string message=$"La sessione USB non è più disponibile (0x{hr:X8}). Ricollega lo stesso dispositivo per creare un nuovo inventario.";
             throw new SourceUnavailableException(message,new COMException(message,hr));
         }
         string detail=unchecked((uint)hr)==0x80040154
             ?$"Componente Windows per dispositivi portatili (WPD) non registrato (0x{hr:X8}). Verifica o ripristina i componenti multimediali e WPD di Windows, poi riprova."
-            :$"Operazione USB non riuscita (0x{hr:X8}). Verifica collegamento, sblocco e autorizzazione dell'iPhone.";
+            :$"Operazione USB non riuscita (0x{hr:X8}). Verifica collegamento, sblocco e autorizzazione del telefono.";
         throw new IOException(detail,hr);
     }
     // Explicit lost/hung/stale-session errors from Microsoft WPD and COM Error Constants.

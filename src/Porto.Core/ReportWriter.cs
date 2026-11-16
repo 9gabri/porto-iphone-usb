@@ -15,13 +15,14 @@ public static class ReportWriter
         StringBuilder text=new();text.AppendLine("PORTO — REPORT DI IMPORTAZIONE").AppendLine(report.Status)
             .AppendLine($"Versione Porto: {report.ApplicationVersion}")
             .AppendLine($"Sorgente: {report.SourceDescription}")
+            .AppendLine($"Contenuti scelti: {MediaLabel(report.Media)}; candidati foto: {report.SelectedPhotoCount}; candidati video: {report.SelectedVideoCount}")
             .AppendLine($"Inventario terminato: {(report.UsbEnumerationComplete ? "sì" : "no")}")
             .AppendLine($"Controllo finale inventario: {(report.FinalInventoryChecked ? "stabile" : "non verificato o cambiato")}; tentativo: {report.Attempt}");
         if(report.SelectedFolder)
         {
-            text.AppendLine($"Video nella cartella selezionata: {report.CandidateCount}; cartella verificata: {(report.SelectedFolderVerified?"sì":"no")}")
-                .AppendLine("La selezione viene dalla cartella indicata dall’utente: Porto non può confermare che contenga tutti e soltanto i video dell’app Foto.")
-                .AppendLine("Usare una nuova esportazione di originali selezionati nella raccolta Video dell’iPhone. Foto, file accessori e altri formati sono elencati come esclusi.")
+            text.AppendLine($"File candidati nella cartella selezionata: {report.CandidateCount}; cartella verificata: {(report.SelectedFolderVerified?"sì":"no")}")
+                .AppendLine("La selezione viene dalla cartella indicata dall’utente: Porto non può confermare che contenga tutti e soltanto gli elementi dell’album o della raccolta desiderata.")
+                .AppendLine("Se desideri un album preciso, usa una sua esportazione di originali in una cartella separata. I tipi non scelti e i file accessori sono esclusi con motivazione; formati foto/video non supportati restano da verificare.")
                 .AppendLine("Gli indizi USB di Live Photo o nomi modificati non escludono video da questa selezione. Gli altri file precedenti restano al loro posto.")
                 .AppendLine("Il confronto usa byte e SHA-256, con una copia distinta per ogni file selezionato. Versioni con byte diversi non sono accorpate: possono rappresentare lo stesso video modificato o convertito.")
                 .AppendLine($"Copie precedenti trovate: {report.PreviousCopies.Count}; riutilizzate: {report.PreviousCopies.Count(c=>c.ReusedForSelection)}; non riutilizzate: {report.PreviousCopies.Count(c=>!c.ReusedForSelection)}")
@@ -31,10 +32,10 @@ public static class ReportWriter
         {
             text.AppendLine($"Riavvii USB tentati: {report.UsbSessionRestarts}")
                 .AppendLine($"Risorse USB totali (incluse cartelle): {report.UsbItemCount}; immagini: {report.ImageCount}; file accessori AAE: {report.SidecarCount}")
-                .AppendLine($"Risorse video USB: {report.CandidateCount}; indizi di foto abbinate/versioni modificate: {report.SuspectedCompanionCount}; candidati alla copia: {report.TransferCandidateCount}")
-                .AppendLine("Questi conteggi riguardano risorse USB, non il numero dei video autonomi nell'app Foto.")
+                .AppendLine($"Risorse foto/video selezionate USB: {report.CandidateCount}; indizi di foto abbinate/versioni modificate: {report.SuspectedCompanionCount}; candidati alla copia: {report.TransferCandidateCount}")
+                .AppendLine("Questi conteggi riguardano risorse USB, non il numero degli elementi in un album dell’app Foto o Google Foto.")
                 .AppendLine("Le risorse aggiuntive sono copiate e verificate separatamente: non vanno sommate come video autonomi di Foto.")
-                .AppendLine("Copertura dell'intera libreria: NON VERIFICABILE via USB; elementi solo iCloud potrebbero non essere enumerati.");
+                .AppendLine("Copertura dell'intera libreria: NON VERIFICABILE via USB; elementi solo iCloud o altri cloud potrebbero non essere enumerati. Le cartelle USB non attestano gli album delle app.");
         }
         text.AppendLine("Originalità: byte ricevuti conservati senza conversioni; originale Foto non verificato indipendentemente.")
             .AppendLine($"Seconda lettura sorgente richiesta: {(report.SecondSourceRead?"sì":"no")}")
@@ -42,7 +43,7 @@ public static class ReportWriter
         text.AppendLine("CONTEGGI DEL PASSAGGIO ATTUALE (lo storico è distinto, non cancellato)");
         foreach(var category in Enum.GetValues<Outcome>())text.AppendLine($"{Label(category)}: {report.CurrentCount(category)}");
         text.AppendLine($"Osservazioni storiche ancora da verificare: {report.HistoricalCount}")
-            .AppendLine("Lo storico può contenere osservazioni dello stesso file con ID USB cambiati. Senza prove dei byte non può essere cancellato né contato come nuovi video distinti.")
+            .AppendLine("Lo storico può contenere osservazioni dello stesso file con ID USB cambiati. Senza prove dei byte non può essere cancellato né contato come nuovi file distinti.")
             .AppendLine("Risorse video aggiuntive: copie integre con indizi di foto abbinate, modifiche o metadati temporizzati; nessuna esclusione basata solo sul nome.");
         if(report.SelectedFolder)
         {
@@ -53,6 +54,10 @@ public static class ReportWriter
         foreach(var item in report.Items)text.AppendLine($"[{(item.Historical?"STORICO · ":"")}{Label(item.Outcome)}] {item.Name} — {item.Detail} {item.File}");
         WriteNew(Path.Combine(directory,$"report-{id}.txt"),text.ToString());
     }
+    public static string MediaLabel(ImportMedia media)=>media switch
+    {
+        ImportMedia.Videos=>"Solo video",ImportMedia.Photos=>"Solo foto",ImportMedia.PhotosAndVideos=>"Foto e video",_=>"Scelta non valida"
+    };
     private static void WriteNew(string path,string contents)
     {
         AtomicFile.WriteNew(path,stream=>

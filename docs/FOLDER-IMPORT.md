@@ -1,4 +1,6 @@
-# Importazione da cartella — rc.9
+# Importazione da cartella — rc.10
+
+La modalità ora comprende Solo foto / Solo video / Foto e video e album esportati da altri telefoni. Per il flusso generale vedi [Telefoni e album](PHONES-AND-ALBUMS.md). Questa pagina approfondisce il caso dei soli video iPhone.
 
 Questa modalità separa la scelta dei video dalla copia verificata. La selezione dei soli video viene fatta in Foto sull’iPhone; Porto non ricostruisce quell’informazione dagli indizi USB.
 
@@ -15,7 +17,8 @@ Attendere il completamento dell’esportazione prima di avviare Porto; non aggiu
 ## Impostare Porto
 
 - **Origine**: nuova cartella dei video esportati. MOV, MP4 e M4V possono stare anche in sottocartelle.
-- **Archivio**: cartella già usata con Porto, che contiene `Video Porto`, `.porto`, `Report Porto` ed eventualmente `Risorse video aggiuntive`.
+- **Cosa copiare**: Solo video per questo caso; Solo foto o Foto e video per altre esportazioni.
+- **Archivio PC**: cartella già usata con Porto, che contiene `Video Porto`, `.porto`, `Report Porto` ed eventualmente `Risorse video aggiuntive`.
 - Le cartelle non possono coincidere o contenersi, né usare collegamenti. Locale NTFS; destinazione fino a 120 caratteri.
 - **Avvia importazione** confronta e copia. **Verifica approfondita** rilegge anche la sorgente. **Pausa** interrompe in modo controllato; **Riprendi** fa un inventario nuovo e verifica i contenuti.
 

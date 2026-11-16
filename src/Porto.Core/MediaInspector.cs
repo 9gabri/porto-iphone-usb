@@ -6,6 +6,8 @@ namespace Porto.Core;
 
 public sealed record MediaInspection(bool IsVideo,bool LivePhoto,bool Ambiguous,string Extension,string Detail)
 {
+    public bool IsImage {get;init;}
+    public bool IsSupportedMedia=>!Ambiguous&&(IsVideo||IsImage);
     // A routing hint only: USB metadata cannot certify a complete Photos asset.
     public bool AdditionalResource {get;init;}
 }

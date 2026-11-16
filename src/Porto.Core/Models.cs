@@ -1,10 +1,13 @@
 namespace Porto.Core;
 
 public enum MediaKind { Video, Image, Container, Other, Unknown }
+public enum ImportMedia { Videos, Photos, PhotosAndVideos }
 public enum Outcome { Imported, AlreadyPresent, Excluded, Ambiguous, Missing, Error, Pending, Additional, AdditionalAlreadyPresent }
-public sealed record DeviceInfo(string Id, string Name);
+public sealed record DeviceInfo(string Id, string Name, bool IsApple = false);
 public sealed record SourceItem(string Id, string ParentId, string Name, MediaKind Kind,
-    long? Size = null, string? PersistentId = null, string? Format = null, bool Offline = false);
+    long? Size = null, string? PersistentId = null, string? Format = null, bool Offline = false,
+    [property:System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    string? SourceNamespace = null);
 public sealed record Inventory(List<SourceItem> Items, List<string> Errors, bool EnumerationComplete);
 public interface IVideoSource : IDisposable
 {
@@ -15,6 +18,11 @@ public interface IVideoSource : IDisposable
 public interface ISelectedVideoSource : IVideoSource
 {
     string SelectionDescription { get; }
+}
+public interface ISourceContext
+{
+    string SourceDescription { get; }
+    bool AppleResourceHints { get; }
 }
 public sealed record PreviousCopyComparison(string File, long Bytes, string? Sha256,
     bool ReusedForSelection, bool IntegrityVerified, string Detail);
@@ -29,8 +37,11 @@ public sealed record ReportItem(string SourceId, string Name, Outcome Outcome, s
     string? File = null, long? Bytes = null, string? Sha256 = null, bool Historical = false);
 public sealed class ImportReport
 {
+    public ImportMedia Media { get; init; } = ImportMedia.Videos;
+    public int SelectedPhotoCount { get; set; }
+    public int SelectedVideoCount { get; set; }
     public bool SelectedFolder { get; init; }
-    public string SourceDescription { get; init; } = "iPhone tramite USB";
+    public string SourceDescription { get; init; } = "Dispositivo tramite USB";
     public bool SelectedFolderVerified { get; set; }
     public List<PreviousCopyComparison> PreviousCopies { get; } = [];
     public string ApplicationVersion => typeof(ImportReport).Assembly

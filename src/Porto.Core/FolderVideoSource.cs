@@ -7,7 +7,7 @@ namespace Porto.Core;
 
 // The folder is a user selection, not a PhotoKit inventory or proof of originality.
 // File paths and metadata authorize a read; only the engine's full hashes prove bytes.
-public sealed class FolderVideoSource : ISelectedVideoSource
+public sealed class FolderVideoSource : ISelectedVideoSource,ISourceContext
 {
     private readonly string sourceRoot,destinationRoot;
     private Dictionary<string,(SourceItem Item,string Path)> observed=new(StringComparer.Ordinal);
@@ -16,8 +16,10 @@ public sealed class FolderVideoSource : ISelectedVideoSource
         (FileAttributes)0x40000|(FileAttributes)0x400000; // Recall-on-open / recall-on-data-access.
 
     public string SelectionDescription =>
-        "Cartella selezionata dall'utente con video esportati da Foto come originali non modificati. " +
-        "La selezione e l'originalità dipendono dall'esportazione; Porto verifica i byte dei file, non la libreria Foto.";
+        "Cartella selezionata dall'utente con foto e/o video esportati, anche da un album di Foto o Google Foto. " +
+        "La selezione e l'originalità dipendono dall'esportazione; Porto verifica i byte dei file, non la libreria dell'app fotografica.";
+    public string SourceDescription=>SelectionDescription;
+    public bool AppleResourceHints=>false;
 
     public FolderVideoSource(string sourceRoot,string destinationRoot)
     {
@@ -67,12 +69,12 @@ public sealed class FolderVideoSource : ISelectedVideoSource
     public Stream OpenRead(SourceItem item,CancellationToken cancel)
     {
         ObjectDisposedException.ThrowIf(disposed,this);cancel.ThrowIfCancellationRequested();
-        if(!observed.TryGetValue(item.Id,out var entry)||entry.Item!=item||!MediaInspector.Candidate(item))
-            throw new IOException("Il file non corrisponde a un video dell'inventario corrente della cartella.");
+        if(!observed.TryGetValue(item.Id,out var entry)||entry.Item!=item||!MediaSelectionRules.Candidate(item,ImportMedia.PhotosAndVideos))
+            throw new IOException("Il file non corrisponde a una foto o un video dell'inventario corrente della cartella.");
         FileStream stream;
         try{ValidateRoots();stream=OpenChecked(entry.Path);}
         catch(UnauthorizedAccessException ex)
-        {throw new IOException("Permesso di lettura mancante per questo video della cartella; file conservato.",ex);}
+        {throw new IOException("Permesso di lettura mancante per questo file della cartella; file conservato.",ex);}
         try
         {
             if(Describe(entry.Path,Information(stream.SafeFileHandle))!=item)
@@ -107,6 +109,7 @@ public sealed class FolderVideoSource : ISelectedVideoSource
         string version=FormattableString.Invariant($"{information.VolumeSerialNumber:X8}:{information.FileIndexHigh:X8}{information.FileIndexLow:X8}:{length}:{information.LastWriteTime.dwHighDateTime:X8}{information.LastWriteTime.dwLowDateTime:X8}");
         var item=new SourceItem(id,Identity(parent),name,MediaKind.Other,length,version);
         if(MediaInspector.Candidate(item))return item with{Kind=MediaKind.Video};
+        if(PhotoInspector.Candidate(item))return item with{Kind=MediaKind.Image};
         // Common video containers outside the supported MOV/MP4/M4V parser must
         // remain unresolved, never be silently counted as non-video exclusions.
         return Path.GetExtension(name).ToLowerInvariant() is ".avi" or ".mkv" or ".webm" or ".3gp" or ".3g2" or ".mts" or ".m2ts" or ".ts" or ".wmv" or ".mpg" or ".mpeg"

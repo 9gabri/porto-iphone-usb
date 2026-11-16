@@ -27,7 +27,7 @@ public sealed class ReconnectingUsbSource : IVideoSource,IReadFailureRecovery
         worker=createWorker();worker.InventoryProgress=progress;
         try{worker.Connect(deviceId,cancel);return worker;}
         catch(SourceUnavailableException){worker.Dispose();throw;}
-        catch(IOException ex){worker.Dispose();throw new SourceUnavailableException("Collegamento allo stesso iPhone non disponibile: "+ex.Message,ex);}
+        catch(IOException ex){worker.Dispose();throw new SourceUnavailableException("Collegamento allo stesso dispositivo non disponibile: "+ex.Message,ex);}
         catch{worker.Dispose();throw;}
     }
     public Inventory Inventory(CancellationToken cancel)
@@ -85,6 +85,6 @@ public sealed class ReconnectingUsbSource : IVideoSource,IReadFailureRecovery
         }
     }
     private static SourceUnavailableException SessionUnavailable(Exception? inner=null)=>new(
-        "La sessione USB è terminata. Serve un nuovo inventario dello stesso iPhone prima di continuare."+(inner==null?"":" "+inner.Message),inner);
+        "La sessione USB è terminata. Serve un nuovo inventario dello stesso dispositivo prima di continuare."+(inner==null?"":" "+inner.Message),inner);
     public void Dispose(){disposed=true;worker?.Dispose();}
 }

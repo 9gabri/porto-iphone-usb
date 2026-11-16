@@ -146,3 +146,14 @@ ReportItem.Historical separa osservazioni precedenti irrisolte dalle risorse del
 passaggio attuale. Non elimina debiti né permette il completamento in loro presenza.
 Count mantiene il totale; CurrentCount alimenta l'interfaccia e la sezione corrente
 del report. Le osservazioni storiche non si possono sommare come video distinti.
+
+
+## Dispositivi e selezione media — rc.10
+
+DeviceDiscovery accetta dispositivi WPD con ID univoci validi; il produttore Apple è un indizio separato, non un filtro di inclusione. Audio/documenti/file generici WPD riconosciuti non rendono da soli incompleto l’inventario; metadati contrari video/foto restano candidati. Tipi ignoti continuano a rendere visibile l’incertezza.
+
+UsbImportSource racchiude ReconnectingUsbSource, conserva le verifiche del suo inventario completo e aggiunge SourceNamespace derivato da SHA-256 dell’ID dispositivo. OpenRead ammette solo oggetti osservati nella selezione corrente e inoltra al worker l’oggetto originale. I vecchi SourceItem con namespace nullo mantengono esattamente la serializzazione e le chiavi storiche.
+
+UsbFolders ricostruisce percorsi da relazioni padre/figlio, respinge cicli, ID duplicati, genitori mancanti e scelte ambigue. La selezione conserva catena completa e persistent ID quando disponibili. Si risolve a ogni inventario; non ripiega mai sul telefono intero. Non implementa album virtuali o riferimenti WPD astratti.
+
+ImportMedia governa candidatura e verifica in Engine/Session. Video resta il valore predefinito per retrocompatibilità. Foto Porto è una destinazione aggiuntiva validata dal catalogo; nessun ampliamento a percorsi arbitrari. PhotoInspector verifica struttura JPEG/PNG/HEIF HEVC, con limiti di dimensione/complessità, senza ricodifica. Report JSON e testo espongono tipo scelto, fonte/ambito e candidati separati foto/video. Il confronto delle copie pregresse conserva tutti i percorsi.

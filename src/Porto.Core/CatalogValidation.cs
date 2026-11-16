@@ -76,11 +76,13 @@ internal static class CatalogValidation
         if(entry.State=="Quarantined"&&entry.Final.Length!=0)throw Invalid();
         if(entry.Final.Length==0)return;
         string extension=Path.GetExtension(entry.Final);
-        if(extension is not (".mov" or ".mp4" or ".m4v"))throw Invalid();
+        bool photo=extension is ".jpg" or ".jpeg" or ".png" or ".heic" or ".heif";
+        if(!photo&&extension is not (".mov" or ".mp4" or ".m4v"))throw Invalid();
         string name=Path.GetFileNameWithoutExtension(entry.Final);
         // Verified reuse can update Source.Name while the published name stays
         // unchanged; collision recovery can also use a fresh UUID suffix.
-        if(!GeneratedName(name)||(entry.Final!=Path.Combine("Video Porto",name+extension)&&entry.Final!=Path.Combine(Destination.AdditionalDirectory,name+extension)))throw Invalid();
+        if(!GeneratedName(name)||(photo?entry.Final!=Path.Combine(Destination.PhotoDirectory,name+extension):
+            entry.Final!=Path.Combine("Video Porto",name+extension)&&entry.Final!=Path.Combine(Destination.AdditionalDirectory,name+extension)))throw Invalid();
     }
 
     private static SourceItem ReadSource(string? json)
@@ -92,7 +94,7 @@ internal static class CatalogValidation
             if(document.RootElement.ValueKind!=JsonValueKind.Object)throw Invalid();
             var properties=new HashSet<string>(StringComparer.Ordinal);
             foreach(var property in document.RootElement.EnumerateObject())
-                if(property.Name is not ("Id" or "ParentId" or "Name" or "Kind" or "Size" or "PersistentId" or "Format" or "Offline")||!properties.Add(property.Name))throw Invalid();
+                if(property.Name is not ("Id" or "ParentId" or "Name" or "Kind" or "Size" or "PersistentId" or "Format" or "Offline" or "SourceNamespace")||!properties.Add(property.Name))throw Invalid();
             if(!new[]{"Id","ParentId","Name","Kind"}.All(properties.Contains))throw Invalid();
             var source=document.RootElement.Deserialize<SourceItem>();
             ValidateSource(source);
@@ -104,8 +106,8 @@ internal static class CatalogValidation
     private static void ValidateSource(SourceItem? source)
     {
         if(source==null||string.IsNullOrEmpty(source.Id)||source.ParentId==null||string.IsNullOrEmpty(source.Name)||
-            !Enum.IsDefined(source.Kind)||source.Size is <0||
-            new[]{source.Id,source.ParentId,source.Name,source.PersistentId,source.Format}.Any(value=>value?.Contains('\0')==true))throw Invalid();
+            !Enum.IsDefined(source.Kind)||source.Size is <0||source.SourceNamespace is {Length:0 or >256}||
+            new[]{source.Id,source.ParentId,source.Name,source.PersistentId,source.Format,source.SourceNamespace}.Any(value=>value?.Contains('\0')==true))throw Invalid();
     }
 
     private static bool Uuid(string? value)=>value is {Length:32}&&value.All(c=>c is >= '0' and <= '9' or >= 'a' and <= 'f');

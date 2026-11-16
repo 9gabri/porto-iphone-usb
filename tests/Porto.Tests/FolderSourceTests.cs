@@ -21,7 +21,7 @@ internal static class FolderSourceTests
             var inventory=source.Inventory(default);
             Fixtures.Check(inventory.EnumerationComplete&&inventory.Errors.Count==0&&inventory.Items.Count==6);
             Fixtures.Check(inventory.Items.Count(i=>i.Kind==MediaKind.Video)==3&&inventory.Items.Count(MediaInspector.Candidate)==3);
-            Fixtures.Check(inventory.Items.Where(i=>!MediaInspector.Candidate(i)).All(i=>i.Kind==MediaKind.Other));
+            Fixtures.Check(inventory.Items.Count(i=>i.Kind==MediaKind.Image)==1&&inventory.Items.Count(i=>i.Kind==MediaKind.Other)==2);
             Fixtures.Check(inventory.Items.Select(i=>i.Id).Distinct().Count()==6);
             Fixtures.Throws<IOException>(()=>source.OpenRead(inventory.Items.Single(i=>i.Name=="notes.txt"),default));
             Fixtures.Check(!Directory.Exists(destinationPath),"Source construction and inventory must never create the destination.");

@@ -48,7 +48,7 @@ public sealed class WorkLedger : IDisposable
                     ? " ON CONFLICT(id) DO UPDATE SET outcome=excluded.outcome,detail=excluded.detail"
                     : " ON CONFLICT(id) DO NOTHING";
                 db.Execute("INSERT INTO work VALUES(?,?,?,?)" + conflict,
-                    key, JsonSerializer.Serialize(item), nameof(Outcome.Pending), "Video individuato, non ancora completato.");
+                    key, JsonSerializer.Serialize(item), nameof(Outcome.Pending), "File multimediale individuato, non ancora completato.");
                 db.Execute("INSERT OR IGNORE INTO snapshot_members VALUES(?,?)", snapshot, key);
                 if (reset) db.Execute("INSERT OR IGNORE INTO unread_work VALUES(?)", key);
             }

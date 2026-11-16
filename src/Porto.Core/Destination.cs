@@ -9,6 +9,8 @@ public sealed class Destination : IDisposable
     public string Root { get; }
     public string State { get; }
     public string Videos { get; }
+    public const string PhotoDirectory = "Foto Porto";
+    public string Photos { get; }
     public const string AdditionalDirectory = "Risorse video aggiuntive";
     public string AdditionalVideos { get; }
     private readonly FileStream gate;
@@ -23,9 +25,10 @@ public sealed class Destination : IDisposable
         CheckAncestors(Root);
         Directory.CreateDirectory(Root);
         State = Path.Combine(Root, ".porto"); Videos = Path.Combine(Root, "Video Porto");
+        Photos = Path.Combine(Root, PhotoDirectory);
         AdditionalVideos = Path.Combine(Root, AdditionalDirectory);
-        CheckAncestors(State); CheckAncestors(Videos); CheckAncestors(AdditionalVideos);
-        Directory.CreateDirectory(State); Directory.CreateDirectory(Videos); Directory.CreateDirectory(AdditionalVideos);
+        CheckAncestors(State); CheckAncestors(Videos); CheckAncestors(AdditionalVideos); CheckAncestors(Photos);
+        Directory.CreateDirectory(State); Directory.CreateDirectory(Videos); Directory.CreateDirectory(AdditionalVideos); Directory.CreateDirectory(Photos);
         CheckAncestors(Path.Combine(State,"import.lock"));
         gate = new FileStream(Path.Combine(State,"import.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
         try

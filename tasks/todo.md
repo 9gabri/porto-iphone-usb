@@ -85,3 +85,13 @@ prova con il telefono. Nessun totale artificiale basato sui componenti Live Phot
 - [x] Revisione indipendente in tre cicli circoscritti e regressioni sintetiche.
 - [x] Verifiche finali (348 casi distinti), pacchetto nuovo, pubblicazione, checksum pubblico, sette smoke e pagina verificati.
 - [ ] Prova guidata con esportazione reale da iPhone (richiede intervento dell’utente).
+
+
+## rc.10 — foto, dispositivi e cartelle
+- [x] Specifica: Solo video / Solo foto / Foto e video; copia in massa telefono→PC mantenuta.
+- [x] Discovery WPD generica, identificatori isolati per dispositivo, selezione fisica fail-closed.
+- [x] Importazione foto e cataloghi compatibili; conservazione copie precedenti.
+- [x] UI esplicita, album virtuali distinti da cartelle fisiche, nessuna ricerca hardware negli smoke.
+- [ ] Revisione indipendente e verifiche finali.
+- [ ] Pacchetto autonomo, release pubblica e riscaricamento verificato.
+- [ ] Prova fisica con iPhone/Android e album reali (richiede dispositivo dell’utente).
