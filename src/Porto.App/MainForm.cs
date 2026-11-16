@@ -163,6 +163,12 @@ public sealed class MainForm:Form
                         Status="Selezione della galleria incompleta: un originale non è disponibile sul telefono."});
                     if(!summary.Text.Contains("Non risolti all'inizio: 1",StringComparison.Ordinal)||counts.Text.Contains("Risorse USB",StringComparison.Ordinal))throw new InvalidOperationException("Conteggi Foto non distinti da file USB.");
                 }
+                if(smokePath.Contains("catalog-error",StringComparison.Ordinal))
+                {
+                    status.Text="Catalogo Foto non disponibile.";
+                    detail.Text="[APPLE-CATALOG-TOTAL-LIMIT] La somma di database e WAL supera il limite di memoria. DB: 536870900 byte; WAL: 65536 byte. Limite: 536870912 byte (512 MiB).";
+                    scroll.ScrollControlIntoView(detail);
+                }
                 await Task.Delay(350);if(Width<700||Height<550)throw new InvalidOperationException("UI smoke dimensions invalid");
                 foreach(var button in new[]{start,pause,resume,reportButton})
                 {var bounds=RectangleToClient(button.RectangleToScreen(button.ClientRectangle));if(bounds.Bottom>ClientSize.Height||bounds.Right>ClientSize.Width)throw new InvalidOperationException("Action button outside visible window");}

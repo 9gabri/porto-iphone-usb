@@ -41,7 +41,11 @@ public sealed class AppleGalleryCatalog
 }
 
 internal sealed record AppleAsset(long Key,string Id,string Name,string? Path,MediaKind Kind,bool LivePhoto,bool VisibilityUnresolved);
-internal sealed record AppleFileInfo(long Length,string Modification,bool IsFile);
+internal enum AppleNonFileKind { Unknown,Directory,SymbolicLink }
+internal sealed record AppleFileInfo(long Length,string Modification,bool IsFile,AppleNonFileKind NonFileKind)
+{
+    internal AppleFileInfo(long length,string modification,bool isFile):this(length,modification,isFile,AppleNonFileKind.Unknown){}
+}
 internal interface IAppleFileSystem : IDisposable
 {
     bool IsUsable=>true;

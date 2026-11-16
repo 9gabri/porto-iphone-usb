@@ -1,23 +1,21 @@
-# Verifiche della candidata 0.1.0-rc.15
+# Verifiche della candidata diagnostica 0.1.0-rc.16
 
-Windows 11 x64, SDK .NET 10.0.403 e runtime 10.0.14. Solo dati sintetici in RAM e cartelle isolate del progetto; nessun telefono, record di pairing o archivio personale consultato.
+Questa versione identifica il blocco del catalogo, non lo dichiara risolto. Nessun telefono, catalogo o media reale usato nei test; nessuna modifica ai file delle prove.
 
-## Riproduzione e correzione
+## Riproduzione
 
-Quattro casi positivi con certificati modellati sulle fonti primarie Apple pairing falliscono contro Porto.Apple.dll della rc.14 pubblicata: 0/4, tutti APPLE-TLS-LOCAL-42. Coprono issuer/subject vuoti, seriale zero/uno, certificato SHA-1 con handshake SHA-256 e parametri RSA opzionali assenti. Il server sintetico costruisce i certificati indipendentemente dal nuovo adattatore.
+Otto casi di metadati non validi contro il binario pubblico rc.15: 0/8 test diagnostici superati. Sette condizioni usavano il messaggio indistinto; il caso difensivo WAL negativo raggiungeva un'apertura non prevista (il trasporto reale già respinge lunghezze negative). Non sono otto difetti nuovi di trasferimento.
 
-Dopo la correzione: 13/13 nuovi casi superati. Handshake completo, identità client verificata dal server e dati scambiati nei due sensi. Sono respinti certificati estranei, certificati diversi con la stessa chiave, uso della chiave non consentito, firme handshake SHA-1, autenticazione reciproca assente, DER malformato ed estensioni duplicate. Byte originali, metadati e copie difensive verificati; il parser BouncyCastle globale rimane restrittivo.
+Dopo la modifica: 11/11 casi dedicati, inclusi limiti esatti, somma delle dimensioni, WAL assente/vuoto, long.MaxValue, nessuna apertura dopo rifiuto e classificazione AFC sintetica di file/cartella/collegamento/tipo sconosciuto. Nessun valore arbitrario del dispositivo nei messaggi.
 
-Revisione indipendente della correzione e dei test senza difetti bloccanti. Nessun test esistente rimosso o indebolito, nessuna dipendenza modificata.
+## Verifica finale pertinente
 
-## Suite finale
+Build dei test senza avvisi/errori. Eseguiti tramite apphost Porto.Tests.exe: filtro apple 88/88, filtro gallery import 12/12 (100 casi distinti). I casi comprendono autenticazione, protocollo AFC, catalogo SQLite/WAL, acquisizione e importazione galleria. Log in test-results.txt. La suite generale 503/503 della rc.15 e le prove estese precedenti non sono state ripetute in questo ciclo diagnostico.
 
-503/503 test ordinari superati in una singola esecuzione finale tramite Porto.Tests.exe; log in test-results.txt. Build test e app senza avvisi/errori. Interfaccia rc.15 compilata e controllata visivamente con dati sintetici.
+Build finale app senza avvisi/errori; due smoke UI locali, inclusa la schermata compatta con il messaggio numerico completo, controllata visivamente. Un primo build del nuovo scenario UI sintetico aveva un nome di variabile errato: corretto prima del build finale, nessun errore ignorato. I comandi normali dell'app non eseguono lo scenario sintetico.
 
-Due avvii preliminari della suite sono stati interrotti, non conteggiati come suite riuscite: il primo usava dotnet con DLL invece dell'apphost necessario ai test dei sottoprocessi; il secondo era limitato dal sandbox, che impediva la creazione degli hard link sintetici. La suite finale ha usato l'apphost e i permessi necessari nelle sole cartelle di prova, senza modificare il codice per aggirare i controlli. Nessun errore o avviso nella compilazione finale.
+Il confezionamento e il download pubblico verificano interop, worker, nove stati UI, versione e integrità senza enumerare telefoni. Resoconto successivo al tag in RELEASE-VERIFICATION.md. Nessun test rimosso o limite di memoria aumentato.
 
-Le quattro prove estese già eseguite nella rc.13 non sono ripetute per questa modifica al trasporto. Il confezionamento verifica interop, worker e nove stati UI senza enumerare telefoni. Il riscaricamento pubblico viene registrato dopo il tag in RELEASE-VERIFICATION.md senza sostituire lo ZIP.
+## Limite residuo
 
-## Limiti
-
-La fotografia del telefono è coerente con il difetto riprodotto, ma il certificato reale non è stato acquisito: la causa sul dispositivo resta un'inferenza. I test sintetici non provano l'interoperabilità hardware. Restano da confermare autenticazione, catalogo, album, originali locali, copie e ripresa. Nessuna certificazione o promessa di compatibilità universale. Dettagli e fonti in REVIEW-RC15.md.
+L'esecuzione rc.15 dell'utente ha raggiunto i metadati del catalogo dopo TLS; non conosciamo ancora quale dei controlli abbia rifiutato il catalogo. La rc.16 serve a mostrare codice, dimensioni e tipo. Non dimostra apertura degli album o importazione riuscita. Non è pronta per dichiarare completato il caso iPhone. Analisi in REVIEW-RC16.md.

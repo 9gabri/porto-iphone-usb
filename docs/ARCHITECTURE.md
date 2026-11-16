@@ -189,3 +189,7 @@ IGallerySource.SelectionUncertainty offre una motivazione per elementi seleziona
 ## rc.15 — formato dei certificati di abbinamento
 
 ApplePairingCrypto mantiene BouncyCastle 2.7.0 e il parser generale come primo percorso. Se il parser restituisce bad_certificate, ammette il formato con issuer vuoto soltanto per i byte esatti del certificato dispositivo o root già ottenuti dall'abbinamento autorizzato. Il parser X.509 .NET valida il certificato e l'adattatore conserva DER, chiave pubblica, estensioni, seriale e algoritmo di firma. GetEncoded restituisce sempre i byte originali, senza riscrivere certificati o record. Il controllo key usage resta applicato; il pin del peer e la prova di possesso della chiave nell'handshake restano obbligatori. Nessuna modifica globale a parser, trust store, Schannel o protocolli ammessi. La correzione riguarda il trasporto, non il catalogo Foto o il motore di copia.
+
+## rc.16 — distinzione del blocco catalogo
+
+ValidateMetadata separa rifiuti per tipo, dimensione nulla/non valida, limite per database/WAL e somma. Le somme vengono effettuate solo dopo aver limitato entrambi gli operandi. AppleFileInfo conserva una categoria fissa per i tipi non regolari già restituiti da AFC, senza usare LinkTarget o seguire collegamenti. La diagnostica contiene solo ruoli fissi, categorie e dimensioni numeriche; nessun metadato arbitrario viene mostrato. Limite di 512 MiB e acquisizione in RAM invariati. Non è una soluzione per cataloghi più grandi.

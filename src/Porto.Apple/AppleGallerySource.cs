@@ -163,9 +163,7 @@ internal static class AppleCatalogCapture
         var info=files.Stat(Database,cancel)??throw new IOException("L'iPhone non espone il catalogo Foto tramite il servizio USB Apple. Nessun elenco di file viene sostituito agli album.");
         var walInfo=files.Stat(Database+"-wal",cancel);var journalInfo=files.Stat(Database+"-journal",cancel);
         ValidateInactiveJournal(files,journalInfo,cancel);
-        if(!info.IsFile||info.Length<=0||info.Length>AppleSqliteImage.MaximumBytes||walInfo is {IsFile:false}||
-           walInfo?.Length>AppleSqliteImage.MaximumBytes||info.Length+(walInfo?.Length??0)>AppleSqliteImage.MaximumBytes)
-            throw new IOException("Catalogo Foto oltre il limite di 512 MiB in memoria o non leggibile come file regolare.");
+        ValidateMetadata(info,walInfo);
         byte[]? data=null,wal=null;
         try
         {
@@ -178,6 +176,28 @@ internal static class AppleCatalogCapture
         }
         catch{if(data!=null)CryptographicOperations.ZeroMemory(data);if(wal!=null)CryptographicOperations.ZeroMemory(wal);throw;}
     }
+    internal static void ValidateMetadata(AppleFileInfo info,AppleFileInfo? wal)
+    {
+        string? reason=!info.IsFile?"DB-TYPE":info.Length<=0?"DB-EMPTY":
+            info.Length>AppleSqliteImage.MaximumBytes?"DB-LIMIT":wal is {IsFile:false}?"WAL-TYPE":
+            wal is {Length:<0}?"WAL-LENGTH":wal?.Length>AppleSqliteImage.MaximumBytes?"WAL-LIMIT":
+            info.Length+(wal?.Length??0)>AppleSqliteImage.MaximumBytes?"TOTAL-LIMIT":null;
+        if(reason==null)return;
+        string detail=reason switch
+        {
+            "DB-TYPE"=>$"Il database Foto è esposto come {NonFileDescription(info.NonFileKind)}.",
+            "DB-EMPTY"=>"Il database Foto risulta vuoto o con dimensione non valida.",
+            "DB-LIMIT"=>"Il database Foto supera il limite di memoria.",
+            "WAL-TYPE"=>$"Il journal WAL è esposto come {NonFileDescription(wal!.NonFileKind)}.",
+            "WAL-LENGTH"=>"Il journal WAL ha una dimensione non valida.",
+            "WAL-LIMIT"=>"Il journal WAL supera il limite di memoria.",
+            _=>"La somma di database e WAL supera il limite di memoria."
+        };
+        // Only fixed roles and numeric metadata: no paths, contents, device IDs or library names.
+        throw new IOException(FormattableString.Invariant($"[APPLE-CATALOG-{reason}] {detail} DB: {info.Length} byte; WAL: {(wal==null?"assente":wal.Length.ToString(System.Globalization.CultureInfo.InvariantCulture)+" byte")}. Limite: 536870912 byte (512 MiB)."));
+    }
+    private static string NonFileDescription(AppleNonFileKind kind)=>kind switch
+    {AppleNonFileKind.Directory=>"cartella",AppleNonFileKind.SymbolicLink=>"collegamento",_=>"tipo non regolare non riconosciuto"};
     private static void ValidateInactiveJournal(IAppleFileSystem files,AppleFileInfo? info,CancellationToken cancel)
     {
         if(info==null)return;

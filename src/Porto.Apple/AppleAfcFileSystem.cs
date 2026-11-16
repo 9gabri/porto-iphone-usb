@@ -28,7 +28,8 @@ internal sealed class AppleAfcFileSystem(Stream stream,Stream? session=null,IDis
         if(!fields.TryGetValue("st_size",out var size)||!long.TryParse(size,NumberStyles.None,CultureInfo.InvariantCulture,out var length)||length<0||
            !fields.TryGetValue("st_mtime",out var mtime)||!ulong.TryParse(mtime,NumberStyles.None,CultureInfo.InvariantCulture,out _)||
            !fields.TryGetValue("st_ifmt",out var type))throw Poison();
-        return new(length,mtime,type=="S_IFREG");
+        return new(length,mtime,type=="S_IFREG",type switch
+        {"S_IFDIR"=>AppleNonFileKind.Directory,"S_IFLNK"=>AppleNonFileKind.SymbolicLink,_=>AppleNonFileKind.Unknown});
     }
     public Stream OpenRead(string path,CancellationToken cancel)
     {

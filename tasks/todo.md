@@ -136,3 +136,10 @@ prova con il telefono. Nessun totale artificiale basato sui componenti Live Phot
 - [x] Revisione indipendente della sicurezza della correzione.
 - [x] Suite finale 503/503, pacchetto nuovo pubblicato e riscaricato: checksum/CRC, versione/contenuto, undici smoke e pagina pubblica verificati; quattordici archivi precedenti invariati.
 - [ ] Conferma sull'iPhone reale: autenticazione, lettura album e copia di prova.
+
+## rc.16 — diagnostica del catalogo
+- [x] Nuova prova reale rc.15: superata autenticazione, blocco sui metadati catalogo.
+- [x] Messaggi distinti, dimensioni numeriche e tipo non regolare, senza aumentare limiti o seguire link.
+- [x] 11 nuovi casi, verifica finale pertinente 88/88 Apple e 12/12 galleria; build e schermata diagnostica verificate.
+- [ ] Pacchetto diagnostico pubblico riscaricato e verificato.
+- [ ] Ottenere codice/dimensioni dalla prova reale e risolvere il blocco individuato. Importazione album non ancora pronta.

@@ -1,8 +1,8 @@
 # Porto
 
-App locale in italiano per copiare foto e video dal telefono al PC, senza conversioni. **0.1.0-rc.15**, candidata Windows 11 x64 con runtime incluso.
+App locale in italiano per copiare foto e video dal telefono al PC, senza conversioni. **0.1.0-rc.16 diagnostica**, Windows 11 x64 con runtime incluso. La lettura degli album sul caso iPhone corrente resta bloccata.
 
-[Scarica Windows](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.15/Porto-0.1.0-rc.15-win-x64.zip) · [Checksum](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.15/SHA256SUMS.txt) · [Guida](docs/PHONES-AND-ALBUMS.md)
+[Scarica Windows](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.16/Porto-0.1.0-rc.16-win-x64.zip) · [Checksum](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.16/SHA256SUMS.txt) · [Guida](docs/PHONES-AND-ALBUMS.md)
 
 ## Scegli origine, contenuti e destinazione
 
@@ -14,15 +14,15 @@ Premi **Avvia importazione** per copiare in massa il tipo scelto. Non occorre se
 
 **Non è compatibilità universale:** tutti i modelli di telefono, tutte le app Galleria e qualsiasi raccolta non possono essere dichiarati supportati. In particolare raccolte intelligenti/condivise iPhone e album privati/cloud Android possono non essere accessibili. Porto segnala questi limiti; non sostituisce silenziosamente un album con l'intero telefono. [Capacità e confini](docs/GALLERY-IMPORT.md).
 
-## Certificati di abbinamento iPhone rc.15
+## Diagnosi del catalogo iPhone rc.16
 
-La prova reale rc.14 ha restituito APPLE-TLS-LOCAL-42. Riprodotto lo stesso rifiuto con il formato dei certificati di abbinamento Apple: il parser generale non accetta un nome emittente vuoto. La rc.15 legge questo formato solo quando i byte coincidono esattamente con il certificato già autorizzato nell'abbinamento. TLS, cifratura, controllo del dispositivo e autenticazione reciproca restano obbligatori. Nessun certificato riscritto o file personale modificato. Resta da confermare il collegamento sul telefono reale, poi la lettura degli album e le copie. [Revisione rc.15](docs/REVIEW-RC15.md).
+La rc.15 ha superato il precedente blocco TLS ed è arrivata ai metadati del catalogo Foto. Il nuovo messaggio aggregava tipo di file, dimensione nulla e superamento del limite di 512 MiB. La rc.16 distingue le cause con un codice e le dimensioni numeriche di database e WAL. Non aumenta il limite, non segue collegamenti e non salva il catalogo sul PC. Serve a ottenere l'informazione mancante per la correzione; non è presentata come pronta per completare l'importazione dal caso iPhone corrente. [Analisi rc.16](docs/REVIEW-RC16.md).
 
 Se una copia USB è in corso, attendi la fine o una pausa confermata e chiudi Porto prima di aggiornare. Estrai la candidata in una cartella nuova, conservando tutti i file delle prove.
 
 ## Revisione iPhone rc.13
 
-Rafforzati il rifiuto delle risposte Apple malformate e il controllo della selezione tra i tentativi automatici: un elemento scomparso non consente di dichiarare riuscita una selezione più piccola. La correzione JPEG della rc.12 resta inclusa. Il nuovo percorso iPhone richiede ancora il collaudo fisico: prima verifica collegamento e lettura degli album, poi una piccola selezione Solo video, infine l'importazione completa. [Prova iniziale](docs/PHONES-AND-ALBUMS.md#prima-prova-iphone-rc15).
+Rafforzati il rifiuto delle risposte Apple malformate e il controllo della selezione tra i tentativi automatici: un elemento scomparso non consente di dichiarare riuscita una selezione più piccola. La correzione JPEG della rc.12 resta inclusa. Il nuovo percorso iPhone richiede ancora il collaudo fisico: prima verifica collegamento e lettura degli album, poi una piccola selezione Solo video, infine l'importazione completa. [Prova iniziale](docs/PHONES-AND-ALBUMS.md#prima-prova-iphone-rc16).
 
 ## Correzione JPEG rc.12
 
@@ -45,7 +45,7 @@ Le nuove foto sono in **Foto Porto**, i video in **Video Porto**. Le vecchie ris
 
 **Candidata per il collaudo, non versione certificata o definitiva.** Le verifiche sintetiche non dimostrano compatibilità hardware. Restano da confermare collegamento Apple reale, schema iOS, album e conteggi sul telefono, trasferimento e ripresa su iPhone/Android.
 
-[Test](docs/TESTS.md) · [Revisione rc.15](docs/REVIEW-RC15.md) · [Architettura](docs/ARCHITECTURE.md) · [Licenze](THIRD-PARTY-NOTICES.md) · [Verifica pubblicazione](docs/RELEASE-VERIFICATION.md).
+[Test](docs/TESTS.md) · [Revisione rc.16](docs/REVIEW-RC16.md) · [Architettura](docs/ARCHITECTURE.md) · [Licenze](THIRD-PARTY-NOTICES.md) · [Verifica pubblicazione](docs/RELEASE-VERIFICATION.md).
 
 SDK .NET 10, runtime incluso 10.0.14. `scripts/dev.ps1 test -Large`, `scripts/dev.ps1 build`, `scripts/dev.ps1 publish`. Test isolati; `--ui-smoke <percorso.png>` non cerca telefoni. Nessuna discovery hardware automatica all'avvio.
 

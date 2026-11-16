@@ -1,21 +1,22 @@
-# Porto 0.1.0-rc.15
+# Porto 0.1.0-rc.16 — candidata diagnostica
 
-Candidata Windows 11 x64, con runtime incluso, per riprovare il collegamento alla libreria Foto dell'iPhone dopo il fallimento `APPLE-TLS-LOCAL-42` della rc.14.
+Versione Windows 11 x64, con runtime incluso, per identificare il nuovo blocco della libreria Foto dell'iPhone: **«Catalogo Foto oltre il limite di 512 MiB in memoria o non leggibile come file regolare»**.
 
-È stato riprodotto un rifiuto del lettore X.509 per certificati con issuer vuoto, un formato usato nell'abbinamento Apple. Il rifiuto avveniva prima del confronto con il certificato autorizzato. La rc.15 aggiunge un lettore circoscritto ai byte esatti dei certificati già abbinati; conserva i certificati originali e i loro vincoli. Non accetta certificati estranei, non cambia le protezioni di Windows e non riduce la versione della libreria TLS.
+Nella prova rc.15 il collegamento ha raggiunto il controllo dei metadati del catalogo, successivo all'autenticazione TLS e all'accesso AFC. Il messaggio precedente univa cause diverse e non permette di sapere quale si sia verificata. La rc.16 le distingue con un codice `APPLE-CATALOG-…`, il tipo quando non regolare e le dimensioni in byte di database e WAL.
 
-**La correzione è verificabile nei test sintetici; la riuscita sull'iPhone della cliente resta da confermare.** Il certificato del telefono reale non è stato acquisito o analizzato. Restano TLS 1.2, cifratura AES-GCM, controllo esatto del certificato abbinato e autenticazione reciproca.
+**Questa versione serve alla diagnosi: il blocco del catalogo non è ancora risolto e la modalità album iPhone non è pronta per una copia completa.** Il limite resta 512 MiB. Non vengono seguiti automaticamente collegamenti, salvati database del telefono su disco o ridotte le protezioni. La modifica non richiede installazioni, servizi aggiuntivi o spese.
 
-Le modalità USB generica e cartella restano incluse. Nessuna conversione dei media, cancellazione delle copie precedenti o modifica ai file delle prove. Nessuna nuova dipendenza, installazione automatica di servizi/driver o spesa.
+Per ottenere il messaggio utile:
 
-Per aggiornare:
+1. Chiudi la vecchia versione di Porto, dopo aver fermato un'eventuale importazione.
+2. Estrai tutto lo ZIP rc.16 in una cartella nuova. Conserva le versioni precedenti e tutti i file delle prove.
+3. Apri il nuovo `Porto.exe` e controlla che il titolo riporti **0.1.0-rc.16**.
+4. Lascia l'iPhone collegato, sbloccato e già autorizzato. In Porto scegli **iPhone · libreria Foto via USB**, premi **Cerca dispositivi** e seleziona l'iPhone.
+5. Scegli **Un album della libreria Foto**, poi premi **Scegli album**.
+6. Fotografa il nuovo messaggio completo, compresi codice e numeri. Se compare invece l'elenco degli album, segnala questo esito.
 
-1. Attendi la fine di un'eventuale importazione oppure mettila in pausa e aspetta che sia ferma; chiudi Porto.
-2. Estrai tutto lo ZIP rc.15 in una cartella nuova e apri il nuovo `Porto.exe`.
-3. Conserva la vecchia versione e l'intero archivio precedente, inclusi `.porto`, report e copie.
+Questa prova non avvia l'importazione dei media: non premere **Avvia importazione** e non ripetere una grande importazione per diagnosticare il problema. Non occorre modificare impostazioni di Windows o installare altro. Non inviare database, certificati, foto o video personali.
 
-Per la prima prova, con l'iPhone collegato, sbloccato e autorizzato e il servizio Apple disponibile, scegli **iPhone · libreria Foto via USB → Cerca dispositivi**, poi **Un album della libreria Foto → Scegli album**. L'apertura dell'elenco non avvia la copia dei media. Se gli album compaiono, prova **Solo video** su un piccolo album e una nuova cartella del PC. Prima di importare una grande raccolta, controlla l'esito e apri le copie. Se compare un errore, conserva il testo completo e il codice: non modificare le protezioni e non ripetere tentativi identici.
+Le copie già presenti restano da conservare. Restano da confermare accesso e schema del catalogo, album, trasferimento e ripresa sull'iPhone reale. Gli originali disponibili soltanto nel cloud non sono garantiti via USB. Eseguibile non firmato commercialmente.
 
-Restano da confermare accesso e schema del catalogo, album, originali locali, trasferimento e ripresa sul telefono reale. Originali solo cloud e raccolte non esposte restano limiti; nessun totale fisso o compatibilità universale garantiti. Eseguibile non firmato commercialmente.
-
-[Verifiche effettive](https://github.com/9gabri/porto-iphone-usb/blob/v0.1.0-rc.15/docs/TESTS.md) · [Analisi del blocco](https://github.com/9gabri/porto-iphone-usb/blob/v0.1.0-rc.15/docs/REVIEW-RC15.md) · [Guida iPhone](https://github.com/9gabri/porto-iphone-usb/blob/v0.1.0-rc.15/docs/PHONES-AND-ALBUMS.md)
+[Verifiche effettive](https://github.com/9gabri/porto-iphone-usb/blob/v0.1.0-rc.16/docs/TESTS.md) · [Analisi e limiti della candidata diagnostica](https://github.com/9gabri/porto-iphone-usb/blob/v0.1.0-rc.16/docs/REVIEW-RC16.md) · [Guida iPhone](https://github.com/9gabri/porto-iphone-usb/blob/v0.1.0-rc.16/docs/PHONES-AND-ALBUMS.md)
