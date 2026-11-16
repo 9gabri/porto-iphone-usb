@@ -71,7 +71,9 @@ internal static class Rc8MediaTests
                 new("prefix-only","dcim","IMG_E1234_holiday.MOV",MediaKind.Video,100),
                 new("elsewhere","other","IMG_1234.MOV",MediaKind.Video,100),
                 new("video-image-name","dcim","IMG_5678.HEIC",MediaKind.Video,100),
-                new("conflicting","dcim","IMG_5678.MOV",MediaKind.Video,100)];
+                new("conflicting","dcim","IMG_5678.MOV",MediaKind.Video,100),
+                new("format-video-image-name","dcim","IMG_6789.HEIC",MediaKind.Unknown,100,Format:"b9820000"),
+                new("format-conflicting","dcim","IMG_6789.MOV",MediaKind.Video,100)];
             var hints=MediaInspector.SuspectedCompanions(items);
             Fixtures.Check(hints.Count==2&&hints.ContainsKey("paired")&&hints.ContainsKey("edited"));
             Fixtures.Check(hints.Values.All(v=>v.Contains("dopo la verifica",StringComparison.Ordinal)&&!v.Contains("non importato",StringComparison.Ordinal)));

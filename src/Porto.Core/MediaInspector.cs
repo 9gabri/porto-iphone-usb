@@ -25,7 +25,7 @@ public static partial class MediaInspector
     public static Dictionary<string,string> SuspectedCompanions(IEnumerable<SourceItem> items)
     {
         var photos = new HashSet<string>(items.Where(i=>i.Kind==MediaKind.Image||
-            i.Kind is MediaKind.Other or MediaKind.Unknown&&ImageExtensions.Contains(Path.GetExtension(i.Name)))
+            i.Kind is MediaKind.Other or MediaKind.Unknown&&!Candidate(i)&&ImageExtensions.Contains(Path.GetExtension(i.Name)))
             .Select(Key),StringComparer.OrdinalIgnoreCase);
         Dictionary<string,string> result=[];
         foreach(var i in items.Where(Candidate))
