@@ -100,7 +100,7 @@ internal sealed class AppleAfcFileSystem(Stream stream,Stream? session=null,IDis
         if(values.Length%2!=0)throw ApplePlist.Bad();var result=new Dictionary<string,string>(StringComparer.Ordinal);
         for(int i=0;i<values.Length;i+=2)if(values[i].Length==0||!result.TryAdd(values[i],values[i+1]))throw ApplePlist.Bad();return result;
     }
-    private static ulong Status((ulong Operation,byte[] Data) reply)=>reply.Data.Length==8?BinaryPrimitives.ReadUInt64LittleEndian(reply.Data):throw ApplePlist.Bad();
+    private ulong Status((ulong Operation,byte[] Data) reply)=>reply.Data.Length==8?BinaryPrimitives.ReadUInt64LittleEndian(reply.Data):throw Poison();
     private static IOException StatusError(ulong status)=>new($"L'iPhone non rende disponibile la risorsa Foto (AFC {status}).");
     private IOException Poison(){poisoned=true;Dispose();return ApplePlist.Bad();}
     private void Check(){if(disposed||poisoned)throw new SourceUnavailableException("Sessione Apple non più utilizzabile; ripeti l'inventario.");}

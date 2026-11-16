@@ -161,7 +161,7 @@ public sealed class MainForm:Form
                     ShowResult(new ImportReport{SelectedGallery=true,SelectedVideoCount=5,CandidateCount=5,
                         GalleryCoverage=new("Catalogo Foto osservato; completezza della libreria non certificata.",0,5,1,2,3),
                         Status="Selezione della galleria incompleta: un originale non è disponibile sul telefono."});
-                    if(!summary.Text.Contains("Non risolti: 1",StringComparison.Ordinal)||counts.Text.Contains("Risorse USB",StringComparison.Ordinal))throw new InvalidOperationException("Conteggi Foto non distinti da file USB.");
+                    if(!summary.Text.Contains("Non risolti all'inizio: 1",StringComparison.Ordinal)||counts.Text.Contains("Risorse USB",StringComparison.Ordinal))throw new InvalidOperationException("Conteggi Foto non distinti da file USB.");
                 }
                 await Task.Delay(350);if(Width<700||Height<550)throw new InvalidOperationException("UI smoke dimensions invalid");
                 foreach(var button in new[]{start,pause,resume,reportButton})
@@ -355,7 +355,7 @@ public sealed class MainForm:Form
             bytes.Text=$"Nuove copie: {report.CurrentCount(Outcome.Imported):N0} · Già presenti verificate: {report.CurrentCount(Outcome.AlreadyPresent):N0}";
             detail.Text=report.GalleryCoverage?.Note??"Lettura del catalogo Foto non completata.";
             summary.Text=$"Pendenti: {report.CurrentCount(Outcome.Pending)} · Mancanti: {report.CurrentCount(Outcome.Missing)} · Ambigui: {report.CurrentCount(Outcome.Ambiguous)} · Errori: {report.CurrentCount(Outcome.Error)}\nCopie precedenti non riutilizzate: {report.PreviousCopies.Count(c=>!c.ReusedForSelection):N0} (conservate). Storico da verificare: {report.HistoricalCount}.";
-            if(report.GalleryCoverage is {} coverage)summary.Text+=$"\nEsclusi dal catalogo: {coverage.HiddenExcluded:N0} nascosti · {coverage.DeletedExcluded:N0} eliminati di recente. Non risolti: {coverage.Unresolved:N0}.";
+            if(report.GalleryCoverage is {} coverage)summary.Text+=$"\nEsclusi dal catalogo iniziale: {coverage.HiddenExcluded:N0} nascosti · {coverage.DeletedExcluded:N0} eliminati di recente. Non risolti all'inizio: {coverage.Unresolved:N0}.";
             return;
         }
         if(report.SelectedFolder)

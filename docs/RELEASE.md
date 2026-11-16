@@ -1,13 +1,17 @@
-# Porto 0.1.0-rc.12
+# Porto 0.1.0-rc.13
 
-Corregge il rifiuto di foto JPEG che contengono dati aggiuntivi dopo la fine dell'immagine principale. In rc.11 un controllo troppo restrittivo poteva lasciare queste foto come ambigue nella cartella .porto, anche dopo il trasferimento e la verifica SHA-256.
+Candidata Windows 11 x64 per il collaudo iPhone, con runtime incluso. Non richiede un Mac né un'esportazione preliminare, ma richiede collegamento Apple e abbinamento già disponibili sul PC. Compatibilità con l'iPhone reale ancora da confermare.
 
-La correzione è nel lettore comune: vale per USB Android/iPhone, catalogo iPhone e cartella locale, senza riconoscimenti per marca o modello. Porto controlla la struttura JPEG principale e conserva l'intero file senza conversioni. I dati aggiuntivi non sono interpretati né dichiarati strutturalmente verificati; il loro numero di byte è indicato nel report anche quando la copia viene riutilizzata. Non vengono estratti video da foto animate o certificate funzioni HDR/Motion.
+Correzioni verificate:
+- Un elemento scomparso tra tentativi automatici non permette più di dichiarare riuscita una selezione ridotta; copie e lavoro precedente restano conservati.
+- Le risposte AFC malformate invalidano il collegamento, invece di lasciarlo apparentemente utilizzabile.
+- Un journal SQLite PERSIST già concluso non blocca automaticamente la lettura; journal attivi, incerti o mutevoli restano rifiutati.
+- Stati di visibilità non riconosciuti nel catalogo rimangono conteggiati e ambigui, senza aprire gli originali o attribuirli automaticamente a iCloud.
 
-Per completare una prova precedente: chiudi Porto, estrai il nuovo ZIP in una nuova cartella, seleziona lo stesso telefono/album, Foto e video e lo stesso Archivio PC. Premi Avvia importazione. Le copie integre vengono confrontate e riutilizzate; i temporanei prima rifiutati vengono riesaminati e, se accettati e corrispondenti alla sorgente, pubblicati come nuove copie. I vecchi .part e i file precedenti restano conservati.
+La correzione JPEG della rc.12 resta inclusa. Nessuna modifica al formato dei video, nessuna cancellazione o sovrascrittura delle copie precedenti. TLS invariato; nessun driver/servizio installato o protezione ridotta.
 
-Verifiche: 457/457 test ordinari, quattro prove del confezionamento, revisione indipendente e controllo in sola lettura dei 29 JPEG interessati. Recupero e riutilizzo senza duplicati verificati su un archivio sintetico di 77 elementi.
+Per aggiornare: chiudi Porto, estrai tutto lo ZIP in una cartella nuova e apri il nuovo Porto.exe. Per il primo collaudo scegli **iPhone · libreria Foto via USB**, Cerca dispositivi e poi **Un album della libreria Foto → Scegli album**: la ricerca del telefono, da sola, non prova l'accesso al catalogo. Prova **Solo video** su un piccolo album personale esistente e una destinazione di prova. Dopo il controllo passa alla selezione desiderata e all'archivio precedente, conservando .porto e report.
 
-Runtime incluso, nessun driver o servizio da installare tramite Porto, nessun costo. Eseguibile non firmato. Non è compatibilità universale né certificazione di assenza di bug; altri formati o problemi rimangono visibili. Restano i limiti della rc.11 per album, cloud e collegamento iPhone da collaudare.
+Restano limiti: schema iOS privato, originali solo cloud, album intelligenti/condivisi e formati non supportati. Variazioni di metadati o disponibilità durante i tentativi possono richiedere un nuovo avvio esplicito. Nessun numero fisso di video o compatibilità universale garantiti. Eseguibile non firmato commercialmente; non disattivare le protezioni Windows.
 
-[Test e limiti](https://github.com/9gabri/porto-iphone-usb/blob/v0.1.0-rc.12/docs/TESTS.md) · [Revisione](https://github.com/9gabri/porto-iphone-usb/blob/v0.1.0-rc.12/docs/REVIEW-RC12.md)
+[Verifiche effettive](https://github.com/9gabri/porto-iphone-usb/blob/v0.1.0-rc.13/docs/TESTS.md) · [Revisione indipendente](https://github.com/9gabri/porto-iphone-usb/blob/v0.1.0-rc.13/docs/REVIEW-RC13.md) · [Guida alla prima prova](https://github.com/9gabri/porto-iphone-usb/blob/v0.1.0-rc.13/docs/PHONES-AND-ALBUMS.md#prima-prova-iphone-rc13)

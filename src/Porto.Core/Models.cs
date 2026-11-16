@@ -34,6 +34,8 @@ public interface ISourceContext
 public interface IGallerySource : IVideoSource, ISourceContext
 {
     GalleryCoverage? Coverage { get; }
+    // Uncertain selected membership remains counted, but must not open the original.
+    string? SelectionUncertainty(SourceItem item) => null;
 }
 public sealed record GalleryCoverage(string Note, int Photos, int Videos, int Unresolved,
     int HiddenExcluded, int DeletedExcluded, bool AtomicSnapshotVerified = false);
@@ -58,6 +60,10 @@ public sealed class ImportReport
     public bool SelectedFolderVerified { get; set; }
     public bool SelectedGallery { get; init; }
     public bool GallerySelectionCopiesVerified { get; set; }
+    // Only the current automatic retry sequence consumes these observation keys.
+    // A new explicit session can legitimately select a changed gallery.
+    [System.Text.Json.Serialization.JsonIgnore]
+    internal HashSet<string> GalleryObservationKeys { get; } = new(StringComparer.Ordinal);
     public GalleryCoverage? GalleryCoverage { get; set; }
     public int ExcludedByMediaFilter { get; set; }
     public List<PreviousCopyComparison> PreviousCopies { get; } = [];

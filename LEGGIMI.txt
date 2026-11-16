@@ -1,4 +1,4 @@
-PORTO 0.1.0-rc.12 — CANDIDATA WINDOWS 11 x64
+PORTO 0.1.0-rc.13 — CANDIDATA WINDOWS 11 x64
 
 1. Chiudi Porto ed estrai TUTTO lo ZIP in una nuova cartella. Conserva le versioni precedenti e apri il nuovo Porto.exe.
 2. Collega e sblocca il telefono. Android: Trasferimento file. iPhone: computer già autorizzato e collegamento Apple già disponibile.
@@ -26,3 +26,5 @@ Guida: PHONES-AND-ALBUMS.md. Dettagli: GALLERY-IMPORT.md, TESTS.md, THIRD-PARTY-
 https://github.com/9gabri/porto-iphone-usb
 
 CORREZIONE rc.12: JPEG con dati aggiuntivi dopo la fine immagine. Tutti i byte sono conservati; il report indica la parte aggiuntiva non interpretata. Per recuperare una prova precedente scegli la stessa origine, Foto e video e lo stesso Archivio PC, poi Avvia importazione. I vecchi temporanei sono conservati; il recupero pubblica nuove copie verificate.
+
+REVISIONE rc.13: collegamento Apple e selezione controllati anche nei casi di risposta malformata, journal SQLite inattivo e variazioni fra tentativi. Stati di visibilità non riconosciuti restano ambigui, senza aprire gli originali. Prima prova iPhone: leggi gli album con iPhone · libreria Foto via USB, poi Solo video su una piccola selezione. Compatibilità reale ancora da confermare. Le copie precedenti restano conservate; se la libreria cambia durante la ripresa può servire un nuovo avvio esplicito.

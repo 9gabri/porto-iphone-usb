@@ -113,3 +113,12 @@ prova con il telefono. Nessun totale artificiale basato sui componenti Live Phot
 - [x] Regressione finale 457/457 e build senza avvisi/errori.
 - [x] Nuovo pacchetto pubblicato e riscaricato senza autenticazione: checksum/CRC, versione/contenuto, undici smoke e pagina pubblica verificati; rc.1–rc.11 invariati.
 - [ ] Importazione fisica rc.12 da completare con l'utente; nessuna compatibilità universale dichiarata.
+
+## rc.13 — revisione avversaria del percorso iPhone
+- [x] Stato effettivo, prerequisiti e separazione fra percorso WPD e catalogo Apple ricontrollati.
+- [x] Baseline del binario rc.12: 37/37 test Apple; nessun telefono o archivio personale consultato.
+- [x] Tre revisioni indipendenti: protocollo Apple, catalogo/selezione, archivio/ripresa.
+- [x] Riproduzioni prima delle correzioni, modifiche circoscritte e riesame indipendente.
+- [x] Verifiche integrate 479/479, incluse quattro prove estese e regressioni Android; dopo i chiarimenti testuali, 16/16 casi report e due smoke UI.
+- [ ] Nuovo pacchetto se necessario, pubblicazione e riscaricamento con checksum e avvio verificati.
+- [ ] Collaudo iPhone reale: collegamento, catalogo, video/Live Photo, copie e ripresa.

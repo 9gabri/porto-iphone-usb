@@ -177,3 +177,11 @@ ImportMedia governa candidatura e verifica in Engine/Session. Video resta il val
 ## rc.12 — conservazione delle code JPEG
 
 PhotoInspector.CheckJpeg restituisce il numero di byte successivi all'EOI primario. I controlli della struttura primaria restano invariati; la coda è opaca e non viene materializzata dal parser. MediaInspection.Detail distingue la struttura dell'immagine dal contenuto aggiuntivo. ImportEngine conserva il dettaglio anche per AlreadyPresent. Copia e SHA-256 riguardano sempre l'intero file; il recupero di Quarantined crea una nuova copia lasciando invariato il .part precedente. Nessun riconoscimento del produttore e nessuna estrazione automatica di video da foto.
+
+## rc.13 — confini Apple e selezione durante la ripresa
+
+AppleAfcFileSystem invalida l'intera sessione anche per payload STATUS di dimensione non valida. Uno status valido di risorsa mancante resta invece un errore locale al file. Il protocollo consente ancora soltanto stat, apertura in sola lettura, lettura e chiusura. Politica TLS invariata: certificato del dispositivo fissato all'abbinamento, autenticazione reciproca e algoritmi ammessi; i test distinguono la firma del certificato dalla firma dell'handshake.
+
+ImportSession mantiene in memoria le osservazioni della galleria nei propri tentativi automatici. Un'osservazione scomparsa produce un'incertezza sull'inventario; il relativo lavoro irrisolto resta corrente, senza passare silenziosamente nello storico. I nuovi avvii espliciti possono selezionare una libreria cambiata, con storico conservato e distinto. Le chiavi contengono l'intera osservazione: variazioni di metadati o disponibilità possono richiedere un nuovo avvio esplicito, anziché essere equiparate automaticamente a una lettura verificata.
+
+IGallerySource.SelectionUncertainty offre una motivazione per elementi selezionati non classificabili con certezza. Il motore li registra come Ambiguous prima di aprire la sorgente, conservando tipo e conteggio; non li presenta come file cloud mancanti. Nessuna nuova proprietà serializzata di SourceItem e nessuna migrazione delle sue chiavi.

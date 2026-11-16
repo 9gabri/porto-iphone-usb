@@ -1,13 +1,13 @@
-Porto 0.1.0-rc.12 — verifiche del 2026-11-16
-Build finale Release: 0 avvisi, 0 errori.
-Suite ordinaria finale dopo tutte le modifiche al codice: 457/457.
-Confezionamento: 4/4 prove passate.
-Baseline prima della correzione: integrazioni rc12 0/3; casi JPEG 3/6.
-Dopo la correzione: filtro photo 37/37, poi suite globale qui sotto.
-Controllo separato in sola lettura: 29/29 copie JPEG reali accettate dal nuovo lettore,
-29/29 rifiutate dal precedente; hash prima/dopo identici al report originale.
-Nessuna importazione reale eseguita durante questa verifica.
-Prove estese oltre 4 GiB: esecuzioni precedenti rc.11, non ripetute per rc.12.
+Porto 0.1.0-rc.13 — verifiche del 2026-11-16
+Build Release integrata: 0 avvisi, 0 errori. Suite integrata: 479/479 (475 ordinari + 4 estesi).
+Baseline rc.12: 37/37 Apple. Difetti riprodotti prima della correzione: dettagli in REVIEW-RC13.md.
+Dopo le correzioni: 49/49 Apple, 12/12 galleria; riesame indipendente completato.
+Dopo il solo chiarimento testuale dei conteggi iniziali: nuova build senza avvisi/errori,
+16/16 casi filtro report e due smoke UI (iPhone/USB). Nessun cambiamento logico ulteriore.
+Confezionamento: 4/4 prove passate. Nessun telefono o archivio personale usato.
+La prova hardware iPhone resta da effettuare. I tempi sintetici non predicono quelli USB.
+
+--- Suite integrata ---
 PASS copy and independently reread SHA256
 PASS truncation rejected
 PASS unexpected extra bytes rejected
@@ -432,6 +432,7 @@ PASS apple TLS uses ephemeral existing credentials and authenticates the pinned 
 PASS apple TLS rejects a different device certificate in memory
 PASS apple TLS rejects pinned server that does not request client authentication
 PASS apple TLS rejects SHA1 handshake signatures without reducing protection
+PASS apple TLS pinned SHA1 device certificate still requires SHA256 handshake signatures
 PASS apple TLS blocked handshake honors cancellation without credentials on disk
 PASS apple plist rejects duplicate keys external entities and malformed binary
 PASS apple binary plist shares repeated objects without materialization explosion
@@ -439,6 +440,8 @@ PASS apple mux validates framing and is cancellable without any network
 PASS apple AFC only reads file with mode one and validates every packet
 PASS apple AFC rejects forbidden paths malformed lengths and sequence drift
 PASS apple AFC malformed UTF8 metadata is normalized and poisons the session
+PASS apple AFC malformed status poisons stat open and read before another command
+PASS apple AFC valid per-file errors preserve the session and exact packet boundary
 PASS apple WAL verifies both checksum endiannesses and applies committed pages only
 PASS apple WAL rejects short header short frame and altered salt header
 PASS apple catalog distinguishes true video from Live Photo and preserves missing paths
@@ -459,10 +462,52 @@ PASS apple final recovery cancellation propagates without blaming the unopened f
 PASS apple final recoverable stat error preserves uncertain asset and copies healthy siblings
 PASS apple final poisoned stat failure aborts inventory instead of accepting partial siblings
 PASS apple capture rejects changing database and active rollback journal
+PASS apple rc13 capture reads committed native SQLite WAL with uncommitted tail
+PASS apple rc13 capture accepts settled native SQLite persist journal
+PASS apple rc13 capture rejects active unknown truncated or changing journal headers
+PASS apple rc13 visibility nonzero null and new states preserve membership without opening originals
+PASS apple rc13 visibility zero and missing-column profiles keep original selection identity
+PASS apple rc13 visibility uncertainty of excluded photos does not block video selection
+PASS apple rc13 visibility change rejects read recovery before opening original
+PASS apple rc13 visibility uncertainty is ambiguous while healthy video siblings copy
+PASS apple rc13 visibility change in final catalog prevents verified selection
 PASS gallery import unknown asset roles never become videos from filename extensions
 PASS gallery import selects true video and preserves old Live Photo copies
 PASS gallery import empty chosen type reports no matches instead of failure
 PASS gallery import unresolved video remains counted and blocks verified selection
 PASS gallery import changed album membership prevents verified selection
 PASS gallery import retry continues past failed file without duplicating successful copy
-457/457 passed
+PASS gallery import retry cannot certify a smaller selection after a failed asset disappears
+PASS gallery import retry reports when an already copied asset disappears from the selection
+PASS gallery import retry retains an asset first observed only in the final inventory
+PASS gallery import empty retry cannot erase an earlier selected failure
+PASS gallery import source selection uncertainty is ambiguous without opening the original
+PASS gallery import temporarily disappeared asset can return and finish the same session
+  LARGE stream: 4294967313 bytes, 2,61s, working set 114 MiB
+PASS stream beyond 4 GiB: 4 GiB + 17 bytes actually read and hashed without disk allocation
+  LARGE inventory: 50000 items, 250 GB logical, 5,98s, working set 263 MiB
+PASS 50000-item inventory and 250 GB logical capacity without writing payload
+  STRESS full loop: 2000 physical files twice verified, 50000 entries, 393,96s, working set 271 MiB
+PASS 50000 inventory entries with 2000 actual copies and verified second pass
+  LARGE NTFS: 4294971392 bytes written and reread, 40,54s, working set 149 MiB
+PASS video over 4 GiB actually written verified and published on NTFS
+479/479 passed
+
+--- Report dopo il chiarimento testuale ---
+PASS corrupt completed copy is preserved and reported
+PASS truncation reports error and no final filename
+PASS Ready without either file is reported missing immediately
+PASS final USB missing WPD registration reports the Windows component instead of phone trust
+PASS final USB eof during Read reports session loss before blaming the next healthy file
+PASS final USB native-session during Read reports session loss before blaming the next healthy file
+PASS failed atomic report writes expose no partial final file
+PASS process termination during report write leaves only a temporary file
+PASS report JSON and text are published complete
+PASS rc8 copied additional resource report explains photo pairing and edited-name evidence: True/False
+PASS rc8 copied additional resource report explains photo pairing and edited-name evidence: False/True
+PASS rc8 copied additional resource report explains photo pairing and edited-name evidence: True/True
+PASS folder source reports a lost root as incomplete instead of silently empty
+PASS folder source reports unreadable files and keeps readable siblings
+PASS gallery import empty chosen type reports no matches instead of failure
+PASS gallery import retry reports when an already copied asset disappears from the selection
+16/16 passed

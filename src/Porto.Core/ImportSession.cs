@@ -17,6 +17,7 @@ public sealed class ImportSession(Func<IVideoSource> createSource, Destination d
         var retryVisited=new List<RetryHint>();
         var seenFailures=new HashSet<RetryHint>();
         var seenVisits=new HashSet<RetryHint>();
+        var galleryObservationKeys=new HashSet<string>(StringComparer.Ordinal);
         int? recoveryBudget=null;
         for(int attempt=1;;attempt++)
         {
@@ -25,8 +26,10 @@ public sealed class ImportSession(Func<IVideoSource> createSource, Destination d
             using(var source=createSource())
             {
                 var engine=new ImportEngine(source,destination,disk)
-                    {Progress=Progress,Attempt=attempt,RetryLast=retryLast,RetryVisited=retryVisited,Media=Media};
+                    {Progress=Progress,Attempt=attempt,RetryLast=retryLast,RetryVisited=retryVisited,Media=Media,
+                        PriorGallerySelectionKeys=galleryObservationKeys};
                 latest=engine.Run(deep,cancel);ReportPath=engine.ReportPath;
+                galleryObservationKeys.UnionWith(latest.GalleryObservationKeys);
             }
             if(recoveryBudget==null&&latest.UsbEnumerationComplete)
                 recoveryBudget=Math.Clamp(latest.CandidateCount,0,MaximumRecoverySegments);

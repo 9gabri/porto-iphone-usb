@@ -170,6 +170,134 @@ internal static class AppleGalleryTests
             var journal=new MemoryFiles(first);journal.Files["/PhotoData/Photos.sqlite-journal"]=[1];
             Fixtures.Throws<IOException>(()=>AppleCatalogCapture.Read(journal,default));
         }));
+        tests.Add(("apple rc13 capture reads committed native SQLite WAL with uncommitted tail",()=>
+        {
+            var (database,journal)=JournalDatabase(true);
+            var fs=new MemoryFiles(database);fs.Files["/PhotoData/Photos.sqlite-wal"]=journal;
+            var catalog=AppleCatalogCapture.Read(fs,default);
+            Fixtures.Check(catalog.Albums.Single().Name=="Committed native WAL"&&catalog.VisibleVideoCount==1);
+            Fixtures.Check(!catalog.AtomicSnapshotVerified);
+        }));
+        tests.Add(("apple rc13 capture accepts settled native SQLite persist journal",()=>
+        {
+            var (database,journal)=JournalDatabase(false);
+            Fixtures.Check(journal.Length>28&&journal.AsSpan(0,28).IndexOfAnyExcept((byte)0)<0);
+            var fs=new MemoryFiles(database);fs.Files["/PhotoData/Photos.sqlite-journal"]=journal;
+            var catalog=AppleCatalogCapture.Read(fs,default);
+            Fixtures.Check(catalog.Albums.Single().Name=="Committed native journal");
+        }));
+        tests.Add(("apple rc13 capture rejects active unknown truncated or changing journal headers",()=>
+        {
+            byte[] active=new byte[28];new byte[]{0xd9,0xd5,0x05,0xf9,0x20,0xa1,0x63,0xd7}.CopyTo(active,0);
+            byte[] unknown=new byte[28];unknown[27]=1;
+            foreach(byte[] header in new[]{active,unknown,new byte[27]})
+            {
+                var fs=new MemoryFiles(Database());fs.Files["/PhotoData/Photos.sqlite-journal"]=header;
+                Fixtures.Throws<IOException>(()=>AppleCatalogCapture.Read(fs,default));
+            }
+            var changing=new MemoryFiles(Database()){OnOpen=(path,count)=>path.EndsWith("-journal",StringComparison.Ordinal)&&count>1?active:null};
+            changing.Files["/PhotoData/Photos.sqlite-journal"]=new byte[28];
+            Fixtures.Throws<IOException>(()=>AppleCatalogCapture.Read(changing,default));
+        }));
+        tests.Add(("apple rc13 visibility nonzero null and new states preserve membership without opening originals",()=>
+        {
+            foreach(string state in new[]{"2","999","NULL"})
+            {
+                var fs=new MemoryFiles(Database("ALTER TABLE ZASSET ADD COLUMN ZVISIBILITYSTATE INTEGER DEFAULT 0; UPDATE ZASSET SET ZVISIBILITYSTATE="+state+" WHERE Z_PK=1;"));
+                fs.Files["/DCIM/100APPLE/IMG_1.HEIC"]=[1,2,3];
+                using var source=new AppleGallerySource(new("synthetic-device","Synthetic"),"album-one",_=>fs,ImportMedia.Photos);
+                var inventory=source.Inventory(default);var uncertain=inventory.Items.Single(i=>i.PersistentId=="photo-live");
+                Fixtures.Check(inventory.Items.Count==2&&uncertain.Kind==MediaKind.Image&&uncertain.Offline&&source.Coverage!.Unresolved==2);
+                Fixtures.Check(source.CurrentCatalog!.Select("album-one").Count==2&&source.CurrentCatalog.UnresolvedAssetCount==3);
+                Fixtures.Check(inventory.Errors.Any(error=>error.Contains("visibilità",StringComparison.Ordinal))&&source.CurrentCatalog.ScopeNote.Contains("1 elementi",StringComparison.Ordinal));
+                Fixtures.Check(!fs.Stats.Any(path=>path.StartsWith("/DCIM/",StringComparison.Ordinal)));
+                Fixtures.Throws<IOException>(()=>source.OpenRead(uncertain,default));
+            }
+        }));
+        tests.Add(("apple rc13 visibility zero and missing-column profiles keep original selection identity",()=>
+        {
+            SourceItem ReadVideo(string extra)
+            {
+                var fs=new MemoryFiles(Database("DELETE FROM ZASSET WHERE Z_PK=4;"+extra));fs.Files["/DCIM/100APPLE/IMG_2.MOV"]=[1,2,3];
+                using var source=new AppleGallerySource(new("synthetic-device","Synthetic"),null,_=>fs,ImportMedia.Videos);
+                var inventory=source.Inventory(default);Fixtures.Check(inventory.EnumerationComplete&&source.Coverage!.Unresolved==0);
+                if(extra.Length==0)Fixtures.Check(source.CurrentCatalog!.ScopeNote.Contains("Indicatore di visibilità non disponibile",StringComparison.Ordinal));
+                return inventory.Items.Single(i=>i.Kind==MediaKind.Video);
+            }
+            Fixtures.Check(ReadVideo("")==ReadVideo("ALTER TABLE ZASSET ADD COLUMN ZVISIBILITYSTATE INTEGER DEFAULT 0;"));
+        }));
+        tests.Add(("apple rc13 visibility uncertainty of excluded photos does not block video selection",()=>
+        {
+            var fs=new MemoryFiles(Database("DELETE FROM ZASSET WHERE Z_PK=4; ALTER TABLE ZASSET ADD COLUMN ZVISIBILITYSTATE INTEGER DEFAULT 0; UPDATE ZASSET SET ZVISIBILITYSTATE=2 WHERE ZKIND=0;"));
+            fs.Files["/DCIM/100APPLE/IMG_2.MOV"]=[1,2,3];
+            using var source=new AppleGallerySource(new("synthetic-device","Synthetic"),null,_=>fs,ImportMedia.Videos);
+            var inventory=source.Inventory(default);
+            Fixtures.Check(inventory.EnumerationComplete&&inventory.Errors.Count==0&&source.Coverage!.Unresolved==0);
+            Fixtures.Check(fs.Stats.Count(path=>path.StartsWith("/DCIM/",StringComparison.Ordinal))==1);
+        }));
+        tests.Add(("apple rc13 visibility change rejects read recovery before opening original",()=>
+        {
+            int connections=0;MemoryFiles? latest=null;
+            using var source=new AppleGallerySource(new("synthetic-device","Synthetic"),null,_=>
+            {
+                latest=new MemoryFiles(Database("DELETE FROM ZASSET WHERE Z_PK=4; ALTER TABLE ZASSET ADD COLUMN ZVISIBILITYSTATE INTEGER DEFAULT 0;"+
+                    (++connections>1?"UPDATE ZASSET SET ZVISIBILITYSTATE=2 WHERE Z_PK=2;":"")));
+                latest.Files["/DCIM/100APPLE/IMG_2.MOV"]=[1,2,3];return latest;
+            },ImportMedia.Videos);
+            var item=source.Inventory(default).Items.Single(i=>i.Kind==MediaKind.Video);source.InvalidateRead();
+            Fixtures.Throws<PreviousReadCleanupException>(()=>source.OpenRead(item,default));
+            Fixtures.Check(connections==2&&!latest!.Opened.Any(path=>path.StartsWith("/DCIM/",StringComparison.Ordinal)));
+        }));
+        tests.Add(("apple rc13 visibility uncertainty is ambiguous while healthy video siblings copy",()=>
+        {
+            var fs=VideoFiles(ThreeVideosWithVisibility(),Fixtures.Video(714));
+            using var source=new AppleGallerySource(new("synthetic-device","Synthetic"),null,_=>fs,ImportMedia.Videos);
+            using var destination=new Destination(Fixtures.Root());
+            var report=new ImportEngine(source,destination){Media=ImportMedia.Videos}.Run(false,default);
+            Fixtures.Check(report.CandidateCount==3&&report.CurrentCount(Outcome.Imported)==2&&report.CurrentCount(Outcome.Ambiguous)==1&&report.CurrentCount(Outcome.Missing)==0);
+            Fixtures.Check(report.GalleryCoverage?.Unresolved==1&&!report.GallerySelectionCopiesVerified&&!report.EntireLibraryVerified);
+            Fixtures.Check(report.InventoryErrors.Any(error=>error.Contains("visibilità",StringComparison.Ordinal))&&!fs.Opened.Any(path=>path.EndsWith("IMG_2.MOV",StringComparison.Ordinal)));
+            Fixtures.Check(report.Items.Any(item=>item.Outcome==Outcome.Ambiguous&&item.Detail.Contains("Visibilità",StringComparison.Ordinal)));
+        }));
+        tests.Add(("apple rc13 visibility change in final catalog prevents verified selection",()=>
+        {
+            int connections=0;
+            using var source=new AppleGallerySource(new("synthetic-device","Synthetic"),null,_=>
+                VideoFiles(ThreeVideosWithVisibility(++connections==1?0:2),Fixtures.Video(715)),ImportMedia.Videos);
+            using var destination=new Destination(Fixtures.Root());
+            var report=new ImportEngine(source,destination){Media=ImportMedia.Videos}.Run(false,default);
+            Fixtures.Check(report.CurrentCount(Outcome.Imported)==3&&!report.FinalInventoryChecked&&!report.GallerySelectionCopiesVerified&&!report.EntireLibraryVerified);
+            Fixtures.Check(report.InventoryErrors.Any(error=>error.Contains("visibilità",StringComparison.Ordinal)));
+        }));
+    }
+
+    private static byte[] ThreeVideosWithVisibility(int state=2)=>Database("DELETE FROM ZASSET WHERE Z_PK=4; INSERT INTO ZASSET VALUES(7,'second-video','DCIM/100APPLE','IMG_7.MOV',1,0,0,0),(8,'third-video','DCIM/100APPLE','IMG_8.MOV',1,0,0,0); ALTER TABLE ZASSET ADD COLUMN ZVISIBILITYSTATE INTEGER DEFAULT 0; UPDATE ZASSET SET ZVISIBILITYSTATE="+state+" WHERE Z_PK=2;");
+
+    private static (byte[] Database,byte[] Journal) JournalDatabase(bool wal)
+    {
+        string path=Path.Combine(Path.GetTempPath(),"porto-apple-native-journal-"+Guid.NewGuid().ToString("N")+".sqlite");
+        nint db=0;
+        try
+        {
+            File.WriteAllBytes(path,Database());
+            Fixtures.Check(Native.sqlite3_open_v2(path,out db,6,0)==0);
+            string sql=wal?
+                "PRAGMA journal_mode=WAL; PRAGMA wal_autocheckpoint=0; UPDATE ZGENERICALBUM SET ZTITLE='Committed native WAL'; PRAGMA cache_size=1; BEGIN IMMEDIATE; UPDATE ZGENERICALBUM SET ZTITLE='Uncommitted'; CREATE TABLE UNCOMMITTED_DATA(B BLOB); INSERT INTO UNCOMMITTED_DATA VALUES(zeroblob(65536));":
+                "PRAGMA journal_mode=PERSIST; UPDATE ZGENERICALBUM SET ZTITLE='Committed native journal';";
+            Fixtures.Check(Native.sqlite3_exec(db,sql,0,0,out var error)==0);
+            if(error!=0)Native.sqlite3_free(error);
+            byte[] ReadShared(string file)
+            {
+                using var input=new FileStream(file,FileMode.Open,FileAccess.Read,FileShare.ReadWrite);
+                using var output=new MemoryStream();input.CopyTo(output);return output.ToArray();
+            }
+            return(ReadShared(path),ReadShared(path+(wal?"-wal":"-journal")));
+        }
+        finally
+        {
+            if(db!=0)Native.sqlite3_close(db);
+            foreach(string suffix in new[]{"","-wal","-shm","-journal"})File.Delete(path+suffix);
+        }
     }
 
     private sealed class MemoryFiles(byte[] database) : IAppleFileSystem

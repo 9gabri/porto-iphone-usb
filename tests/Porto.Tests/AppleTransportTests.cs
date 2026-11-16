@@ -18,6 +18,10 @@ internal static class AppleTransportTests
         tests.Add(("apple TLS rejects a different device certificate in memory",()=>TlsTest(true)));
         tests.Add(("apple TLS rejects pinned server that does not request client authentication",()=>TlsTest(false,false)));
         tests.Add(("apple TLS rejects SHA1 handshake signatures without reducing protection",()=>TlsTest(false,true,true)));
+        tests.Add(("apple TLS pinned SHA1 device certificate still requires SHA256 handshake signatures",()=>
+        {
+            TlsTest(false,legacyCertificate:true);TlsTest(false,true,true,legacyCertificate:true);
+        }));
         tests.Add(("apple TLS blocked handshake honors cancellation without credentials on disk",()=>
         {
             using var key=RSA.Create(2048);var request=new System.Security.Cryptography.X509Certificates.CertificateRequest("CN=Synthetic",key,HashAlgorithmName.SHA256,RSASignaturePadding.Pkcs1);
@@ -84,6 +88,37 @@ internal static class AppleTransportTests
             using var wire=new ScriptedStream(Packet(1,2,[0xff,0]));using var fs=new AppleAfcFileSystem(wire);
             Fixtures.Throws<IOException>(()=>fs.Stat("/PhotoData/Photos.sqlite",default));Fixtures.Check(!fs.IsUsable);
         }));
+        tests.Add(("apple AFC malformed status poisons stat open and read before another command",()=>
+        {
+            foreach(int operation in new[]{10,13,15})
+            foreach(int length in new[]{0,7,9})
+            {
+                byte[] malformed=Packet(operation==15?2UL:1UL,1,new byte[length]);
+                using var wire=new ScriptedStream(operation==15?[..Packet(1,14,U64(42)),..malformed]:malformed);
+                using var fs=new AppleAfcFileSystem(wire);
+                if(operation==10)Fixtures.Throws<IOException>(()=>fs.Stat("/PhotoData/Photos.sqlite",default));
+                else if(operation==13)Fixtures.Throws<IOException>(()=>fs.OpenRead("/DCIM/100APPLE/IMG_1.MOV",default));
+                else
+                {
+                    using var input=fs.OpenRead("/DCIM/100APPLE/IMG_1.MOV",default);
+                    Fixtures.Throws<IOException>(()=>input.ReadByte());
+                    Fixtures.Check(!fs.IsUsable);
+                }
+                Fixtures.Check(!fs.IsUsable);
+                long sent=wire.Sent.Length;
+                Fixtures.Throws<IOException>(()=>fs.Stat("/PhotoData/Photos.sqlite",default));
+                Fixtures.Check(wire.Sent.Length==sent);
+            }
+        }));
+        tests.Add(("apple AFC valid per-file errors preserve the session and exact packet boundary",()=>
+        {
+            byte[] stat=Encoding.UTF8.GetBytes("st_size\0"+"3\0st_mtime\0"+"1\0st_ifmt\0S_IFREG\0");
+            using var wire=new ScriptedStream([..Packet(1,1,U64(8)),..Packet(2,1,U64(10)),..Packet(3,2,stat)]);
+            using var fs=new AppleAfcFileSystem(wire);
+            Fixtures.Check(fs.Stat("/DCIM/100APPLE/IMG_1.MOV",default)==null&&fs.IsUsable);
+            Fixtures.Throws<IOException>(()=>fs.Stat("/DCIM/100APPLE/IMG_2.MOV",default));
+            Fixtures.Check(fs.IsUsable&&fs.Stat("/DCIM/100APPLE/IMG_3.MOV",default)==new AppleFileInfo(3,"1",true));
+        }));
         tests.Add(("apple WAL verifies both checksum endiannesses and applies committed pages only",()=>
         {
             byte[] db=AppleGalleryTests.Database();
@@ -104,7 +139,7 @@ internal static class AppleTransportTests
             wal[16]^=1;Fixtures.Throws<IOException>(()=>AppleSqliteImage.ApplyWal((byte[])db.Clone(),wal,default));
         }));
     }
-    private static void TlsTest(bool wrongPeer,bool requestClient=true,bool weakSignature=false)
+    private static void TlsTest(bool wrongPeer,bool requestClient=true,bool weakSignature=false,bool legacyCertificate=false)
     {
         using var rootKey=RSA.Create(2048);using var deviceKey=RSA.Create(2048);
         var rootRequest=new System.Security.Cryptography.X509Certificates.CertificateRequest("CN=Synthetic Apple Root",rootKey,HashAlgorithmName.SHA256,RSASignaturePadding.Pkcs1);
@@ -112,7 +147,17 @@ internal static class AppleTransportTests
         using var generatedRoot=rootRequest.CreateSelfSigned(DateTimeOffset.UtcNow.AddMinutes(-1),DateTimeOffset.UtcNow.AddHours(1));
         using var root=X509Certificate2.CreateFromPem(generatedRoot.ExportCertificatePem(),rootKey.ExportPkcs8PrivateKeyPem());
         var deviceRequest=new System.Security.Cryptography.X509Certificates.CertificateRequest("CN=Synthetic Device",deviceKey,HashAlgorithmName.SHA256,RSASignaturePadding.Pkcs1);
-        using var device=deviceRequest.CreateSelfSigned(DateTimeOffset.UtcNow.AddMinutes(-1),DateTimeOffset.UtcNow.AddHours(1));
+        deviceRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(false,false,0,true));
+        deviceRequest.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature|X509KeyUsageFlags.KeyEncipherment,true));
+        using var generatedDevice=deviceRequest.Create(root,DateTimeOffset.UtcNow.AddMinutes(-1),DateTimeOffset.UtcNow.AddMinutes(30),[1]);
+        byte[] deviceDer=generatedDevice.RawData;
+        if(legacyCertificate)
+        {
+            var generator=new Org.BouncyCastle.X509.X509V3CertificateGenerator(new Org.BouncyCastle.X509.X509CertificateParser().ReadCertificate(deviceDer));
+            deviceDer=generator.Generate(new Org.BouncyCastle.Crypto.Operators.Asn1SignatureFactory("SHA1WITHRSA",AppleTls.PrivateKey(root))).GetEncoded();
+        }
+        using var device=X509Certificate2.CreateFromPem(PemEncoding.WriteString("CERTIFICATE",deviceDer),deviceKey.ExportPkcs8PrivateKeyPem());
+        Fixtures.Check(device.SignatureAlgorithm.Value==(legacyCertificate?"1.2.840.113549.1.1.5":"1.2.840.113549.1.1.11"));
         var first=Channel.CreateBounded<byte[]>(16);var second=Channel.CreateBounded<byte[]>(16);
         using var clientStream=new DuplexStream(first.Reader,second.Writer);using var serverStream=new DuplexStream(second.Reader,first.Writer);
         var serverProtocol=new TlsServerProtocol();var serverConfig=new SyntheticTlsServer(device,root.RawData,requestClient,weakSignature);

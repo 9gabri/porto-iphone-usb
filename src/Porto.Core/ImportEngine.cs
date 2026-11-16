@@ -12,6 +12,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
     public ImportMedia Media { get; init; } = ImportMedia.Videos;
     public IReadOnlyList<RetryHint> RetryLast { get; init; } = [];
     public IReadOnlyList<RetryHint> RetryVisited { get; init; } = [];
+    internal IReadOnlySet<string> PriorGallerySelectionKeys { get; init; } = new HashSet<string>(StringComparer.Ordinal);
     private long? totalBytes;
     private long copied;
     private int done,total;
@@ -59,6 +60,12 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
             ledger.Observe(observed.Where(NeedsTracking),runId+"-initial");
             report.UsbEnumerationComplete=inventory.EnumerationComplete;
             report.InventoryErrors=inventory.Errors;
+            if(gallery!=null)
+            {
+                report.GalleryObservationKeys.UnionWith(observedKeys);
+                if(!PriorGallerySelectionKeys.IsSubsetOf(observedKeys))
+                    report.InventoryErrors.Add("La selezione della galleria è cambiata durante i tentativi automatici: alcuni elementi osservati prima non sono più presenti. Le copie e il lavoro precedente sono conservati; verifica la selezione prima di avviare un nuovo passaggio.");
+            }
             // Save the inventory result before any transfer. Each item has an explicit pending category.
             catalog.SaveReport(runId+"-inventory",new ImportReport{
                 SelectedFolder=folderSelection,SelectedGallery=gallery!=null,GalleryCoverage=report.GalleryCoverage,SourceDescription=report.SourceDescription,Media=Media,
@@ -184,6 +191,8 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                     }
                     continue;
                 }
+                if(gallery?.SelectionUncertainty(item) is { } uncertainty)
+                {report.Items.Add(new(item.Id,item.Name,Outcome.Ambiguous,uncertainty));done++;SaveProgress(item);continue;}
                 if(item.Offline){report.Items.Add(new(item.Id,item.Name,Outcome.Missing,"Originale segnalato non disponibile offline."));done++;SaveProgress(item);continue;}
                 Notify("Importazione",item.Name,true);
                 string sizeNote="";
@@ -354,6 +363,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
             Notify("Controllo finale", folderSelection?"Verifico che l’elenco della cartella non sia cambiato":gallery!=null?"Verifico di nuovo il catalogo e la selezione della galleria":"Verifico che l’elenco dei file USB non sia cambiato",true);
             var finalInventory=source.Inventory(cancel);
             currentKeys.UnionWith(finalInventory.Items.Where(NeedsTracking).Select(WorkLedger.Key));
+            if(gallery!=null)report.GalleryObservationKeys.UnionWith(currentKeys);
             report.FinalInventoryChecked=finalInventory.EnumerationComplete&&finalInventory.Errors.Count==0&&
                 inventory.Items.Select(WorkLedger.Key).Order(StringComparer.Ordinal).SequenceEqual(finalInventory.Items.Select(WorkLedger.Key).Order(StringComparer.Ordinal));
             if(!report.FinalInventoryChecked)
@@ -447,7 +457,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
             report.Items.RemoveAll(i=>i.Outcome==Outcome.Missing&&i.File!=null&&resolvedMissingFiles.Contains(i.File));
             foreach(var work in ledger.Unresolved())
                 if(processed.Add(WorkLedger.Key(work.Source)))report.Items.Add(new(work.Source.Id,work.Source.Name,work.Outcome,
-                    "Da completare o verificare: "+work.Detail,Historical:!currentKeys.Contains(WorkLedger.Key(work.Source))));
+                    "Da completare o verificare: "+work.Detail,Historical:IsHistorical(work.Source)));
             foreach(var requirement in ledger.Requirements())
                 if(verifiedCopies.TryGetValue(requirement.Content,out var copies)&&copies.Count<requirement.Count&&reportedDeficits.Add(requirement.Content))
                 {
@@ -457,7 +467,12 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                 }
             foreach(var conflict in ledger.Conflicts())
                 if(reportedConflicts.Add(WorkLedger.Key(conflict.Source)))
-                    report.Items.Add(new(conflict.Source.Id,conflict.Source.Name,Outcome.Ambiguous,conflict.Detail,Historical:!currentKeys.Contains(WorkLedger.Key(conflict.Source))));
+                    report.Items.Add(new(conflict.Source.Id,conflict.Source.Name,Outcome.Ambiguous,conflict.Detail,Historical:IsHistorical(conflict.Source)));
+        }
+        bool IsHistorical(SourceItem item)
+        {
+            string key=WorkLedger.Key(item);
+            return !currentKeys.Contains(key)&&(gallery==null||!PriorGallerySelectionKeys.Contains(key));
         }
     }
 

@@ -18,6 +18,7 @@ internal static partial class AppleCatalogDecoder
             if(!tables.TryAdd(row[0]!,row[2]!))throw BadSchema();
         }
         RequireTable(db,tables,"ZASSET",["Z_PK","ZUUID","ZDIRECTORY","ZFILENAME","ZKIND","ZKINDSUBTYPE","ZHIDDEN","ZTRASHEDSTATE"]);
+        bool hasVisibility=Columns(db,"ZASSET").Contains("ZVISIBILITYSTATE",StringComparer.Ordinal);
         RequireTable(db,tables,"ZGENERICALBUM",["Z_PK","ZUUID","ZTITLE","ZKIND","ZTRASHEDSTATE"]);
         var joins=tables.Keys.Where(n=>JoinTable().IsMatch(n)).Select(name=>(Name:name,Columns:Columns(db,name))).Where(t=>
             t.Columns.Count(c=>AlbumColumn().IsMatch(c))==1&&t.Columns.Count(c=>AssetColumn().IsMatch(c))==1).ToArray();
@@ -29,7 +30,7 @@ internal static partial class AppleCatalogDecoder
 
         var assets=new List<AppleAsset>();var knownAssets=new HashSet<long>();var visible=new Dictionary<long,AppleAsset>();
         var ids=new HashSet<string>(StringComparer.Ordinal);int hidden=0,trashed=0;
-        foreach(var row in db.Query("SELECT Z_PK,ZUUID,ZDIRECTORY,ZFILENAME,ZKIND,ZKINDSUBTYPE,ZHIDDEN,ZTRASHEDSTATE FROM ZASSET",1_000_000))
+        foreach(var row in db.Query("SELECT Z_PK,ZUUID,ZDIRECTORY,ZFILENAME,ZKIND,ZKINDSUBTYPE,ZHIDDEN,ZTRASHEDSTATE,"+(hasVisibility?"ZVISIBILITYSTATE":"NULL")+" FROM ZASSET",1_000_000))
         {
             cancel.ThrowIfCancellationRequested();
             long key=Number(row[0]);if(key<=0||!knownAssets.Add(key))throw BadSchema();
@@ -42,7 +43,10 @@ internal static partial class AppleCatalogDecoder
             MediaKind media=kind switch{0=>MediaKind.Image,1=>MediaKind.Video,_=>MediaKind.Unknown};
             string? path=OriginalPath(row[2],row[3]);
             string name=SafeFilename(row[3])?row[3]!:(media==MediaKind.Video?"Video senza originale":media==MediaKind.Image?"Foto senza originale":"Elemento Foto sconosciuto");
-            var asset=new AppleAsset(key,id,name,path,media,kind==0&&subtype==2);
+            // Nonzero values include non-displayable burst members in observed schemas. Preserve
+            // every uncertain row, without assigning universal semantics to private state values.
+            bool visibilityUnresolved=hasVisibility&&(row[8]==null||Number(row[8])!=0);
+            var asset=new AppleAsset(key,id,name,path,media,kind==0&&subtype==2,visibilityUnresolved);
             assets.Add(asset);visible.Add(key,asset);
         }
         var knownAlbums=new HashSet<long>();var userAlbums=new Dictionary<long,(string Id,string Name)>();var albumIds=new HashSet<string>(StringComparer.Ordinal);
@@ -87,7 +91,7 @@ internal static partial class AppleCatalogDecoder
             }
             albums.Add(new(album.Id,displayName,selection.Count,selection.Count(a=>a.Kind==MediaKind.Image),selection.Count(a=>a.Kind==MediaKind.Video)));
         }
-        return new(assets,albums.OrderBy(a=>a.Name,StringComparer.CurrentCulture).ToList(),members,hidden,trashed);
+        return new(assets,albums.OrderBy(a=>a.Name,StringComparer.CurrentCulture).ToList(),members,hidden,trashed,hasVisibility);
     }
     private static void RequireTable(AppleMemorySqlite db,Dictionary<string,string> tables,string name,string[] required)
     {

@@ -1,4 +1,4 @@
-# Telefoni, foto, video e album — rc.12
+# Telefoni, foto, video e album — rc.13
 
 Porto copia dal telefono al PC, senza cancellare o spostare gli originali. La nuova modalità iPhone legge il catalogo della libreria Foto; non richiede un'esportazione preliminare. È una candidata da collaudare: compatibilità reale non ancora confermata.
 
@@ -22,7 +22,19 @@ Le Live Photo sono trattate come immagini: con Solo video le componenti animate 
 
 Sono supportati gli album personali riconosciuti nel catalogo, non tutte le raccolte intelligenti/condivise. Nascosti ed Eliminati di recente sono esclusi con conteggi visibili. Gli originali presenti solo su iCloud non sono scaricati da Porto. Un catalogo non accessibile, oltre 512 MiB o con schema non riconosciuto blocca questa modalità; non viene sostituito con i file USB generici. La lettura del catalogo può richiedere tempo, ma non esplora tutte le cartelle del telefono.
 
+## Prima prova iPhone rc.13
+
+1. Apri la rc.13 sul PC Windows della cliente. Collega e sblocca il suo iPhone con un cavo dati; il computer deve essere già autorizzato e il collegamento Apple disponibile. Porto non installa componenti né crea l'abbinamento.
+2. Seleziona **Importa da → iPhone · libreria Foto via USB → Cerca dispositivi**. La comparsa del telefono prova soltanto la ricerca del dispositivo, non ancora l'accesso alla libreria.
+3. Seleziona **Un album della libreria Foto → Scegli album**. Questa operazione verifica anche la sessione Apple e la lettura del catalogo senza copiare foto o video. Se compare un errore, conserva il messaggio: non passare alla modalità USB generica per dichiarare risolto il problema delle Live Photo.
+4. Se disponibile, scegli un piccolo album personale esistente con video originali locali. Seleziona **Solo video** e una nuova cartella NTFS di prova. Le componenti animate delle Live Photo non devono essere importate come video. Se non c'è un album piccolo adatto, l'elenco degli album resta comunque una verifica preliminare; il trasferimento della selezione richiesta va ancora collaudato.
+5. Premi **Avvia importazione**, mantieni il telefono collegato e sbloccato e leggi l'esito. Un report incompleto o con elementi irrisolti non è un collaudo superato. Conferma anche che i video della piccola prova si aprano correttamente.
+6. Ripeti sulla stessa piccola selezione/destinazione: il risultato atteso è copie già presenti verificate, senza nuove copie. Poi passa alla galleria o all'album desiderato e all'archivio precedente della cliente, conservando `.porto`, report e tutte le copie esistenti.
+
+Un errore di lettura non certifica che un file sia in iCloud. Originali non disponibili, catalogo cambiato e problemi del collegamento sono segnalati distintamente quando il protocollo consente di determinarli. Nessun totale fisso è garantito, soprattutto se nel frattempo sono stati eliminati o modificati elementi nella libreria.
+
 ## Android e altri dispositivi USB
+
 
 1. Collega il telefono, sbloccalo e scegli **Trasferimento file** nella notifica USB, se disponibile.
 2. In Porto scegli **Importa da → Dispositivo USB · cartelle e raccolte → Cerca dispositivi**, poi il telefono.

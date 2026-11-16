@@ -23,7 +23,7 @@ public static class ReportWriter
             text.AppendLine($"Elementi candidati nella selezione del catalogo: {report.CandidateCount}; copie della selezione verificate: {(report.GallerySelectionCopiesVerified?"sì":"no")}");
             if(report.GalleryCoverage is {} coverage)
                 text.AppendLine(coverage.Note)
-                    .AppendLine($"Catalogo: foto {coverage.Photos}; video {coverage.Videos}; non risolti {coverage.Unresolved}; Nascosti esclusi {coverage.HiddenExcluded}; Eliminati di recente esclusi {coverage.DeletedExcluded}.")
+                    .AppendLine($"Catalogo iniziale: foto {coverage.Photos}; video {coverage.Videos}; non risolti {coverage.Unresolved}; Nascosti esclusi {coverage.HiddenExcluded}; Eliminati di recente esclusi {coverage.DeletedExcluded}.")
                     .AppendLine($"Snapshot atomico del catalogo verificato: {(coverage.AtomicSnapshotVerified?"sì":"no")}. Una lettura ripetuta non certifica l’intera libreria.");
             text.AppendLine("Live Photo: l’immagine è una foto; la componente animata non viene inclusa nella selezione Solo video. Gli originali non disponibili localmente restano pendenti/errori.")
                 .AppendLine($"Elementi esclusi dal filtro foto/video: {report.ExcludedByMediaFilter}. Nomi e identificatori degli elementi esclusi non sono salvati nell’inventario della galleria.")

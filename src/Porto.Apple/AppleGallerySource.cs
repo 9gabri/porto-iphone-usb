@@ -12,7 +12,7 @@ public sealed class AppleGallerySource : IGallerySource,IReadFailureRecovery
     private readonly Func<CancellationToken,IAppleFileSystem> connect;
     private readonly string sourceNamespace;
     private IAppleFileSystem? files;
-    private readonly Dictionary<string,(SourceItem Item,string? Path,AppleFileInfo? Info)> observed=new(StringComparer.Ordinal);
+    private readonly Dictionary<string,(SourceItem Item,string? Path,AppleFileInfo? Info,bool VisibilityUnresolved)> observed=new(StringComparer.Ordinal);
     private bool disposed;
     private bool needsRecovery;
     private bool recoveryBlocked;
@@ -38,14 +38,15 @@ public sealed class AppleGallerySource : IGallerySource,IReadFailureRecovery
         {
             var catalog=AppleCatalogCapture.Read(files,cancel);
             var selected=catalog.Select(albumId);
-            var errors=new List<string>();int unresolved=0;bool unavailableFound=false,unknownFound=false,metadataFailureFound=false;
+            var errors=new List<string>();int unresolved=0;bool unavailableFound=false,unknownFound=false,metadataFailureFound=false,visibilityFailureFound=false;
             foreach(var asset in selected)
             {
                 cancel.ThrowIfCancellationRequested();
                 bool relevant=asset.Kind==MediaKind.Unknown||asset.Kind==MediaKind.Image&&media!=ImportMedia.Videos||asset.Kind==MediaKind.Video&&media!=ImportMedia.Photos;
                 AppleFileInfo? info=null;
                 bool metadataFailed=false;
-                if(relevant&&asset.Path!=null)
+                bool visibilityFailed=relevant&&asset.VisibilityUnresolved;visibilityFailureFound|=visibilityFailed;
+                if(relevant&&!visibilityFailed&&asset.Path!=null)
                 {
                     try{info=files.Stat(asset.Path,cancel);}
                     catch(Exception error) when((error is IOException or UnauthorizedAccessException)&&files.IsUsable)
@@ -53,27 +54,30 @@ public sealed class AppleGallerySource : IGallerySource,IReadFailureRecovery
                         cancel.ThrowIfCancellationRequested();metadataFailed=true;metadataFailureFound=true;
                     }
                 }
-                bool unavailable=relevant&&(asset.Path==null||info==null||!info.IsFile);
-                bool cannotRead=unavailable||asset.Kind==MediaKind.Unknown;
-                if(relevant&&(unavailable||asset.Kind==MediaKind.Unknown))unresolved++;
+                bool unavailable=relevant&&!visibilityFailed&&(asset.Path==null||info==null||!info.IsFile);
+                bool cannotRead=unavailable||visibilityFailed||asset.Kind==MediaKind.Unknown;
+                if(relevant&&(unavailable||visibilityFailed||asset.Kind==MediaKind.Unknown))unresolved++;
                 unavailableFound|=unavailable&&!metadataFailed;unknownFound|=relevant&&asset.Kind==MediaKind.Unknown;
                 string id="asset:"+Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(asset.Id)));
                 string version=Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(
-                    (asset.Path??"unresolved")+"\0"+asset.LivePhoto+"\0"+(info?.Modification??(relevant?"unavailable":"excluded-media")))));
+                    (asset.Path??"unresolved")+"\0"+asset.LivePhoto+"\0"+(info?.Modification??(relevant?"unavailable":"excluded-media"))+(visibilityFailed?"\0visibility-unresolved":""))));
                 var item=new SourceItem(id,albumId??"gallery",asset.Name,asset.Kind,info?.Length,asset.Id,
                     "apple-original:"+version,cannotRead,sourceNamespace);
-                observed.Add(id,(item,asset.Path,info));
+                observed.Add(id,(item,asset.Path,info,visibilityFailed));
             }
             if(unavailableFound)errors.Add("Uno o più elementi selezionati del catalogo Foto non hanno un originale locale accessibile via USB; restano inclusi nella selezione.");
             if(metadataFailureFound)errors.Add("I metadati di uno o più originali Foto non sono verificabili. Gli elementi restano non risolti; la lettura degli altri originali prosegue.");
             if(unknownFound)errors.Add("Uno o più elementi Foto hanno un tipo non riconosciuto e non vengono classificati per estensione.");
+            if(visibilityFailureFound)errors.Add("Uno o più elementi Foto selezionati hanno visibilità non verificata nel catalogo: restano conteggiati come non risolti e non vengono copiati.");
             CurrentCatalog=catalog;
-            SourceDescription=device.Name+" — "+(albumId==null?"tutta la galleria Foto visibile":"album Foto: "+catalog.Albums.Single(a=>a.Id==albumId).Name);
+            SourceDescription=device.Name+" — "+(albumId==null?"tutta la galleria Foto osservata":"album Foto: "+catalog.Albums.Single(a=>a.Id==albumId).Name);
             Coverage=new(catalog.ScopeNote,media==ImportMedia.Videos?0:selected.Count(a=>a.Kind==MediaKind.Image),media==ImportMedia.Photos?0:selected.Count(a=>a.Kind==MediaKind.Video),unresolved,catalog.HiddenAssetCount,catalog.TrashedAssetCount);
             return new(observed.Values.Select(v=>v.Item).ToList(),errors,errors.Count==0);
         }
         catch{observed.Clear();files.Dispose();files=null;throw;}
     }
+    public string? SelectionUncertainty(SourceItem item)=>observed.TryGetValue(item.Id,out var entry)&&entry.Item==item&&entry.VisibilityUnresolved?
+        "Visibilità dell'elemento Foto non verificata nel catalogo; originale non aperto.":null;
     public Stream OpenRead(SourceItem item,CancellationToken cancel)
     {
         ObjectDisposedException.ThrowIf(disposed,this);cancel.ThrowIfCancellationRequested();
@@ -140,8 +144,9 @@ internal static class AppleCatalogCapture
         byte[]? db=null,wal=null,secondDb=null,secondWal=null,merged=null;
         try
         {
-            (db,wal)=Capture(files,deadline.Token);(secondDb,secondWal)=Capture(files,deadline.Token);
-            if(!db.AsSpan().SequenceEqual(secondDb)||!Same(wal,secondWal))throw new IOException("Il catalogo Foto è cambiato durante la lettura. Ripeti senza modificare la libreria.");
+            AppleFileInfo? firstJournal,secondJournal;
+            (db,wal,firstJournal)=Capture(files,deadline.Token);(secondDb,secondWal,secondJournal)=Capture(files,deadline.Token);
+            if(!db.AsSpan().SequenceEqual(secondDb)||!Same(wal,secondWal)||firstJournal!=secondJournal)throw new IOException("Il catalogo Foto è cambiato durante la lettura. Ripeti senza modificare la libreria.");
             CryptographicOperations.ZeroMemory(secondDb);secondDb=null;
             if(secondWal!=null){CryptographicOperations.ZeroMemory(secondWal);secondWal=null;}
             merged=AppleSqliteImage.ApplyWal(db,wal,deadline.Token);
@@ -153,11 +158,11 @@ internal static class AppleCatalogCapture
             foreach(var buffer in new[]{db,wal,secondDb,secondWal,merged})if(buffer!=null)CryptographicOperations.ZeroMemory(buffer);
         }
     }
-    private static (byte[] Database,byte[]? Wal) Capture(IAppleFileSystem files,CancellationToken cancel)
+    private static (byte[] Database,byte[]? Wal,AppleFileInfo? Journal) Capture(IAppleFileSystem files,CancellationToken cancel)
     {
         var info=files.Stat(Database,cancel)??throw new IOException("L'iPhone non espone il catalogo Foto tramite il servizio USB Apple. Nessun elenco di file viene sostituito agli album.");
         var walInfo=files.Stat(Database+"-wal",cancel);var journalInfo=files.Stat(Database+"-journal",cancel);
-        if(journalInfo is {Length:>0})throw new IOException("Catalogo Foto con journal attivo: lettura arrestata, riprova quando la libreria è stabile.");
+        ValidateInactiveJournal(files,journalInfo,cancel);
         if(!info.IsFile||info.Length<=0||info.Length>AppleSqliteImage.MaximumBytes||walInfo is {IsFile:false}||
            walInfo?.Length>AppleSqliteImage.MaximumBytes||info.Length+(walInfo?.Length??0)>AppleSqliteImage.MaximumBytes)
             throw new IOException("Catalogo Foto oltre il limite di 512 MiB in memoria o non leggibile come file regolare.");
@@ -166,12 +171,35 @@ internal static class AppleCatalogCapture
         {
             data=Read(files,Database,info.Length,cancel);
             if(walInfo!=null)wal=Read(files,Database+"-wal",walInfo.Length,cancel);
+            ValidateInactiveJournal(files,journalInfo,cancel);
             if(info!=files.Stat(Database,cancel)||walInfo!=files.Stat(Database+"-wal",cancel)||journalInfo!=files.Stat(Database+"-journal",cancel))
                 throw new IOException("Il catalogo Foto è cambiato durante l'acquisizione.");
-            return(data,wal);
+            return(data,wal,journalInfo);
         }
         catch{if(data!=null)CryptographicOperations.ZeroMemory(data);if(wal!=null)CryptographicOperations.ZeroMemory(wal);throw;}
     }
+    private static void ValidateInactiveJournal(IAppleFileSystem files,AppleFileInfo? info,CancellationToken cancel)
+    {
+        if(info==null)return;
+        if(!info.IsFile||info.Length<0||info.Length>AppleSqliteImage.MaximumBytes)throw JournalUnavailable();
+        if(info.Length==0)return;
+        if(info.Length<28)throw JournalUnavailable();
+        // SQLite PERSIST commits by zeroing its complete 28-byte rollback-journal header.
+        // Other nonempty headers remain unsupported; no rollback or on-device write is attempted.
+        byte[] header=new byte[28];
+        try
+        {
+            using var input=files.OpenRead(Database+"-journal",cancel);int offset=0;
+            while(offset<header.Length)
+            {
+                cancel.ThrowIfCancellationRequested();int read=input.Read(header,offset,header.Length-offset);
+                if(read==0)throw JournalUnavailable();offset+=read;
+            }
+            if(header.AsSpan().IndexOfAnyExcept((byte)0)>=0)throw JournalUnavailable();
+        }
+        finally{CryptographicOperations.ZeroMemory(header);}
+    }
+    private static IOException JournalUnavailable()=>new("Catalogo Foto con journal attivo o non verificabile: lettura arrestata, riprova quando la libreria è stabile.");
     private static byte[] Read(IAppleFileSystem files,string path,long length,CancellationToken cancel)
     {
         byte[] result=new byte[checked((int)length)];

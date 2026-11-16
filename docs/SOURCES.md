@@ -105,3 +105,14 @@ Le fonti e le distinzioni fra protocolli, fatti osservati e inferenze sono racco
 - [Android Ultra HDR image format](https://developer.android.com/media/platform/hdr-image-format): immagine primaria JPEG e immagine ausiliaria successiva.
 
 Queste fonti dimostrano che la fine dell'immagine JPEG principale non coincide necessariamente con la fine dell'intero file. La scelta di Porto è conservativa rispetto ai byte: conserva tutta la coda opaca, senza interpretarla, decodificarla o attribuirle un formato verificato. Non afferma che qualsiasi coda sia un'estensione conforme a tali specifiche. SHA-256 riguarda l'intero file; il controllo strutturale JPEG riguarda la sola immagine primaria. Non è un controllo antimalware né una decodifica completa dei pixel.
+
+## rc.13 — revisione del percorso iPhone
+
+- [libimobiledevice AFC](https://github.com/libimobiledevice/libimobiledevice/blob/master/src/afc.c): operazioni, modalità di apertura, framing e status. Confronto del protocollo; codice non incorporato.
+- [libusbmuxd](https://github.com/libimobiledevice/libusbmuxd/blob/master/src/libusbmuxd.c): messaggi di ricerca, abbinamento e connessione, endian della porta.
+- [Lockdown](https://github.com/libimobiledevice/libimobiledevice/blob/master/src/lockdown.c) e [certificati di abbinamento](https://github.com/libimobiledevice/libimobiledevice/blob/master/common/userpref.c): avvio della sessione/servizio e distinzione fra certificato e firma dell'handshake. Non è una promessa Apple di compatibilità.
+- [SQLite rollback journal](https://sqlite.org/fileformat2.html#rollbackjournal): intestazione e modalità PERSIST. La nuova prova positiva usa un journal prodotto da SQLite; non deriva soltanto da una fixture modellata sul parser.
+- [OSXPhotos, sorgente del lettore](https://github.com/RhetTbull/osxphotos/blob/main/osxphotos/photosdb/photosdb.py) e [ricerca dell'autore dei parser iLEAPP](https://theforensicscooter.com/2024/05/18/ileapp-parsers-photos-sqlite-queries/): esistenza di stati di visibilità e membri di raffiche non visualizzabili. Sono evidenze di schemi osservati, non una specifica pubblica Apple valida per ogni iOS. Porto non attribuisce significati universali ai valori nonzero: li mantiene incerti, senza saltare righe o copiarle implicitamente.
+- [Apple: importazione su PC](https://support.apple.com/en-la/120267), consultata il 16 novembre 2026: componenti Apple, sblocco/autorizzazione e necessità di originali locali per USB. La guida ufficiale riguarda il flusso Apple/Microsoft, non certifica l'implementazione Porto. Nessuna installazione eseguita durante la revisione.
+
+Scelte progettuali Porto: conservare le incertezze, non dichiarare completa una selezione ridotta fra tentativi automatici, ammettere un journal PERSIST solo con intestazione interamente azzerata e stabile, e mantenere il contratto TLS esistente. Fonti e test sintetici non sostituiscono la prova con l'iPhone della cliente.
