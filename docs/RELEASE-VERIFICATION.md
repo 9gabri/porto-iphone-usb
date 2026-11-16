@@ -307,3 +307,22 @@ Resta la normale importazione con lo specifico iPhone. Nessun totale Foto fisso
 è garantito; risorse aggiuntive, contenuti non esposti via USB e originali solo
 cloud non sono una prova di copertura dell’intera libreria. La candidata non è
 presentata come certificata o definitivamente compatibile.
+
+
+## rc.9 — pubblicazione e riscaricamento del 2026-11-16
+
+- Tag `v0.1.0-rc.9`, sorgente `5a510f63c4ca5c90dbbce7eaee16ca581a27fe44`.
+- Release pubblica candidata: https://github.com/9gabri/porto-iphone-usb/releases/tag/v0.1.0-rc.9
+- Pubblicata alle `2026-11-16T12:41:28Z`; prerelease, nessuna certificazione hardware.
+- ZIP: `Porto-0.1.0-rc.9-win-x64.zip`, 51.626.126 byte, 284 elementi.
+- SHA-256 ZIP: `8e8c2f504c8d46cb05c90e746894a5f955cbcede2037c64e8f7b7986e9d8b846`.
+- SHA-256 del file checksum pubblico (96 byte): `8553aaa3cc680ad53f39b9a54299c7887470a9e96c8e722052ab9b0f1c444ed3`.
+- Caricati esclusivamente ZIP e checksum; codice/documentazione del progetto nel repository pubblico. Allegati privati, media, report personali, cache e fixture di esecuzione esclusi.
+- ZIP e checksum riscaricati dal link pubblico senza autenticazione. SHA-256 locale, contenuto del checksum e digest dell’asset GitHub coincidenti.
+- CRC, nomi univoci senza traversal/link, manifest/versione/commit, runtime 10.0.14, licenze, guida cartella e risultati controllati; nessun indicatore di percorso personale nei binari del progetto, nessun PDB o materiale estraneo.
+- Pacchetti rc.1–rc.8 e checksum precedenti verificati invariati; nessuna sostituzione di tag o archivi.
+- Eseguibile riscaricato: `0.1.0-rc.9+5a510f63c4ca5c90dbbce7eaee16ca581a27fe44`.
+- Sette smoke superati sulla copia pubblica estratta in una cartella nuova: interop COM senza enumerazione, protocollo worker, UI cartella iniziale, recupero USB compatto, pausa, esito USB incompleto, esito cartella compatto. `DOTNET_ROOT` e `DOTNET_ROOT_X64` impostati a un percorso inesistente: runtime incluso sufficiente. Nessun telefono cercato o letto.
+- Pagina pubblica e `app-preview.png` riscaricati via HTTPS: byte coincidenti con il tag. Immagine dell’app corrente esaminata.
+
+Test del codice: 348 casi distinti coperti, sequenza esatta in TESTS.md (suite 347/347 e ricontrolli 28/28 dopo l’aggiunta di un caso). Il chiarimento finale del testo per file non registrati non cambia la logica. Esportazione reale da Foto e confronto con l’archivio personale ancora da eseguire con l’utente; nessun totale Foto garantito.

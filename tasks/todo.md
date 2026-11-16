@@ -83,5 +83,5 @@ prova con il telefono. Nessun totale artificiale basato sui componenti Live Phot
 - [x] Sorgente locale in sola lettura e confronto anche senza catalogo precedente.
 - [x] Riutilizzo SHA-256, molteplicità, copie extra preservate e report distinto.
 - [x] Revisione indipendente in tre cicli circoscritti e regressioni sintetiche.
-- [ ] Verifiche finali, pacchetto nuovo, pubblicazione e riscaricamento.
+- [x] Verifiche finali (348 casi distinti), pacchetto nuovo, pubblicazione, checksum pubblico, sette smoke e pagina verificati.
 - [ ] Prova guidata con esportazione reale da iPhone (richiede intervento dell’utente).
