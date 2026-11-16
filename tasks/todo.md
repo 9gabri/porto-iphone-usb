@@ -120,5 +120,5 @@ prova con il telefono. Nessun totale artificiale basato sui componenti Live Phot
 - [x] Tre revisioni indipendenti: protocollo Apple, catalogo/selezione, archivio/ripresa.
 - [x] Riproduzioni prima delle correzioni, modifiche circoscritte e riesame indipendente.
 - [x] Verifiche integrate 479/479, incluse quattro prove estese e regressioni Android; dopo i chiarimenti testuali, 16/16 casi report e due smoke UI.
-- [ ] Nuovo pacchetto se necessario, pubblicazione e riscaricamento con checksum e avvio verificati.
+- [x] Nuovo pacchetto rc.13 pubblicato e riscaricato: checksum/CRC, versione/contenuto, undici smoke e pagina pubblica verificati; dodici archivi precedenti invariati.
 - [ ] Collaudo iPhone reale: collegamento, catalogo, video/Live Photo, copie e ripresa.
