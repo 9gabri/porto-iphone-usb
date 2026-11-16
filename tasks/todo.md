@@ -102,5 +102,5 @@ prova con il telefono. Nessun totale artificiale basato sui componenti Live Phot
 - [x] Accesso in sola lettura al catalogo Foto iPhone, asset e appartenenze album; originali mancanti visibili.
 - [x] Interfaccia coerente con capacità e limiti reali dei dispositivi.
 - [x] Verifiche sintetiche, revisione indipendente e build senza avvisi/errori.
-- [ ] Pacchetto nuovo, pubblicazione e verifica del download pubblico.
+- [x] Pacchetto rc.11 nuovo, pubblicazione, riscaricamento pubblico, checksum/CRC e undici smoke verificati.
 - [ ] Collaudo hardware autorizzato su iPhone e Android; compatibilità universale non dichiarabile.

@@ -343,3 +343,19 @@ Test del codice: 348 casi distinti coperti, sequenza esatta in TESTS.md (suite 3
 - Suite applicativa 387/387, sette controlli UI e quattro prove del confezionamento documentati in TESTS.md.
 
 Questa verifica dimostra integrità e avvio del pacchetto distribuito, non compatibilità con ogni iPhone/Android, accessibilità degli album reali, assenza di bug o completezza di una libreria cloud. Il collaudo fisico resta necessario.
+
+## 0.1.0-rc.11 — 16 novembre 2026
+
+- Tag immutabile `v0.1.0-rc.11`, sorgente `0e6aa1405bb473bcbdb8a1434c4835124febe526`.
+- [Release pubblica](https://github.com/9gabri/porto-iphone-usb/releases/tag/v0.1.0-rc.11), candidata pubblicata alle `2026-11-16T16:54:24Z`.
+- [ZIP verificato](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.11/Porto-0.1.0-rc.11-win-x64.zip): 54.360.498 byte, 291 elementi, runtime .NET 10.0.14 incluso.
+- SHA-256 ZIP: `ed786653fa1bd41d9a1b40cd52b6556b231ac0ab6167821f56191be19d0e2fba`.
+- [SHA256SUMS.txt](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.11/SHA256SUMS.txt): 97 byte, SHA-256 `aa2486a6f1420d17344e668135068c6426f04f45dbdf6966816121952d10184d`.
+- Nuovo staging vuoto e ZIP nuovo; manifest/versione/commit coerenti, licenze .NET/BouncyCastle/Apache incluse. CRC di tutti i membri verificato, nessun nome duplicato, traversal, link o percorso personale nei binari Porto. Nessun SDK, PDB esterno, database del telefono, credenziale, media o allegato personale incluso.
+- ZIP e checksum riscaricati via HTTPS senza autenticazione. Hash locale, file checksum pubblico e digest dell'asset GitHub coincidono. Tutti i controlli di contenuto e CRC ripetuti sul download, estratto solo dopo verifica in una nuova cartella del progetto.
+- Eseguibile riscaricato: `0.1.0-rc.11+0e6aa1405bb473bcbdb8a1434c4835124febe526`. Undici smoke passati: interop COM, worker, nove stati UI (inclusi galleria iPhone e selettore album). `DOTNET_ROOT` e `DOTNET_ROOT_X64` impostati a un percorso inesistente, nessun runtime globale richiesto. Nessuna ricerca o lettura di telefoni.
+- HTML pubblico e anteprima riscaricati: identici byte per byte ai file del tag. Controllata visivamente la UI sintetica iPhone. Nessuna nuova attestazione di test interattivo in browser o di compatibilità hardware.
+- Tutti e dieci gli archivi locali rc.1–rc.10 ricontrollati: checksum invariati. Nessun vecchio tag o asset sostituito.
+- Codice: suite ordinaria 445/445, quattro prove estese, poi ricontrolli finali Apple 37/37 e motore galleria 6/6 dopo quattro nuove regressioni. Sequenza, prima esecuzione con fallimenti e successive correzioni documentate in TESTS.md e REVIEW-RC11.md; nessuna singola esecuzione globale verde inventata. Quattro prove di confezionamento aggiuntive superate.
+
+Questo resoconto è successivo al tag: lo ZIP resta immutato. La candidata non è firmata commercialmente e non è certificata. Il nuovo accesso al catalogo Foto usa uno schema privato e deve essere collaudato con un iPhone reale; album personali, originali locali, riconnessione e conteggi restano da confermare. Raccolte intelligenti/condivise iPhone e album privati/cloud Android non sono universalmente accessibili. Non è stato raggiunto né dichiarato il supporto a qualsiasi telefono e qualsiasi album.
