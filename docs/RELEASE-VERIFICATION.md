@@ -268,3 +268,42 @@ Resta da eseguire la normale importazione sullo specifico iPhone: i test non
 dimostrano il recupero dei video reali. ID sempre diversi tra riconnessioni,
 timeout persistenti, classificazione Live Photo/varianti e risorse solo iCloud
 restano limiti dichiarati. I file della prova reale non sono stati modificati.
+
+
+## rc.8 — verifica dopo pubblicazione (16 novembre 2026)
+
+Tag/source: `v0.1.0-rc.8`, `675ec7db770e3af84c23abc2b709d51be7d2d16f`.
+Release pubblica prerelease, pubblicata 2026-11-16T01:21:31Z:
+https://github.com/9gabri/porto-iphone-usb/releases/tag/v0.1.0-rc.8
+
+- ZIP: Porto-0.1.0-rc.8-win-x64.zip, 51.614.821 byte, 283 voci.
+- SHA-256 ZIP: `97656c6274141727fe9ae01fee7769732a0ee9e61d9909b43ed09bdca40c6b67`.
+- SHA256SUMS.txt: 96 byte, SHA-256 `eea0b0ecd4aac5fa4f118d52249d0df623ffffa0b96fdd699abb83af2ddf9629`.
+
+ZIP e checksum riscaricati via HTTPS pubblico senza autenticazione: identici
+agli originali locali, coerenti anche con i digest della release GitHub.
+Verificati CRC di ogni voce, percorsi, manifest, versione, commit, runtime e
+licenze. Assenti allegati, output personali, SDK e marcatori di percorsi privati.
+Le sette release precedenti sono conservate; archivi locali con le stesse impronte.
+Confezionamento in staging nuovo, nessun file di build estraneo incluso.
+
+Pacchetto pubblico estratto in cartella nuova: sei smoke superati (COM, worker,
+UI normale, recupero, pausa, incompleto), con DOTNET_ROOT e DOTNET_ROOT_X64
+puntati a una cartella inesistente. ProductVersion:
+`0.1.0-rc.8+675ec7db770e3af84c23abc2b709d51be7d2d16f`.
+Nessuno smoke ricerca o apre telefoni. Interfaccia ispezionata: versione corretta,
+pulsanti visibili, riepilogo distinguibile e contenuto scorrevole.
+
+Pagina e immagine pubbliche HTTP 200, byte identici al tag:
+- index.html SHA-256 `2fc0db686d3e790c6602de1e60d7ed6c8785439a2068f725da6b12797e1a2058`.
+- app-preview.png SHA-256 `1c38888a20e032f6b9210fcc25ea31fc7c9df2dbef01fa3a385e8252a4d751c4`.
+
+Verifiche: suite 322/322 e 48 ricontrolli pertinenti dopo l’ultimo aggiustamento,
+quattro prove packaging, build senza avvisi/errori e revisione indipendente.
+Dettagli e distinzione delle esecuzioni in TESTS.md/test-results.txt.
+Nessun costo, driver, servizio, riduzione di protezioni o accesso a media personali.
+
+Resta la normale importazione con lo specifico iPhone. Nessun totale Foto fisso
+è garantito; risorse aggiuntive, contenuti non esposti via USB e originali solo
+cloud non sono una prova di copertura dell’intera libreria. La candidata non è
+presentata come certificata o definitivamente compatibile.

@@ -72,7 +72,8 @@ dei video reali dichiarato sulla sola base delle prove sintetiche.
 - [x] Continuazioni limitate, priorità ai non raggiunti, report storico distinto senza cancellare debiti.
 - [x] Mutazione negativa isolata rilevata e quattro test packaging.
 - [x] Suite 322/322 e 48 ricontrolli pertinenti sul codice finale; build e interfaccia verificate.
-- [ ] Pacchetto nuovo, pubblicazione, riscaricamento, checksum e avvio sintetico.
+- [x] Pacchetto nuovo e pubblicazione prerelease rc.8; riscaricamento pubblico, checksum, manifest e sei smoke verificati.
+- [x] Pagina pubblica e immagine corrispondenti al tag; versioni precedenti conservate.
 
 Il totale Foto dichiarato dall’utente e il recupero reale richiedono ancora una
 prova con il telefono. Nessun totale artificiale basato sui componenti Live Photo.
