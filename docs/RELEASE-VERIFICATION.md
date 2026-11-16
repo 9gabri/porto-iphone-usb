@@ -229,3 +229,42 @@ con il numero di video in Foto non sono dimostrate. Un cleanup bloccato può
 ancora esaurire i tentativi; errori, pendenti e ambiguità restano espliciti.
 Nessuna certificazione di completezza Foto/iCloud o assenza di bug. Eseguibile
 non firmato. Questo resoconto è successivo al tag; ZIP e checksum restano immutati.
+
+
+## rc.7 — 16 novembre 2026
+
+- Release pubblica: https://github.com/9gabri/porto-iphone-usb/releases/tag/v0.1.0-rc.7
+- Sorgente distribuita: commit ad97c9cd41bce5df07aa29d66d942cb99ed1a625, tag v0.1.0-rc.7.
+- ZIP: Porto-0.1.0-rc.7-win-x64.zip, 51.611.735 byte, 283 voci, runtime 10.0.14 incluso.
+- SHA-256 ZIP: 0aff87c08d2915f22f1dc935286b65904f50d899877f552cc21142971be47c1a.
+- SHA-256 SHA256SUMS.txt (96 byte): 75df9f1bf75894188ed138890b1321bcf36394f42c225bd805e4cb6c60407e94.
+- Pubblicata il 16 novembre 2026 alle 00:25:20 UTC come prerelease, con due allegati.
+
+Riscaricati ZIP e checksum via HTTPS pubblico senza autenticazione. SHA-256
+identici al pacchetto e al checksum locali; CRC di ogni voce, nomi e percorsi,
+manifest, versione e commit verificati. Nessun allegato personale, output di
+prova, SDK o marcatore di percorso privato incluso. Le sei release precedenti
+rimangono presenti con le stesse impronte. Cartella di staging nuova.
+
+Il pacchetto pubblico estratto ha superato smoke COM, worker e quattro stati
+UI (normale, ridotto in recupero, pausa ed esito incompleto), con DOTNET_ROOT
+puntato a una cartella inesistente per verificare il runtime incluso.
+ProductVersion: 0.1.0-rc.7+ad97c9cd41bce5df07aa29d66d942cb99ed1a625.
+Le quattro viste del pacchetto locale sono state ispezionate visivamente:
+pulsanti accessibili, contenuto scorrevole, versione corretta. Gli smoke non
+eseguono ricerca o apertura di telefoni. Nessuna protezione Windows modificata.
+
+Pagina pubblica e immagine: HTTP 200, byte identici ai rispettivi file del tag.
+I tre collegamenti ZIP/checksum/release puntano alla rc.7.
+
+Verifica applicativa: 265 test ordinari finali e quattro estesi superati in
+due esecuzioni, sul medesimo codice applicativo. Un'aspettativa storica sul
+riuso del worker è stata aggiornata; tutta la suite ordinaria è stata rieseguita.
+Dettaglio trasparente in TESTS.md e test-results.txt. Build senza avvisi/errori,
+quattro prove di confezionamento, 16 regressioni nuove, baseline negativa e
+mutazione, revisione indipendente. Nessun costo, driver o servizio aggiunto.
+
+Resta da eseguire la normale importazione sullo specifico iPhone: i test non
+dimostrano il recupero dei video reali. ID sempre diversi tra riconnessioni,
+timeout persistenti, classificazione Live Photo/varianti e risorse solo iCloud
+restano limiti dichiarati. I file della prova reale non sono stati modificati.

@@ -5,8 +5,8 @@
 - [x] Regressioni su processi sintetici, confronto negativo con rc.6.
 - [x] Sostituzione del worker dopo lettura rifiutata, inventario completo prima di continuare.
 - [x] Revisione indipendente e prova di mutazione.
-- [ ] Suite finale, build e pacchetto autonomo nuovo.
-- [ ] Pubblicazione autorizzata, riscaricamento, checksum e avvio senza dispositivi.
+- [x] Suite finale, build e pacchetto autonomo nuovo.
+- [x] Pubblicazione autorizzata, riscaricamento, checksum e avvio senza dispositivi.
 
 Conservare tutte le release e tutti i file della prova reale. Nessun dato
 personale negli allegati pubblici. Nessun driver, servizio o spesa aggiuntiva.
