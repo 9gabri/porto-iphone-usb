@@ -119,3 +119,7 @@ Scelte progettuali Porto: conservare le incertezze, non dichiarare completa una 
 ## rc.14 — firme forti e diagnostica TLS
 
 Confrontate le fonti primarie BouncyCastle AbstractTlsPeer, SignatureAndHashAlgorithm e BcDefaultTlsCredentialedSigner, RFC 8446 e i client libimobiledevice/pymobiledevice3. Link e distinzione delle ipotesi in [REVIEW-RC14.md](REVIEW-RC14.md). Nessun nuovo pacchetto: BouncyCastle 2.7.0 resta fissato. Nessun fallback che disabilita la verifica del peer o riduce la politica TLS.
+
+## rc.15 — rifiuto del nome emittente vuoto
+
+Confrontati il parser X.509 BouncyCastle del tag release-2.7.0 e i generatori di certificati di abbinamento libimobiledevice/pymobiledevice3. Fonti e riproduzione in [REVIEW-RC15.md](REVIEW-RC15.md). Nessun codice dei client Apple copiato, nessuna nuova dipendenza e nessun certificato personale usato nei test.

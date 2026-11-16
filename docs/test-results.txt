@@ -1,10 +1,7 @@
-Porto 0.1.0-rc.14 — verifiche 17 novembre 2026
-Build test e app: 0 avvisi, 0 errori.
-Suite ordinaria finale: 490/490 passati (incluse 15 nuove regressioni TLS).
-Matrice iniziale su DLL pubblicata rc.13: 5/9 passati; quattro rifiuti SHA384/PSS riprodotti.
-Matrice finale mirata: 15/15. Revisione indipendente superata.
-Nessun telefono o dato personale usato. Causa del blocco reale ancora da confermare.
-Le quattro prove estese rc.13 non sono state ripetute in questa modifica TLS.
+Porto 0.1.0-rc.15 — 17 novembre 2026
+Suite finale ordinaria: 503/503; build senza avvisi/errori.
+Solo dati sintetici. Nessun collaudo hardware dichiarato.
+Sequenza e limiti: TESTS.md; analisi: REVIEW-RC15.md.
 PASS copy and independently reread SHA256
 PASS truncation rejected
 PASS unexpected extra bytes rejected
@@ -483,6 +480,19 @@ PASS apple TLS matrix rejects SHA1-only client certificate request
 PASS apple TLS matrix rejects SHA1 server signature with a two-certificate chain
 PASS apple TLS matrix rejects server omitting mutual authentication
 PASS apple TLS matrix reports peer fatal alert with only a fixed diagnostic code
+PASS apple pairing TLS factory preserves DER metadata copies and default parser policy
+PASS apple pairing TLS factory rejects duplicate extensions in exact paired certificate
+PASS apple pairing TLS accepts empty names and serial zero
+PASS apple pairing TLS accepts empty names and serial one
+PASS apple pairing TLS accepts empty names serial zero SHA1 certificate SHA256 handshake
+PASS apple pairing TLS accepts absent RSA algorithm parameters
+PASS apple pairing TLS rejects wrong pinned certificate with empty names
+PASS apple pairing TLS rejects different paired certificate with identical key
+PASS apple pairing TLS rejects device certificate without digitalSignature usage
+PASS apple pairing TLS rejects SHA1 server handshake
+PASS apple pairing TLS rejects SHA1 client authentication request
+PASS apple pairing TLS rejects missing mutual authentication
+PASS apple pairing TLS rejects exact-pinned malformed certificate
 PASS gallery import unknown asset roles never become videos from filename extensions
 PASS gallery import selects true video and preserves old Live Photo copies
 PASS gallery import empty chosen type reports no matches instead of failure
@@ -495,4 +505,4 @@ PASS gallery import retry retains an asset first observed only in the final inve
 PASS gallery import empty retry cannot erase an earlier selected failure
 PASS gallery import source selection uncertainty is ambiguous without opening the original
 PASS gallery import temporarily disappeared asset can return and finish the same session
-490/490 passed
+503/503 passed

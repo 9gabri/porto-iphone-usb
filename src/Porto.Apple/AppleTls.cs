@@ -37,7 +37,7 @@ internal static class AppleTls
         new(Org.BouncyCastle.Tls.HashAlgorithm.sha512,SignatureAlgorithm.rsa),
         SignatureAndHashAlgorithm.rsa_pss_rsae_sha256,SignatureAndHashAlgorithm.rsa_pss_rsae_sha384,
         SignatureAndHashAlgorithm.rsa_pss_rsae_sha512];
-    private sealed class Client(X509Certificate2 certificate,byte[] peerCertificate) : DefaultTlsClient(new BcTlsCrypto())
+    private sealed class Client(X509Certificate2 certificate,byte[] peerCertificate) : DefaultTlsClient(new ApplePairingCrypto(certificate.RawData,peerCertificate))
     {
         private readonly X509Certificate2 ownCertificate=certificate;
         private readonly byte[] expectedPeer=peerCertificate;

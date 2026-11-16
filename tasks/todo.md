@@ -129,3 +129,10 @@ prova con il telefono. Nessun totale artificiale basato sui componenti Live Phot
 - [x] Negoziazione e diagnostica corrette; 15/15 nuovi casi, revisione indipendente.
 - [x] Suite finale 490/490, pacchetto nuovo, pubblicazione e riscaricamento: checksum/CRC, versione/contenuto, undici smoke e pagina pubblica verificati; tredici archivi precedenti invariati.
 - [ ] Collaudo iPhone: causa reale non ancora attribuita con certezza o dichiarata risolta.
+
+## rc.15 — APPLE-TLS-LOCAL-42
+- [x] Rifiuto dei certificati con issuer vuoto riprodotto contro il binario pubblico rc.14.
+- [x] Adattatore limitato ai byte esatti già autorizzati, senza cambiare policy globali o certificati.
+- [x] Revisione indipendente della sicurezza della correzione.
+- [ ] Suite finale, pacchetto nuovo, pubblicazione e riscaricamento verificato.
+- [ ] Conferma sull'iPhone reale: autenticazione, lettura album e copia di prova.

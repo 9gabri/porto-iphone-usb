@@ -1,6 +1,6 @@
-# Telefoni, foto, video e album — rc.14
+# Telefoni, foto, video e album — rc.15
 
-La rc.13 ha incontrato un blocco TLS in una prova iPhone reale, prima di leggere gli album. La rc.14 corregge negoziazioni di firme forti riprodotte nei test e rende specifici gli errori; non è ancora confermato che risolva quel dispositivo. Se compare un codice APPLE-TLS, conserva il messaggio completo. Non cambiare le protezioni di Windows e non ripristinare l'iPhone. Se è in corso una copia USB, attendi la fine o una pausa confermata, chiudi Porto e apri la candidata estratta in una cartella nuova.
+La rc.14 ha mostrato APPLE-TLS-LOCAL-42 prima di leggere gli album. La rc.15 corregge il rifiuto dei certificati Apple con nome emittente vuoto, riprodotto in laboratorio, solo se identici a quelli già autorizzati nell'abbinamento. La prova sul dispositivo reale resta necessaria. Se compare un codice APPLE-TLS, conserva il messaggio completo. Non cambiare le protezioni di Windows e non ripristinare l'iPhone. Se è in corso una copia USB, attendi la fine o una pausa confermata, chiudi Porto e apri la candidata estratta in una cartella nuova.
 
 Porto copia dal telefono al PC, senza cancellare o spostare gli originali. La nuova modalità iPhone legge il catalogo della libreria Foto; non richiede un'esportazione preliminare. È una candidata da collaudare: compatibilità reale non ancora confermata.
 
@@ -24,9 +24,9 @@ Le Live Photo sono trattate come immagini: con Solo video le componenti animate 
 
 Sono supportati gli album personali riconosciuti nel catalogo, non tutte le raccolte intelligenti/condivise. Nascosti ed Eliminati di recente sono esclusi con conteggi visibili. Gli originali presenti solo su iCloud non sono scaricati da Porto. Un catalogo non accessibile, oltre 512 MiB o con schema non riconosciuto blocca questa modalità; non viene sostituito con i file USB generici. La lettura del catalogo può richiedere tempo, ma non esplora tutte le cartelle del telefono.
 
-## Prima prova iPhone rc.13
+## Prima prova iPhone rc.15
 
-1. Apri la rc.13 sul PC Windows della cliente. Collega e sblocca il suo iPhone con un cavo dati; il computer deve essere già autorizzato e il collegamento Apple disponibile. Porto non installa componenti né crea l'abbinamento.
+1. Apri la rc.15 sul PC Windows della cliente. Collega e sblocca il suo iPhone con un cavo dati; il computer deve essere già autorizzato e il collegamento Apple disponibile. Porto non installa componenti né crea l'abbinamento.
 2. Seleziona **Importa da → iPhone · libreria Foto via USB → Cerca dispositivi**. La comparsa del telefono prova soltanto la ricerca del dispositivo, non ancora l'accesso alla libreria.
 3. Seleziona **Un album della libreria Foto → Scegli album**. Questa operazione verifica anche la sessione Apple e la lettura del catalogo senza copiare foto o video. Se compare un errore, conserva il messaggio: non passare alla modalità USB generica per dichiarare risolto il problema delle Live Photo.
 4. Se disponibile, scegli un piccolo album personale esistente con video originali locali. Seleziona **Solo video** e una nuova cartella NTFS di prova. Le componenti animate delle Live Photo non devono essere importate come video. Se non c'è un album piccolo adatto, l'elenco degli album resta comunque una verifica preliminare; il trasferimento della selezione richiesta va ancora collaudato.
