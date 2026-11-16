@@ -25,7 +25,7 @@ public sealed class WorkLedger : IDisposable
             db.Transaction(() =>
             {
                 db.Execute("CREATE TABLE unread_work(id TEXT PRIMARY KEY)");
-                db.Execute("INSERT INTO unread_work SELECT id FROM work WHERE outcome NOT IN ('Imported','AlreadyPresent','Excluded','Reconciled')");
+                db.Execute("INSERT INTO unread_work SELECT id FROM work WHERE outcome NOT IN ('Imported','AlreadyPresent','Additional','AdditionalAlreadyPresent','Excluded','Reconciled')");
             });
         db.Execute("CREATE INDEX IF NOT EXISTS ix_snapshot_source ON snapshot_members(source_id,snapshot)");
         db.Execute("CREATE INDEX IF NOT EXISTS ix_fingerprint_content ON fingerprints(hash,length)");
@@ -74,7 +74,7 @@ public sealed class WorkLedger : IDisposable
             // Older ledgers did not retain co-observation evidence. A later singleton cannot
             // prove that their pending work was an alias rather than an additional video.
             // Preserve this uncertainty independently of subsequent per-item success.
-            db.Execute("INSERT OR IGNORE INTO fingerprint_conflicts SELECT w.id,w.source,? FROM work w WHERE w.outcome NOT IN ('Imported','AlreadyPresent','Excluded','Reconciled') AND NOT EXISTS (SELECT 1 FROM snapshot_members m WHERE m.source_id=w.id)",
+            db.Execute("INSERT OR IGNORE INTO fingerprint_conflicts SELECT w.id,w.source,? FROM work w WHERE w.outcome NOT IN ('Imported','AlreadyPresent','Additional','AdditionalAlreadyPresent','Excluded','Reconciled') AND NOT EXISTS (SELECT 1 FROM snapshot_members m WHERE m.source_id=w.id)",
                 LegacyDebtDetail);
         });
         foreach (var proof in pending) fingerprints.Add(proof.Key, proof.Value);
@@ -125,7 +125,7 @@ public sealed class WorkLedger : IDisposable
     // Current observations still get their own per-item result, even if a previous copy exists.
     public void ReconcileKnown(CopyResult content, IReadOnlySet<string> currentKeys) => db.Transaction(() =>
     {
-        foreach (var row in db.Query("SELECT w.id FROM work w JOIN fingerprints f ON f.source_id=w.id WHERE f.hash=? AND f.length=? AND w.outcome NOT IN ('Imported','AlreadyPresent','Excluded','Reconciled') AND NOT EXISTS (SELECT 1 FROM fingerprint_conflicts c WHERE c.source_id=w.id) AND NOT EXISTS (SELECT 1 FROM unread_work u WHERE u.id=w.id)", content.Hash, content.Length))
+        foreach (var row in db.Query("SELECT w.id FROM work w JOIN fingerprints f ON f.source_id=w.id WHERE f.hash=? AND f.length=? AND w.outcome NOT IN ('Imported','AlreadyPresent','Additional','AdditionalAlreadyPresent','Excluded','Reconciled') AND NOT EXISTS (SELECT 1 FROM fingerprint_conflicts c WHERE c.source_id=w.id) AND NOT EXISTS (SELECT 1 FROM unread_work u WHERE u.id=w.id)", content.Hash, content.Length))
             if (!currentKeys.Contains(row[0]!))
                 db.Execute("UPDATE work SET outcome='Reconciled',detail='Contenuto verificato con un numero sufficiente di copie distinte per tutti gli inventari osservati' WHERE id=?", row[0]);
     });
@@ -133,12 +133,12 @@ public sealed class WorkLedger : IDisposable
     public void Record(SourceItem source, ReportItem result) => db.Execute("UPDATE work SET outcome=?,detail=? WHERE id=?",
         result.Outcome.ToString(), result.Detail, Key(source));
     public List<(SourceItem Source, Outcome Outcome, string Detail)> Unresolved() => db.Query(
-        "SELECT source,outcome,detail FROM work WHERE outcome NOT IN ('Imported','AlreadyPresent','Excluded','Reconciled')")
+        "SELECT source,outcome,detail FROM work WHERE outcome NOT IN ('Imported','AlreadyPresent','Additional','AdditionalAlreadyPresent','Excluded','Reconciled')")
         .Select(r => (JsonSerializer.Deserialize<SourceItem>(r[0]!)!, Enum.Parse<Outcome>(r[1]!), r[2]!)).ToList();
 
     // Byte disagreements are always explicit. For legacy debt an unresolved item already blocks
     // success; once it settles, the independent uncertainty must still remain visible.
-    public List<(SourceItem Source, string Detail)> Conflicts() => db.Query("SELECT c.source,c.detail FROM fingerprint_conflicts c LEFT JOIN work w ON w.id=c.source_id WHERE c.detail<>? OR w.id IS NULL OR w.outcome IN ('Imported','AlreadyPresent','Excluded','Reconciled')", LegacyDebtDetail)
+    public List<(SourceItem Source, string Detail)> Conflicts() => db.Query("SELECT c.source,c.detail FROM fingerprint_conflicts c LEFT JOIN work w ON w.id=c.source_id WHERE c.detail<>? OR w.id IS NULL OR w.outcome IN ('Imported','AlreadyPresent','Additional','AdditionalAlreadyPresent','Excluded','Reconciled')", LegacyDebtDetail)
         .Select(row => (JsonSerializer.Deserialize<SourceItem>(row[0]!)!, row[1]!)).ToList();
 
     private void LoadMinimums()

@@ -80,7 +80,7 @@ internal static class CatalogValidation
         string name=Path.GetFileNameWithoutExtension(entry.Final);
         // Verified reuse can update Source.Name while the published name stays
         // unchanged; collision recovery can also use a fresh UUID suffix.
-        if(!GeneratedName(name)||entry.Final!=Path.Combine("Video Porto",name+extension))throw Invalid();
+        if(!GeneratedName(name)||(entry.Final!=Path.Combine("Video Porto",name+extension)&&entry.Final!=Path.Combine(Destination.AdditionalDirectory,name+extension)))throw Invalid();
     }
 
     private static SourceItem ReadSource(string? json)

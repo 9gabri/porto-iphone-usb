@@ -63,15 +63,16 @@ internal static class IntegrationTests
             Fixtures.Check(Directory.GetFiles(d.Videos).All(p=>Path.GetFileName(p).StartsWith("V_")));
         }));
         tests.Add(("concurrent importer is excluded",()=>{string root=Root();using var d=new Destination(root);Fixtures.Throws<IOException>(()=>{using var second=new Destination(root);});}));
-        tests.Add(("live photo hint and edited variants are ambiguous, not success",()=>{
+        tests.Add(("raw marker bytes do not exclude valid video and filename hints preserve extra copy",()=>{
             using var d=new Destination(Root());var r=new ImportEngine(FakeSource.One(Video(marker:"com.apple.quicktime.still-image-time")),d).Run(false,default);
-            Fixtures.Check(r.Count(Outcome.Ambiguous)==1);Fixtures.Check(r.Status.Contains("incompleta"));Fixtures.Check(Directory.GetFiles(d.Videos).Length==0);
-            var edited=new ImportEngine(FakeSource.One(name:"IMG_E1234.MOV"),d).Run(false,default);Fixtures.Check(edited.Count(Outcome.Ambiguous)==2,"Historical ambiguity must remain visible");
+            Fixtures.Check(r.Count(Outcome.Imported)==1&&r.Count(Outcome.Ambiguous)==0);Fixtures.Check(Directory.GetFiles(d.Videos).Length==1);
+            var edited=new ImportEngine(FakeSource.One(Video(22),name:"IMG_E1234.MOV"),d).Run(false,default);
+            Fixtures.Check(edited.Count(Outcome.Additional)==1&&Directory.GetFiles(d.AdditionalVideos).Length==1);
         }));
-        tests.Add(("paired photo ambiguity, photos excluded",()=>{
+        tests.Add(("paired video is copied separately, photo remains unread and excluded",()=>{
             byte[] video=Video();using var d=new Destination(Root());
             var s=new FakeSource([new("v","p","IMG_0001.MOV",MediaKind.Video,video.Length),new("p","p","IMG_0001.HEIC",MediaKind.Image,100)],new(){{"v",video}});
-            var r=new ImportEngine(s,d).Run(false,default);Fixtures.Check(r.Count(Outcome.Ambiguous)==1);Fixtures.Check(r.Count(Outcome.Excluded)==1);
+            var r=new ImportEngine(s,d).Run(false,default);Fixtures.Check(r.Count(Outcome.Additional)==1);Fixtures.Check(r.Count(Outcome.Excluded)==1&&s.Reads==1);
         }));
         tests.Add(("MOV MP4 M4V containers accepted; extension alone rejected",()=>{
             foreach(string ext in new[]{"MOV","MP4","M4V"}){using var d=new Destination(Root());Fixtures.Check(new ImportEngine(FakeSource.One(name:"clip."+ext),d).Run(false,default).Count(Outcome.Imported)==1);}
@@ -115,7 +116,7 @@ internal static class IntegrationTests
             Fixtures.Throws<IOException>(()=>worker.Devices(default));
         }));
         tests.Add(("ambiguous verified files are reused without duplicate temporary copies",()=>{
-            using var d=new Destination(Root());byte[] data=Video(marker:"com.apple.quicktime.content.identifier");
+            using var d=new Destination(Root());byte[] data=Video()[..^1];
             Fixtures.Check(new ImportEngine(FakeSource.One(data),d).Run(false,default).Count(Outcome.Ambiguous)==1);
             Fixtures.Check(new ImportEngine(FakeSource.One(data,id:"changed"),d).Run(false,default).Count(Outcome.Ambiguous)==1);
             Fixtures.Check(Directory.GetFiles(d.State,"*.part").Length==1);

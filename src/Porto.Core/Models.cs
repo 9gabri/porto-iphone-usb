@@ -1,7 +1,7 @@
 namespace Porto.Core;
 
 public enum MediaKind { Video, Image, Container, Other, Unknown }
-public enum Outcome { Imported, AlreadyPresent, Excluded, Ambiguous, Missing, Error, Pending }
+public enum Outcome { Imported, AlreadyPresent, Excluded, Ambiguous, Missing, Error, Pending, Additional, AdditionalAlreadyPresent }
 public sealed record DeviceInfo(string Id, string Name);
 public sealed record SourceItem(string Id, string ParentId, string Name, MediaKind Kind,
     long? Size = null, string? PersistentId = null, string? Format = null, bool Offline = false);
@@ -19,7 +19,7 @@ public interface IReadFailureRecovery
     int SessionRestarts { get; }
 }
 public sealed record ReportItem(string SourceId, string Name, Outcome Outcome, string Detail,
-    string? File = null, long? Bytes = null, string? Sha256 = null);
+    string? File = null, long? Bytes = null, string? Sha256 = null, bool Historical = false);
 public sealed class ImportReport
 {
     public string ApplicationVersion => typeof(ImportReport).Assembly
@@ -38,6 +38,10 @@ public sealed class ImportReport
     // Runtime scheduling hints only; metadata never establishes identity or completion.
     [System.Text.Json.Serialization.JsonIgnore]
     public List<RetryHint> RetryLast { get; } = [];
+    [System.Text.Json.Serialization.JsonIgnore]
+    public List<RetryHint> RetryVisited { get; } = [];
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool ReadRecoveryInterrupted { get; set; }
     public int CandidateCount { get; set; }
     public int UsbItemCount { get; set; }
     public int ImageCount { get; set; }
@@ -48,6 +52,8 @@ public sealed class ImportReport
     public List<string> InventoryErrors { get; set; } = [];
     public List<ReportItem> Items { get; } = [];
     public string Status { get; set; } = "In corso";
+    public int CurrentCount(Outcome outcome) => Items.Count(i => !i.Historical && i.Outcome == outcome);
+    public int HistoricalCount => Items.Count(i => i.Historical);
     public int Count(Outcome outcome) => Items.Count(i => i.Outcome == outcome);
 }
 public sealed record ImportProgress(string Phase, string Name, int Done, int Total, long Bytes,

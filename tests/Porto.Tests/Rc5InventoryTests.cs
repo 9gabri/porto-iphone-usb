@@ -48,27 +48,27 @@ internal static unsafe class Rc5InventoryTests
                 new("photo2","dcim","IMG_0002.JPG",MediaKind.Image,10),
                 new("sidecar1","dcim","IMG_0001.AAE",MediaKind.Other,10),
                 new("sidecar2","dcim","IMG_0002.AAE",MediaKind.Other,10),
-                new("companion1","dcim","IMG_0001.MOV",MediaKind.Video,100),
-                new("companion2","dcim","IMG_0002.MOV",MediaKind.Video,100),
+                new("companion1","dcim","IMG_0001.MOV",MediaKind.Video,video.LongLength),
+                new("companion2","dcim","IMG_0002.MOV",MediaKind.Video,video.LongLength),
                 new("standalone","dcim","IMG_0003.MOV",MediaKind.Video,video.LongLength)];
             int reads=0;
             using var destination=new Destination(Fixtures.Root());
             var session=new ImportSession(()=>new FakeSource(items,[]){Reader=(item,_)=>
             {
-                Fixtures.Check(item.Id=="standalone","The importer opened a photo, sidecar or suspected companion.");
+                Fixtures.Check(item.Kind==MediaKind.Video,"The importer must never read a photo or sidecar.");
                 reads++;return new MemoryStream(video,false);
             }},destination){RetryDelay=TimeSpan.Zero};
             var report=session.Run(false,default);
             Fixtures.Check(session.Attempts==1&&!report.RetryRecommended,"Known AAE sidecars must not force repeated inventories.");
             Fixtures.Check(report.UsbEnumerationComplete&&report.FinalInventoryChecked&&report.InventoryErrors.Count==0);
             Fixtures.Check(report.UsbItemCount==7&&report.ImageCount==2&&report.SidecarCount==2);
-            Fixtures.Check(report.CandidateCount==3&&report.SuspectedCompanionCount==2&&report.TransferCandidateCount==1);
-            Fixtures.Check(report.Count(Outcome.Imported)==1&&report.Count(Outcome.Ambiguous)==2&&report.Count(Outcome.Excluded)==4&&report.Count(Outcome.Error)==0);
-            Fixtures.Check(reads==1&&Directory.GetFiles(destination.Videos).Length==1);
+            Fixtures.Check(report.CandidateCount==3&&report.SuspectedCompanionCount==2&&report.TransferCandidateCount==3);
+            Fixtures.Check(report.Count(Outcome.Imported)==1&&report.Count(Outcome.Additional)==2&&report.Count(Outcome.Excluded)==4&&report.Count(Outcome.Error)==0);
+            Fixtures.Check(reads==3&&Directory.GetFiles(destination.Videos).Length==1&&Directory.GetFiles(destination.AdditionalVideos).Length==2);
             Fixtures.Check(report.Items.Where(item=>item.Name.EndsWith(".AAE",StringComparison.Ordinal)).All(item=>item.Outcome==Outcome.Excluded&&item.Detail.Contains("AAE",StringComparison.Ordinal)));
-            Fixtures.Check(!report.Status.StartsWith("Completati",StringComparison.Ordinal),"Suspected companions remain explicitly unverified.");
+            Fixtures.Check(!report.Status.StartsWith("Completati",StringComparison.Ordinal),"USB resource completeness cannot prove standalone Foto identity.");
             string text=File.ReadAllText(session.ReportPath!);
-            Fixtures.Check(text.Contains("file accessori AAE: 2",StringComparison.Ordinal)&&text.Contains("candidati alla copia: 1",StringComparison.Ordinal));
+            Fixtures.Check(text.Contains("file accessori AAE: 2",StringComparison.Ordinal)&&text.Contains("candidati alla copia: 3",StringComparison.Ordinal));
         }));
         tests.Add(("rc5 inventory sidecar classification does not erase legacy unknown obligations",()=>
         {

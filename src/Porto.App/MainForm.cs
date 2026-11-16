@@ -46,7 +46,7 @@ public sealed class MainForm:Form
         var actions=new FlowLayoutPanel{Dock=DockStyle.Bottom,AutoSize=true,Padding=new(24,10,24,12),WrapContents=true};
         foreach(var b in new[]{start,pause,resume,reportButton})actions.Controls.Add(b);Controls.Add(actions);
         summary.Dock=DockStyle.Fill;summary.Padding=new(0,8,0,0);layout.Controls.Add(summary);
-        var limits=Label("COPERTURA USB\nPossono mancare originali presenti solo su iCloud. L’intera libreria e l’originalità dei contenuti non sono certificabili via USB. Possibili Live Photos e versioni modificate vengono segnalate nel report.",9);
+        var limits=Label("COPERTURA USB\nPossono mancare originali presenti solo su iCloud. L’intera libreria e l’originalità dei contenuti non sono certificabili via USB. Le risorse con indizi di Live Photo o modifiche sono copiate in Risorse video aggiuntive: non equivalgono a video autonomi di Foto.",9);
         limits.Dock=DockStyle.Fill;limits.ForeColor=Color.FromArgb(76,87,94);layout.Controls.Add(limits);
         pause.Enabled=false;resume.Enabled=false;reportButton.Enabled=false;
         search.Click+=async(_,_)=>await Discover();browse.Click+=(_,_)=>PickFolder();
@@ -75,12 +75,12 @@ public sealed class MainForm:Form
                 {
                     SetBusy(true);ShowProgress(new("Importazione","Esempio sintetico",20,20,1024*1024,1024*1024,null));
                     var incomplete=new ImportReport{Status="Importazione incompleta. Consulta il report.",Attempt=3,
-                        UsbItemCount=100,ImageCount=70,SidecarCount=10,CandidateCount=20,SuspectedCompanionCount=16,TransferCandidateCount=4};
+                        UsbItemCount=100,ImageCount=70,SidecarCount=10,CandidateCount=20,SuspectedCompanionCount=16,TransferCandidateCount=20};
                     incomplete.Items.Add(new("synthetic","example.mov",Outcome.Error,"Errore sintetico di verifica."));
                     ShowResult(incomplete);SetBusy(false);
                     // A queued callback from the finished worker must not replace the final result.
                     ShowProgress(new("Importazione","Callback sintetico tardivo",20,20,1024*1024,1024*1024,null));
-                    if(progress.Value!=0||!counts.Text.Contains("100",StringComparison.Ordinal)||!summary.Text.Contains("Candidati alla copia: 4",StringComparison.Ordinal))
+                    if(progress.Value!=0||!counts.Text.Contains("100",StringComparison.Ordinal)||!summary.Text.Contains("Candidati alla copia: 20",StringComparison.Ordinal))
                         throw new InvalidOperationException("L'esito incompleto deve distinguere i conteggi e rimuovere la barra verde.");
                 }
                 await Task.Delay(350);if(Width<700||Height<550)throw new InvalidOperationException("UI smoke dimensions invalid");
@@ -166,7 +166,7 @@ public sealed class MainForm:Form
         status.Text=report.Status;
         counts.Text=$"Risorse USB: {report.UsbItemCount:N0} · Immagini: {report.ImageCount:N0} · File AAE: {report.SidecarCount:N0}";
         bytes.Text=$"Risorse video USB: {report.CandidateCount:N0} · Possibili Live Photo/modifiche: {report.SuspectedCompanionCount:N0}";
-        summary.Text=$"Candidati alla copia: {report.TransferCandidateCount:N0} — Ultimo passaggio {report.Attempt}/{ImportSession.MaximumAttempts}\nCopie verificate: {report.Count(Outcome.Imported)+report.Count(Outcome.AlreadyPresent)} · Nuove: {report.Count(Outcome.Imported)} · Già presenti: {report.Count(Outcome.AlreadyPresent)}\nPendenti aggiuntivi: {report.Count(Outcome.Pending)} · Mancanti: {report.Count(Outcome.Missing)} · Ambigui: {report.Count(Outcome.Ambiguous)} · Errori: {report.Count(Outcome.Error)}\nZero pendenti non esclude errori o ambiguità. Consulta il report.";
+        summary.Text=$"Candidati alla copia: {report.TransferCandidateCount:N0} — Passaggio {report.Attempt}\nCopie verificate: {report.CurrentCount(Outcome.Imported)+report.CurrentCount(Outcome.AlreadyPresent)} · Nuove: {report.CurrentCount(Outcome.Imported)} · Già presenti: {report.CurrentCount(Outcome.AlreadyPresent)}\nPendenti aggiuntivi: {report.CurrentCount(Outcome.Pending)} · Mancanti: {report.CurrentCount(Outcome.Missing)} · Ambigui: {report.CurrentCount(Outcome.Ambiguous)} · Errori: {report.CurrentCount(Outcome.Error)}\nRisorse aggiuntive verificate: {report.CurrentCount(Outcome.Additional)+report.CurrentCount(Outcome.AdditionalAlreadyPresent)} · Osservazioni storiche da verificare: {report.HistoricalCount}";
     }
     private void SetBusy(bool value)
     {

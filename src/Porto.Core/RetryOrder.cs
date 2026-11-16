@@ -5,26 +5,31 @@ public sealed record RetryHint(string Name,long? Size,int NextOccurrence);
 
 internal static class RetryOrder
 {
-    internal static IEnumerable<SourceItem> Arrange(IReadOnlyList<SourceItem> items,IReadOnlyList<RetryHint> hints)
+    internal static IEnumerable<SourceItem> Arrange(IReadOnlyList<SourceItem> items,IReadOnlyList<RetryHint> hints,
+        IReadOnlyList<RetryHint>? visited=null)
     {
-        if(hints.Count==0)return items;
+        if(hints.Count==0&&(visited==null||visited.Count==0))return items;
         var history=hints.GroupBy(hint=>(hint.Name,hint.Size)).ToDictionary(group=>group.Key,group=>group.ToArray());
-        var preferred=items.Where(item=>!history.ContainsKey((item.Name,item.Size))).ToList();
+        var visits=(visited??[]).GroupBy(hint=>(hint.Name,hint.Size)).ToDictionary(group=>group.Key,group=>group.ToArray());
+        var preferred=new List<SourceItem>();
+        var read=new List<SourceItem>();
         var failed=new List<SourceItem>();
-        foreach(var group in items.Where(item=>history.ContainsKey((item.Name,item.Size))).GroupBy(item=>(item.Name,item.Size)))
+        foreach(var group in items.GroupBy(item=>(item.Name,item.Size)))
         {
-            var siblings=group.ToArray();var prior=history[group.Key];
-            int start=prior[^1].NextOccurrence%siblings.Length;
+            var siblings=group.ToArray();var prior=history.GetValueOrDefault(group.Key)??[];
+            int start=prior.Length==0?0:prior[^1].NextOccurrence%siblings.Length;
             var failedOrdinals=prior.Select(hint=>(hint.NextOccurrence-1)%siblings.Length).ToHashSet();
+            var readOrdinals=(visits.GetValueOrDefault(group.Key)??[])
+                .Select(hint=>(hint.NextOccurrence-1)%siblings.Length).ToHashSet();
             for(int offset=0;offset<siblings.Length;offset++)
             {
                 int index=(start+offset)%siblings.Length;
-                (failedOrdinals.Contains(index)?failed:preferred).Add(siblings[index]);
+                (failedOrdinals.Contains(index)?failed:readOrdinals.Contains(index)?read:preferred).Add(siblings[index]);
             }
         }
-        // Prefer unfailed occurrences across every group before any known failure.
-        // Otherwise a singleton failure can still block a different group's healthy sibling.
-        return preferred.Concat(failed);
+        // Try unreached positions before rereading earlier successes and failures. All three
+        // queues remain in the pass: positional hints never skip or reconcile an observation.
+        return preferred.Concat(read).Concat(failed);
     }
 
     internal static RetryHint AfterFailure(IReadOnlyList<SourceItem> original,SourceItem failed)

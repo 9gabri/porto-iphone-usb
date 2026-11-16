@@ -49,7 +49,7 @@ internal static class ReliabilityTests
             using(var c=new Catalog(d))c.Save(new(id,"Copying",Path.Combine(".porto",id+".part"),"",null,0,source));
             File.WriteAllBytes(Path.Combine(d.State,id+".part"),[1,2,3]);
             Fixtures.Check(new ImportEngine(new FakeSource([],[]),d).Run(false,default).Count(Outcome.Pending)==1);
-            new ImportEngine(FakeSource.One(Video(marker:"com.apple.quicktime.content.identifier")),d).Run(false,default);
+            new ImportEngine(FakeSource.One(Video()[..^1]),d).Run(false,default);
             var report=new ImportEngine(new FakeSource([],[]),d).Run(false,default);
             Fixtures.Check(report.Count(Outcome.Ambiguous)==1&&report.Count(Outcome.Pending)==1);
         }));

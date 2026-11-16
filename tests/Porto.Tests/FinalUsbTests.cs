@@ -247,8 +247,11 @@ internal static unsafe class FinalUsbTests
                     { RetryDelay = TimeSpan.Zero };
                 var timer = Stopwatch.StartNew();
                 var report = session.Run(false, watchdog.Token);
-                Fixtures.Check(!watchdog.IsCancellationRequested && connections == ImportSession.MaximumAttempts,
-                    "Recovery exceeded the three-attempt budget or stopped without retrying the failed item.");
+                // Each failed read now attempts one fresh inventory inside the pass; remapped
+                // IDs reject that continuation, then the outer pass starts from fresh IDs.
+                Fixtures.Check(!watchdog.IsCancellationRequested && session.Attempts == ImportSession.MaximumAttempts
+                    && connections == 2 * ImportSession.MaximumAttempts,
+                    "Recovery exceeded the bounded attempts and replacement inventories or stopped without retrying.");
                 var files = Directory.GetFiles(destination.Videos);
                 Fixtures.Check(files.Length == 2, $"The same first file starved healthy videos: {files.Length} copied in {connections} attempts.");
                 var hashes = files.Select(path => VerifiedCopy.HashFile(path, default).Hash).ToHashSet(StringComparer.Ordinal);
@@ -273,8 +276,9 @@ internal static unsafe class FinalUsbTests
                 var session = new ImportSession(() => new ReconnectingUsbSource(Create, SelectedDevice), destination)
                     { RetryDelay = TimeSpan.Zero };
                 var report = session.Run(false, watchdog.Token);
-                Fixtures.Check(!watchdog.IsCancellationRequested && connections == ImportSession.MaximumAttempts,
-                    "Recovery exceeded the three-session budget or silently skipped the blocked item.");
+                Fixtures.Check(!watchdog.IsCancellationRequested && session.Attempts == ImportSession.MaximumAttempts
+                    && connections == 2 * ImportSession.MaximumAttempts,
+                    "Recovery exceeded the bounded attempts and replacement inventories or silently skipped a blocked item.");
                 int[] blocked = BlockedOccurrences(shape);
                 int[] healthy = Enumerable.Range(0, ItemCount(shape)).Except(blocked).ToArray();
                 var files = Directory.GetFiles(destination.Videos);
