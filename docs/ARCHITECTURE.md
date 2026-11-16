@@ -2,6 +2,24 @@
 
 ## USB e processi
 
+La rc.7 aggiunge IReadFailureRecovery sul solo adapter ReconnectingUsbSource.
+L’engine invalida la lettura dopo un errore, inclusi flusso corto o troppo lungo
+e discordanza SHA-256 rilevati dopo EOF. Il segnale non effettua I/O e non
+maschera l’errore primario. Prima dell’apertura seguente viene terminato solo
+il processo figlio posseduto da Porto, poi avviato un worker nuovo sullo stesso
+dispositivo. Un inventario completo, senza errori, deve coincidere con quello
+precedente in tutti i campi e nella molteplicità; l’elemento richiesto deve
+appartenervi. Nessuna associazione euristica per solo nome, dimensione o PUID.
+Se il confronto fallisce, il video non ancora aperto rimane pendente e si
+passa al recupero esterno. La richiesta esplicita Inventory dopo un errore
+restituisce invece l’elenco nuovo, che il controllo finale confronta e registra.
+Con inventario stabile il recupero è limitato a un riavvio per errore, senza
+ripetere il file nello stesso passaggio: cinque file difettosi non impediscono
+ai sani successivi di essere copiati. Timeout, disconnessioni e inventari
+cambiati conservano il limite di tre passaggi esterni. I report registrano
+versione applicativa e riavvii USB tentati nel passaggio.
+
+
 La rc.6 possiede esplicitamente lo stream nativo attivo. Un'operazione che non
 ha raggiunto EOF viene annullata con Resources.Cancel prima del rilascio;
 GetStream fallito viene bonificato allo stesso modo. Una bonifica fallita viene
@@ -15,13 +33,13 @@ la fase esatta può non essere distinguibile e i tentativi restano limitati.
 
 WinForms avvia un processo figlio dello stesso eseguibile con --usb-worker e pipe stdin/stdout. Solo il worker usa WPD: COM in MTA, PortableDeviceFTM, GENERIC_READ e STGM_READ. Non esistono comandi per eliminare, rinominare o modificare contenuti del telefono.
 
-I comandi ammessi sono fissi: ricerca/diagnosi, connessione, inventario, apertura, lettura e chiusura. Timeout di 60 secondi e cancellazione coprono invio e ricezione, anche con pipe satura. Frame invalidi, EOF e timeout terminano il worker; un errore remoto valido del singolo file permette di raggiungere gli altri nella stessa sessione. I progressi sono limitati a circa quattro al secondo, anche con metadati illeggibili e conteggio zero.
+I comandi ammessi sono fissi: ricerca/diagnosi, connessione, inventario, apertura, lettura e chiusura. Timeout di 60 secondi e cancellazione coprono invio e ricezione, anche con pipe satura. Frame invalidi, EOF e timeout terminano il worker; un errore remoto valido del singolo file viene registrato e richiede il recupero sopra descritto prima della lettura seguente. I progressi sono limitati a circa quattro al secondo, anche con metadati illeggibili e conteggio zero.
 
 Gli errori nativi espliciti di sessione persa vengono propagati anche dalle letture dei metadati. Il frame 4 conserva il codice HRESULT e invalida il worker; il frame 3 riguarda gli errori del singolo elemento. EOF e timeout durante Read appartengono al file corrente, evitando di accusare quello successivo.
 
 Ogni apertura può restituire la dimensione WPD_RESOURCE_ATTRIBUTE_TOTAL_SIZE della risorsa predefinita. È un Int64 non negativo opzionale trasportato nel descrittore del worker; un descrittore malformato invalida la sessione. Proprietà non disponibile: controllo sulla dimensione dell'inventario. Una dimensione di risorsa diversa dall'inventario obbliga a due letture USB complete concordanti, oltre alla verifica locale. Ogni lettura deve rispettare la propria dimensione dichiarata: non si ignorano i troncamenti. IStream.Read con S_FALSE conserva gli eventuali ultimi byte e memorizza EOF, evitando un'altra chiamata al driver; un blocco corto con S_OK prosegue. Viene rispettato anche un buffer ottimale inferiore a 4096 byte.
 
-Gli ID oggetto non attraversano connessioni WPD: dopo una sessione morta serve un nuovo inventario. ImportSession crea fino a tre passaggi sullo stesso ID dispositivo, con attesa cancellabile di 15 secondi. Nessun cambio automatico di telefono. Disco pieno, permessi mancanti e pausa interrompono il recupero. Il worker possiede al massimo uno stream, liberato prima dell'operazione seguente o alla terminazione; il cleanup del client non può sostituire un errore di copia con un errore di close.
+Gli ID oggetto non vengono usati su una nuova connessione senza un nuovo inventario completo. Il recupero interno richiede coincidenza esatta; altrimenti l’engine riparte dal nuovo elenco. ImportSession crea fino a tre passaggi sullo stesso ID dispositivo, con attesa cancellabile di 15 secondi. Nessun cambio automatico di telefono. Disco pieno, permessi mancanti e pausa interrompono il recupero. Il worker possiede al massimo uno stream, liberato prima dell'operazione seguente o alla terminazione; il cleanup del client non può sostituire un errore di copia con un errore di close.
 
 Un'interruzione conserva un suggerimento d'ordine: nome, dimensione e posizione nel gruppo dell'inventario originale. Al passaggio successivo tutti gli elementi non ancora falliti, in tutti i gruppi, precedono quelli che hanno già interrotto una sessione. Ogni elemento viene comunque tentato e verificato per contenuto. Gli ID possono cambiare; i suggerimenti non riconciliano identità o debiti. Con un ordine stabile, due elementi bloccati non impediscono di raggiungere quelli sani entro tre passaggi. Inventari riordinati o ulteriori blocchi possono esaurire il limite e restano nel report.
 

@@ -1,5 +1,14 @@
 # Fonti primarie consultate
 
+## rc.7: nessuna nuova dipendenza o API sul telefono
+
+Il recupero sostituisce il worker dal processo padre tramite il percorso già
+usato per timeout e cancellazione. Usa le stesse API WPD di sola lettura;
+nessuna nuova operazione sul telefono. L'uguaglianza del nuovo inventario
+è un controllo di continuità, non una prova dell'identità dei contenuti.
+Le prove e i limiti osservati sono documentati in [REVIEW-RC7.md](REVIEW-RC7.md).
+
+
 Consultazione: 30 ottobre 2026. Nessun codice Rollport, AFC/libimobiledevice o DLL Apple non ufficiale riutilizzato.
 
 Verifiche aggiuntive rc.6, 15 novembre 2026:

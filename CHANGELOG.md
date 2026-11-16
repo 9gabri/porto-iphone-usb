@@ -1,5 +1,18 @@
 # Novità
 
+## 0.1.0-rc.7 — recupero su un processo USB nuovo
+
+- Dopo un errore di lettura il video successivo viene aperto su un nuovo worker, previo controllo dell’intero inventario. Non si presume che un annullamento riuscito abbia ripristinato il driver.
+- Dimensione errata o SHA-256 discordante invalidano anche flussi già arrivati a EOF.
+- Inventario diverso o incompleto: video successivo ancora pendente, nessun uso degli identificativi precedenti e nessuna falsa conferma di copia.
+- Recupero automatico con più file difettosi consecutivi e inventario stabile, mantenendo verifica locale, seconda lettura e conservazione dei file esistenti.
+- Versione e numero dei riavvii USB nei report, senza cambiamenti ai cataloghi.
+
+Il recupero dei video della prova reale resta da confermare. Se ogni
+riconnessione cambia gli identificativi, oppure persistono timeout e
+disconnessioni, possono non bastare i tre passaggi esterni. Restano i limiti
+USB rispetto a Foto, Live Photo, varianti e contenuti solo iCloud.
+
 ## 0.1.0-rc.6 — isolamento delle letture incomplete e recupero
 
 - Annullate sullo stesso handle WPD le operazioni incomplete prima del rilascio dello stream; coperto anche GetStream fallito. EOF normale non provoca cancellazioni.

@@ -1,19 +1,20 @@
 # Porto
 
-App locale italiana per importare via USB i video accessibili di un iPhone su Windows 11 x64. Versione **0.1.0-rc.6**, candidata sperimentale: il collegamento WPD è reale, ma **questa versione richiede ancora una prova con iPhone fisico**. I collaudi precedenti hanno evidenziato errori e conteggi ancora da riconciliare.
+App locale italiana per importare via USB i video accessibili di un iPhone su Windows 11 x64. Versione **0.1.0-rc.7**, candidata sperimentale: il collegamento WPD è reale, ma **questa versione richiede ancora una prova con iPhone fisico**. I collaudi precedenti hanno evidenziato errori e conteggi ancora da riconciliare.
 
-[Pagina e istruzioni](https://9gabri.github.io/porto-iphone-usb/) · [Download Windows](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.6/Porto-0.1.0-rc.6-win-x64.zip) · [Checksum SHA-256](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.6/SHA256SUMS.txt)
+[Pagina e istruzioni](https://9gabri.github.io/porto-iphone-usb/) · [Download Windows](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.7/Porto-0.1.0-rc.7-win-x64.zip) · [Checksum SHA-256](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.7/SHA256SUMS.txt)
 
-La rc.6 annulla le operazioni USB incomplete prima di passare alla risorsa
-successiva, impedisce letture tramite wrapper obsoleti e migliora la priorità
-dei file sani dopo un errore. I controlli su dimensioni, hash e copie locali
-restano invariati. [Diagnosi e limiti](docs/REVIEW-RC6.md).
+La rc.7 sostituisce il processo USB dopo una lettura rifiutata e verifica un
+nuovo inventario completo prima di passare al video successivo. Questo evita
+di continuare su una sessione potenzialmente alterata, anche se l'annullamento
+precedente non aveva restituito errori. Dimensioni, hash e verifica delle copie
+restano obbligatori. [Diagnosi e limiti](docs/REVIEW-RC7.md).
 
-**Per riprendere una prova rc.5, usa la stessa destinazione conservando tutti
-i video, i report e la cartella `.porto`. Estrai invece l'app rc.6 separatamente.**
-Le copie già presenti vengono rilette e verificate; non vengono saltate per nome.
-La risoluzione degli errori sul dispositivo e la differenza rispetto al numero
-dei video in Foto restano da confermare. Non è una garanzia di recupero completo.
+**Per riprendere una prova rc.5 o rc.6, usa la stessa destinazione conservando
+tutti i video, i report e la cartella `.porto`. Estrai l'app rc.7 separatamente.**
+Le copie presenti vengono rilette e verificate. Il collaudo rc.6 non ha risolto
+la catena di errori osservata: questa nuova candidata richiede una normale
+prova di importazione, senza copie manuali dei singoli video.
 
 ## Provala
 
@@ -23,7 +24,7 @@ dei video in Foto restano da confermare. Non è una garanzia di recupero complet
 
 L'app inventaria prima di copiare e non richiede selezioni di file o lotti. **Pausa** interrompe anche l'attesa di riconnessione. **Riprendi** esegue un nuovo inventario e confronta i contenuti già copiati. Un temporaneo appartenente allo stesso elemento viene confrontato integralmente con il prefisso USB: solo se coincide viene aggiunta la parte mancante. Nessun byte esistente viene sovrascritto o troncato. Se non è associabile o diverge, viene conservato e si prepara una nuova copia.
 
-Gli errori di singoli video lasciano proseguire gli altri. Errori di connessione o inventario attivano fino a **tre passaggi automatici**, con attese cancellabili di 15 secondi. Ogni passaggio usa un collegamento nuovo allo stesso dispositivo. Disco pieno o permessi insufficienti sulla destinazione richiedono una pausa. Gli errori permanenti restano nel report: nessun retry infinito.
+Gli errori del singolo video invalidano il collegamento prima della lettura seguente. Se il nuovo inventario è completo e identico in tutti i campi, il passaggio continua con un processo nuovo; altrimenti il video ancora da aprire resta pendente e serve un altro passaggio. Il controllo può ripetere l’esame dei metadati e richiede tempo. Se gli identificativi cambiano a ogni riconnessione, ulteriori errori o timeout possono esaurire il limite dei tentativi: il risultato resta incompleto. Errori di connessione o inventario attivano fino a **tre passaggi automatici**, con attese cancellabili di 15 secondi. Ogni passaggio usa un collegamento nuovo allo stesso dispositivo. Disco pieno o permessi insufficienti sulla destinazione richiedono una pausa. Gli errori permanenti restano nel report: nessun retry infinito.
 
 Al termine viene riletto l'inventario USB: se cambia o rimane incompleto, il risultato non è dichiarato completo. Le osservazioni precedenti ancora pendenti restano visibili. Se gli identificatori cambiano prima che un contenuto sia verificato, può restare un debito storico non riconciliabile: non viene cancellato per ottenere un risultato verde. Il confronto non è uno snapshot atomico della libreria Foto.
 

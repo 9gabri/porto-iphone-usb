@@ -1,7 +1,11 @@
-Porto 0.1.0-rc.6 - Windows 11 x64 - novembre 2026
-Suite finale unica: 249 test ordinari + 4 estesi. Dati sintetici, nessun accesso hardware.
-Comando: scripts/dev.ps1 test -Large.
+Porto 0.1.0-rc.7 - Windows 11 x64 - novembre 2026
+265 test ordinari + quattro estesi: 269 verifiche superate, in due esecuzioni.
+Stessi sorgenti applicativi; dati sintetici, nessun hardware.
+Il primo run ha rilevato una vecchia aspettativa sul riuso del worker.
+Aggiornata al nuovo comportamento, tutta la suite ordinaria e stata rieseguita.
+I quattro test estesi del primo run sono passati sullo stesso codice applicativo.
 
+SUITE ORDINARIA FINALE
 PASS copy and independently reread SHA256
 PASS truncation rejected
 PASS unexpected extra bytes rejected
@@ -251,17 +255,31 @@ PASS rc6 native opening B closes A and stale A cannot consume or cancel B
 PASS rc6 native source closes active stream before releasing resources and disposal is idempotent
 PASS rc6 recovery prioritizes untouched healthy files after delayed cleanup failure; remap=False
 PASS rc6 recovery prioritizes untouched healthy files after delayed cleanup failure; remap=True
-  LARGE stream: 4294967313 bytes, 7,38s, working set 66 MiB
-PASS stream beyond 4 GiB: 4 GiB + 17 bytes actually read and hashed without disk allocation
-  LARGE inventory: 50000 items, 250 GB logical, 16,85s, working set 210 MiB
-PASS 50000-item inventory and 250 GB logical capacity without writing payload
-  STRESS full loop: 2000 physical files twice verified, 50000 entries, 527,74s, working set 191 MiB
-PASS 50000 inventory entries with 2000 actual copies and verified second pass
-  LARGE NTFS: 4294971392 bytes written and reread, 40,21s, working set 191 MiB
-PASS video over 4 GiB actually written verified and published on NTFS
+PASS rc7 isolated recovery after open failure preserves later healthy files in one pass
+PASS rc7 isolated recovery after oversize failure preserves later healthy files in one pass
+PASS rc7 isolated recovery after short failure preserves later healthy files in one pass
+PASS rc7 isolated recovery after hash failure preserves later healthy files in one pass
+PASS rc7 isolated recovery after many failure preserves later healthy files in one pass
+PASS rc7 isolated recovery after reorder failure preserves later healthy files in one pass
+PASS rc7 replacement inventory remap keeps the unopened next video pending
+PASS rc7 replacement inventory metadata keeps the unopened next video pending
+PASS rc7 replacement inventory incomplete keeps the unopened next video pending
+PASS rc7 replacement inventory duplicate keeps the unopened next video pending
+PASS rc7 final inventory after last failed video observes the new inventory
+PASS rc7 clean reads retain one worker and exact verified copies
+PASS rc7 cancellation interrupts replacement inventory without blaming the next file
+PASS rc7 replacement factory failure preserves the original error and next pending item
+PASS rc7 late old-stream disposal cannot affect a recovered worker
+PASS rc7 recovery never opens a caller observation absent from the baseline
+265/265 passed
 
-253/253 passed
-Build app: 0 warnings, 0 errors.
-Separati: 4/4 package staging tests; 4/4 UI states.
-Baseline e mutazione negativa: REVIEW-RC6.md.
-Compatibilità fisica e riconciliazione con Foto ancora da confermare.
+QUATTRO TEST ESTESI - ESTRATTO DEL RUN
+  LARGE stream: 4294967313 bytes, 2,56s, working set 65 MiB
+PASS stream beyond 4 GiB: 4 GiB + 17 bytes actually read and hashed without disk allocation
+  LARGE inventory: 50000 items, 250 GB logical, 4,48s, working set 221 MiB
+PASS 50000-item inventory and 250 GB logical capacity without writing payload
+  STRESS full loop: 2000 physical files twice verified, 50000 entries, 407,41s, working set 205 MiB
+PASS 50000 inventory entries with 2000 actual copies and verified second pass
+  LARGE NTFS: 4294971392 bytes written and reread, 25,78s, working set 87 MiB
+PASS video over 4 GiB actually written verified and published on NTFS
+4/4 extended passed

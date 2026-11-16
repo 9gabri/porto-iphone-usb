@@ -1,21 +1,32 @@
-# Prove della candidata 0.1.0-rc.6
+# Prove della candidata 0.1.0-rc.7
 
-Windows 11 x64 (build 26200), .NET SDK 10.0.403 e runtime Microsoft 10.0.14;
-destinazioni locali NTFS. Dati generati nel progetto. Durante questo ciclo
-nessun iPhone enumerato, aperto o letto automaticamente. La diagnosi parte da
-report del collaudo manuale rc.5; nessun video personale aperto o incluso.
-La destinazione reale resta in sola lettura: nessuna correzione dei suoi file.
+Windows 11 x64, SDK .NET 10.0.403 e runtime 10.0.14; cartelle NTFS isolate.
+Nessun telefono enumerato o aperto e nessun video personale letto durante
+questo ciclo. Diagnosi dai soli report e inventari autorizzati.
 
 ## Risultati finali
 
-**253/253 in un'unica esecuzione finale: 249 ordinari e quattro estesi.**
-Build dell'app: zero avvisi e zero errori. Comando riproducibile:
-`scripts/dev.ps1 test -Large`; senza `-Large` esegue i 249 test ordinari.
-Output sintetico, privo dei percorsi del computer, in [test-results.txt](test-results.txt).
-I 20 nuovi casi comprendono otto prove native COM, sette prove IPC/lifetime,
-tre regressioni sulle motivazioni delle ambiguità e due prove di recupero dopo
-cleanup fallito con ID stabili o rimappati. Tutti i 233 casi precedenti restano
-nella suite. Quattro prove visuali e quattro di confezionamento sono separate.
+**269 verifiche superate: 265 ordinarie e quattro estese, in due esecuzioni.**
+Nel primo run completo un vecchio test imponeva il riuso del worker dopo errore.
+Aggiornata quell'aspettativa alla sostituzione rc.7 (numero esatto e limitato
+di connessioni), sono stati rieseguiti tutti i test ordinari: 265/265.
+I quattro test estesi sono passati nel primo run sullo stesso codice
+applicativo. Nessun test escluso né fallimento residuo ignorato.
+
+Build: zero avvisi/errori. Riproduzione: scripts/dev.ps1 test -Large;
+senza -Large vengono eseguiti i 265 test ordinari.
+Output: [test-results.txt](test-results.txt).
+
+16 nuovi test IPC verificano errori di apertura, flussi troppo lunghi/corti,
+hash discordanti a lunghezza uguale, cinque file difettosi seguiti da tre sani,
+inventari riordinati/cambiati/incompleti, molteplicità, nuovi elementi finali,
+percorso sano, cancellazione, worker non avviabile, Dispose tardivo e
+osservazioni estranee. Le copie sane sono confrontate con i byte attesi.
+Le prime 14 prove sulla rc.6 isolata danno 1/14: falliscono 13 regressioni,
+passa il percorso sano. Mutazione che ignora l'inventario nuovo: 0/1 dopo
+compilazione riuscita. Revisione indipendente senza difetti bloccanti
+confermati; [dettagli e limiti](REVIEW-RC7.md).
+Tutti i precedenti 249 test ordinari e quattro estesi restano nella suite.
 
 Coperti: SHA-256 e rilettura locale, troncamento, dimensione incoerente,
 corruzione, seconda lettura divergente, collisioni, percorsi ostili, lock
@@ -90,7 +101,7 @@ senza leggere o scrivere il profilo dell'utente.
 Gerarchia moov/trak/mdia verificata con contenitori validi e malformati.
 Tre brevi clip sintetiche MOV/M4V H.264 e MP4 HEVC, generate e decodificate
 localmente durante rc.3 con FFmpeg già disponibile, sono state nuovamente
-importate nella suite rc.6 con verifica approfondita e confronto degli hash.
+importate nella suite rc.7 con verifica approfondita e confronto degli hash.
 La decodifica non è stata ripetuta in questo ciclo. Dettagli in
 `tests/Porto.Tests/Fixtures/README.md`. FFmpeg non viene distribuito né richiesto
 da Porto. Queste prove non certificano ogni codec o variante di file iPhone.
@@ -104,13 +115,13 @@ da Porto. Queste prove non certificano ogni codec o variante di file iPhone.
 | 50.000 elementi, 2.000 video | 2.000 file scritti/verificati, 48.000 foto escluse; secondo passaggio senza copie aggiuntive | File piccoli sintetici |
 | 4.294.971.392 byte su NTFS | Contenitore esteso, copia, flush, hash indipendente, parser e pubblicazione | Contenitore sintetico, nessun USB |
 
-Misure del run rc.6 (working set campionato, non picco):
+Misure del run rc.7 (working set campionato, non picco):
 
 ```text
-LARGE stream: 4294967313 bytes, 7,38s, working set 66 MiB
-LARGE inventory: 50000 items, 250 GB logical, 16,85s, working set 210 MiB
-STRESS full loop: 2000 physical files twice verified, 50000 entries, 527,74s, working set 191 MiB
-LARGE NTFS: 4294971392 bytes written and reread, 40,21s, working set 191 MiB
+LARGE stream: 4294967313 bytes, 2,56s, working set 65 MiB
+LARGE inventory: 50000 items, 250 GB logical, 4,48s, working set 221 MiB
+STRESS full loop: 2000 physical files twice verified, 50000 entries, 407,41s, working set 205 MiB
+LARGE NTFS: 4294971392 bytes written and reread, 25,78s, working set 87 MiB
 ```
 
 Non sono benchmark USB. Il solo payload sintetico da 4 GB viene rimosso dopo
@@ -119,7 +130,7 @@ la verifica, in una destinazione nuova dedicata. Nessun file della prova reale
 
 ## Revisione, prove negative e interfaccia
 
-Revisione indipendente su ABI, stream e recupero, con controesempi riprodotti
+La revisione rc.6 conservata copre ABI, stream e recupero, con controesempi riprodotti
 e riesame finale. La failure differita del cleanup non deve essere attribuita
 al video successivo ancora da aprire: il controesempio iniziale impediva la copia
 di B/C/D; dopo la correzione tutti e tre vengono copiati esattamente una volta,
@@ -134,7 +145,7 @@ Quattro prove separate sullo script di confezionamento verificano compressione
 interrotta, ZIP non valido, conservazione di archivio preesistente e successo.
 Il nome definitivo viene occupato solo dopo la verifica; ogni tentativo ha il
 proprio checksum. Riproduzione: `tests/PackageStagingTests.ps1`.
-Queste quattro prove non sono incluse nei 253 casi dell'app.
+Queste quattro prove non sono incluse nei 269 casi dell'app.
 
 App compilata avviata senza USB in quattro stati: normale, ridotta con
 messaggio di riconnessione lungo, ridotta in pausa e ridotta con esito incompleto.
@@ -147,16 +158,15 @@ Smoke e verifica del download pubblico sono registrati separatamente in
 
 ## Da verificare con hardware
 
-Riconoscimento dello specifico iPhone/iOS, driver, cavo, autorizzazione e
-stabilità delle risorse. Le letture contaminate dopo un'operazione incompleta
-sono una riproduzione sintetica; le coincidenze delle lunghezze nei report
-fisici non provano che la causa sia sempre quella. La rc.6 richiede un collaudo
-di recupero usando la destinazione rc.5 con tutti i file conservati.
+La rc.7 richiede una normale importazione sullo specifico iPhone per confermare
+il recupero degli errori reali. La catena di letture contaminate è riprodotta
+su processi sintetici; la causa fisica non è dimostrata dai soli metadati.
+Usare la stessa destinazione rc.5/rc.6 conservando tutti i file.
 
-Se Cancel si blocca, il timeout termina il worker ma non distingue sempre la
-bonifica precedente dall'apertura corrente: entro tre tentativi possono restare
-file sani non raggiunti, sempre dichiarati incompleti. La differenza rispetto
-ai video autonomi in Foto resta da riconciliare; classificazione Live Photo,
-varianti e originali solo iCloud non certificabili. Nessun trasferimento reale
-da 250 GB. Nessuna verifica dello stato degli altri dati iOS. Rete, exFAT e ARM
-restano rifiutati. Eseguibile non firmato; nessuna promessa di zero bug.
+Con inventario stabile si sostituisce il worker prima della lettura successiva.
+Se ogni riconnessione cambia gli identificativi, oppure persistono timeout
+e disconnessioni, i tre passaggi esterni possono non bastare: gli elementi
+irrisolti restano dichiarati. Nessuna falsa riuscita e nessun retry infinito.
+La differenza rispetto a Foto, le Live Photo, le varianti e gli originali
+solo iCloud non sono riconciliati. Nessuna prova fisica da 250 GB o verifica
+degli altri dati iOS. Rete, exFAT e ARM non supportati. Eseguibile non firmato.
