@@ -16,7 +16,7 @@ restituisce invece l’elenco nuovo, che il controllo finale confronta e registr
 Con inventario stabile il recupero è limitato a un riavvio per errore, senza
 ripetere il file nello stesso passaggio: cinque file difettosi non impediscono
 ai sani successivi di essere copiati. Timeout, disconnessioni e inventari
-cambiati conservano il limite di tre passaggi esterni. I report registrano
+cambiati richiedono nuovi passaggi esterni con il budget limitato rc.8. I report registrano
 versione applicativa e riavvii USB tentati nel passaggio.
 
 
@@ -39,9 +39,9 @@ Gli errori nativi espliciti di sessione persa vengono propagati anche dalle lett
 
 Ogni apertura può restituire la dimensione WPD_RESOURCE_ATTRIBUTE_TOTAL_SIZE della risorsa predefinita. È un Int64 non negativo opzionale trasportato nel descrittore del worker; un descrittore malformato invalida la sessione. Proprietà non disponibile: controllo sulla dimensione dell'inventario. Una dimensione di risorsa diversa dall'inventario obbliga a due letture USB complete concordanti, oltre alla verifica locale. Ogni lettura deve rispettare la propria dimensione dichiarata: non si ignorano i troncamenti. IStream.Read con S_FALSE conserva gli eventuali ultimi byte e memorizza EOF, evitando un'altra chiamata al driver; un blocco corto con S_OK prosegue. Viene rispettato anche un buffer ottimale inferiore a 4096 byte.
 
-Gli ID oggetto non vengono usati su una nuova connessione senza un nuovo inventario completo. Il recupero interno richiede coincidenza esatta; altrimenti l’engine riparte dal nuovo elenco. ImportSession crea fino a tre passaggi sullo stesso ID dispositivo, con attesa cancellabile di 15 secondi. Nessun cambio automatico di telefono. Disco pieno, permessi mancanti e pausa interrompono il recupero. Il worker possiede al massimo uno stream, liberato prima dell'operazione seguente o alla terminazione; il cleanup del client non può sostituire un errore di copia con un errore di close.
+Gli ID oggetto non vengono usati su una nuova connessione senza un nuovo inventario completo. Il recupero interno richiede coincidenza esatta; altrimenti l’engine riparte dal nuovo elenco. ImportSession crea tre passaggi ordinari e continuazioni rc.8 limitate sullo stesso ID dispositivo, con attesa cancellabile di 15 secondi. Nessun cambio automatico di telefono. Disco pieno, permessi mancanti e pausa interrompono il recupero. Il worker possiede al massimo uno stream, liberato prima dell'operazione seguente o alla terminazione; il cleanup del client non può sostituire un errore di copia con un errore di close.
 
-Un'interruzione conserva un suggerimento d'ordine: nome, dimensione e posizione nel gruppo dell'inventario originale. Al passaggio successivo tutti gli elementi non ancora falliti, in tutti i gruppi, precedono quelli che hanno già interrotto una sessione. Ogni elemento viene comunque tentato e verificato per contenuto. Gli ID possono cambiare; i suggerimenti non riconciliano identità o debiti. Con un ordine stabile, due elementi bloccati non impediscono di raggiungere quelli sani entro tre passaggi. Inventari riordinati o ulteriori blocchi possono esaurire il limite e restano nel report.
+Un'interruzione conserva un suggerimento d'ordine: nome, dimensione e posizione nel gruppo dell'inventario originale. Al passaggio successivo tutti gli elementi non ancora falliti, in tutti i gruppi, precedono quelli che hanno già interrotto una sessione. Ogni elemento viene comunque tentato e verificato per contenuto. Gli ID possono cambiare; i suggerimenti non riconciliano identità o debiti. Con un ordine stabile, due elementi bloccati non impediscono di raggiungere quelli sani entro tre passaggi. Nella rc.8 anche gli elementi già verificati vengono ordinati dopo quelli non ancora raggiunti. Inventari riordinati o ulteriori blocchi possono esaurire il limite e restano nel report.
 
 GetDevices S_FALSE provoca tentativi limitati, poi una diagnosi di elenco incompleto. L'inventario ammette al massimo un milione di oggetti tentati, profondità 128 e 10.000 errori. ID vuoti/ripetuti, proprietà illeggibili e rami non esplorati restano errori, non successi silenziosi. COM sintetico e processi figli di test esercitano i confini nativi senza enumerare hardware.
 
@@ -79,7 +79,7 @@ Un elemento appena osservato è anche unread. Solo una lettura attuale completa 
 
 Anche gli elementi Unknown privi di un formato video riconosciuto vengono registrati, nell'inventario iniziale e finale. Una successiva classificazione con metadati simili non prova da sola che il vecchio elemento ignoto sia risolto. I gruppi di copie storiche vengono verificati anche quando il contenuto non ricompare nella sorgente corrente.
 
-Dalla rc.5, gli AAE di tipo Other/Unknown senza indizi video sono accessori esclusi con motivazione. Non generano nuovi debiti Unknown; quelli già registrati dalle versioni precedenti restano conservati. Un tipo o formato video prevale sull'estensione. L'inventario continua a esaminare i metadati di tutte le risorse esposte via USB, senza copiare le fotografie. I conteggi distinguono queste risorse dai video autonomi e dalla libreria Foto; le associazioni sospette a Live Photo/modifiche rimangono ambigue.
+Dalla rc.5, gli AAE di tipo Other/Unknown senza indizi video sono accessori esclusi con motivazione. Non generano nuovi debiti Unknown; quelli già registrati dalle versioni precedenti restano conservati. Un tipo o formato video prevale sull'estensione. L'inventario continua a esaminare i metadati di tutte le risorse esposte via USB, senza copiare le fotografie. I conteggi distinguono queste risorse dai video autonomi e dalla libreria Foto; le associazioni sospette vengono tentate e poi classificate come risorse aggiuntive nella rc.8.
 
 Il riuso richiede lettura completa della sorgente, hash e lunghezza coincidenti e rilettura della copia locale scelta. Ogni copia può essere assegnata una sola volta nell'inventario corrente. Le copie aggiuntive necessarie ai conteggi storici non vengono rimesse nella coda dello stesso passaggio. I deficit provati possono attivare ulteriori passaggi limitati. Due inventari vengono confrontati includendo la molteplicità, ma non costituiscono uno snapshot atomico di Foto.
 
@@ -89,10 +89,46 @@ Usare una cartella per telefono/libreria. L'identità tra librerie differenti, g
 
 ## Formati, interfaccia e privacy
 
-Il parser controlla limiti degli atom, gerarchia moov/trak/mdia/hdlr, traccia vide e mdat, con limiti di profondità, numero di atom e metadati. Non decodifica i fotogrammi e non certifica riproducibilità o originalità. Le indicazioni Live Photo/varianti ambigue impediscono la pubblicazione automatica fra i video autonomi.
+Il parser controlla limiti degli atom, gerarchia moov/trak/mdia/hdlr, traccia vide e mdat, con limiti di profondità, numero di atom e metadati. Non decodifica i fotogrammi e non certifica riproducibilità o originalità. Nella rc.8 le indicazioni Live Photo/varianti non impediscono la lettura: le nuove copie valide vengono pubblicate nella cartella aggiuntiva.
 
 La cartella scelta viene ricordata solo nel profilo locale. Durante il lavoro viene richiesta la prevenzione della sospensione inattiva; blocco schermo e sospensione manuale restano invariati. Nessuna elevazione, installazione di driver, telemetria, account, upload o aggiornamento automatico. Cataloghi e report contengono nomi/ID locali: non pubblicarli senza controllarli.
 
 Le dipendenze native vengono cercate in System32. Il pacchetto include il runtime Microsoft e viene costruito in uno staging nuovo per ogni release; non incorpora residui delle build precedenti. L'eseguibile è non firmato. La compatibilità con un iPhone fisico deve ancora essere provata.
 
 Il nome definitivo dello ZIP viene assegnato soltanto dopo compressione e controlli nello staging, con spostamento senza sostituzione. Il checksum rimane nello staging di quello specifico tentativo. Anche il file delle preferenze rifiuta collegamenti NTFS/reparse; i test delle preferenze usano percorsi sintetici, senza leggere il profilo reale.
+
+## rc.8: copertura, classificazione e continuazioni
+
+Nessuno skip pre-lettura basato su foto omonima o IMG_E. CandidateCount e
+TransferCandidateCount coprono tutte le risorse candidate; le foto/AAE non vengono
+lette. Un video valido con indizi viene pubblicato in Risorse video aggiuntive
+con esito Additional/AdditionalAlreadyPresent, terminale anche nel ledger.
+Le copie Complete precedenti mantengono il percorso; il risultato può essere
+classificato aggiuntivo quando emergono indizi nuovi. Il catalogo ammette solo
+le due cartelle esatte, con gli stessi controlli su UUID, estensioni e collegamenti.
+
+Il parser riconosce still-image-time nella gerarchia della traccia meta:
+stsd/mebx/keys/(ID locale)/keyd con namespace mdta. I local ID non sono tipi atom
+ordinari. Una chiave registrata non dimostra che un campione abbia scritto il
+valore: AdditionalResource è solo un indizio. Stringhe in free e content.identifier
+isolato non bastano. Restano limiti di profondità/dimensioni e controlli dei parent.
+
+Un Quarantined già presente viene verificato contro sorgente e file locale,
+poi riclassificato. Se valido: nuovo intento Copying, copia locale nuova e flush,
+SHA-256, Ready con Replaces, publish senza overwrite, transazione Complete+Replaced.
+Il vecchio .part rimane fisicamente invariato. Recover gestisce Ready e collisioni
+anche nella cartella aggiuntiva. Nessuna perdita del numero minimo di copie distinte.
+
+SourceUnavailable dopo lettura può continuare nello stesso engine se il source
+supporta IReadFailureRecovery; PreviousReadCleanup ferma sempre prima di aprire
+il prossimo file. ReadRecoveryInterrupted distingue queste interruzioni dai
+cambi del solo inventario finale. Oltre tre passaggi, continuazione solo se il
+passaggio interrotto raggiunge un nuovo RetryHint. Budget fissato una volta a
+min(CandidateCount del primo inventario completo,128); gli ID nuovi non lo aumentano.
+RetryVisited evita di rileggere ogni volta il prefisso sano prima di raggiungere
+le risorse nuove. Questi dati sono suggerimenti d'ordine, mai prove di identità.
+
+ReportItem.Historical separa osservazioni precedenti irrisolte dalle risorse del
+passaggio attuale. Non elimina debiti né permette il completamento in loro presenza.
+Count mantiene il totale; CurrentCount alimenta l'interfaccia e la sezione corrente
+del report. Le osservazioni storiche non si possono sommare come video distinti.

@@ -35,7 +35,7 @@ Verifiche aggiuntive rc.3, 31 ottobre 2026:
 
 - [Apple: trasferire foto e video su PC](https://support.apple.com/en-us/120267): collegamento, autorizzazione, Dispositivi Apple e necessità di originali locali per l'importazione USB. Non documenta una garanzia di inventario Foto completo via WPD.
 - [Apple: HEIF/HEVC e Mantieni originali](https://support.apple.com/en-ie/116944): il trasferimento USB può convertire il formato se non si sceglie Keep Originals. Ciò non è una certificazione indipendente di originale non modificato.
-- [Apple: metadati Live Photo](https://developer.apple.com/documentation/avfoundation/avcapturephotosettings/livephotomoviemetadata?language=objc): associazione movie/foto tramite content identifier. La candidata tratta gli indizi incompleti come ambigui.
+- [Apple: metadati Live Photo](https://developer.apple.com/documentation/avfoundation/avcapturephotosettings/livephotomoviemetadata?language=objc): associazione movie/foto tramite content identifier. La rc.8 copia le risorse con indizi nelle risorse aggiuntive, senza certificarle come Live Photo.
 - [Microsoft: apertura dispositivo WPD](https://learn.microsoft.com/en-us/windows/win32/api/portabledeviceapi/nf-portabledeviceapi-iportabledevice-open): richiesta esplicita GENERIC_READ.
 - [Microsoft: GetStream](https://learn.microsoft.com/en-us/windows/win32/api/portabledeviceapi/nf-portabledeviceapi-iportabledeviceresources-getstream): modalità STGM_READ e WPD_RESOURCE_DEFAULT.
 - [Microsoft: mapping degli identificatori](https://learn.microsoft.com/en-us/windows-hardware/drivers/portable/mapping-object-identifiers): ID di oggetto validi per sessione, diverse implementazioni dei PUID. Non assumiamo affidabilità specifica iPhone senza prove hardware.
@@ -54,3 +54,16 @@ Verifiche aggiuntive rc.2:
 - [Apple accessori USB](https://support.apple.com/en-in/111806): sblocco prima del collegamento e riconnessione se necessario; non viene modificata l'impostazione di sicurezza degli accessori.
 
 WPD è la scelta minima per utilizzare lo stack già presente su Windows. La presenza di un'interfaccia e la correttezza ABI non dimostrano compatibilità con uno specifico iPhone o iOS. Originalità, associazione a Live Photo, risorse modificate e quantità degli originali solo cloud non sono certificabili con i soli dati generici usati qui. Per questo la UI non dichiara mai la libreria intera verificata.
+
+## rc.8: struttura QuickTime (fonti Apple)
+
+- https://developer.apple.com/documentation/quicktime-file-format/timed_metadata_media — traccia meta.
+- https://developer.apple.com/documentation/quicktime-file-format/timed_metadata_sample_descriptions — mebx e tabella keys.
+- https://developer.apple.com/documentation/quicktime-file-format/metadata_key_table_atom — una chiave può esistere senza valore scritto.
+- https://developer.apple.com/documentation/quicktime-file-format/metadata_key_atom — ID locali, zero inutilizzato e FFFFFFFF riservato.
+- https://developer.apple.com/documentation/quicktime-file-format/metadata_key_declaration_atom — namespace e stringa keyd.
+- https://developer.apple.com/documentation/quicktime-file-format/sample_description_atom — intestazione e padding finale.
+- https://developer.apple.com/documentation/avfoundation/avcapturephotosettings/livephotomoviemetadata — content.identifier associa foto e movie; la presenza del solo identificatore non certifica che la risorsa sia una Live Photo.
+
+La classificazione aggiuntiva è una scelta conservativa di Porto, non una garanzia
+Apple di corrispondenza uno-a-uno con l’album Video.

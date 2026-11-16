@@ -64,3 +64,15 @@ vuota, per confermare la stabilità USB e confrontare i video autonomi attesi.
 Riscontro esterno ancora necessario: recupero fisico con rc.6 nella destinazione
 rc.5 conservata e riconciliazione dei conteggi Foto. Nessun completo recupero
 dei video reali dichiarato sulla sola base delle prove sintetiche.
+
+## rc.8 — copertura e recupero senza esclusioni per indizi
+- [x] Diagnosi dagli allegati autorizzati, senza lettura dei media.
+- [x] Due revisori indipendenti: parser/copertura e USB/continuità, controllo reciproco e storage.
+- [x] Tutte le risorse candidate tentate; copie aggiuntive separate e temporanei precedenti preservati.
+- [x] Continuazioni limitate, priorità ai non raggiunti, report storico distinto senza cancellare debiti.
+- [x] Mutazione negativa isolata rilevata e quattro test packaging.
+- [x] Suite 322/322 e 48 ricontrolli pertinenti sul codice finale; build e interfaccia verificate.
+- [ ] Pacchetto nuovo, pubblicazione, riscaricamento, checksum e avvio sintetico.
+
+Il totale Foto dichiarato dall’utente e il recupero reale richiedono ancora una
+prova con il telefono. Nessun totale artificiale basato sui componenti Live Photo.

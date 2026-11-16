@@ -1,11 +1,9 @@
-Porto 0.1.0-rc.7 - Windows 11 x64 - novembre 2026
-265 test ordinari + quattro estesi: 269 verifiche superate, in due esecuzioni.
-Stessi sorgenti applicativi; dati sintetici, nessun hardware.
-Il primo run ha rilevato una vecchia aspettativa sul riuso del worker.
-Aggiornata al nuovo comportamento, tutta la suite ordinaria e stata rieseguita.
-I quattro test estesi del primo run sono passati sullo stesso codice applicativo.
+Porto 0.1.0-rc.8 - Windows 11 x64 - novembre 2026
+322 casi della suite completa: 318 ordinari e 4 estesi.
+Dopo ultimo aggiustamento classificazione: 48 verifiche pertinenti rieseguite.
+Non sono 370 casi distinti. Nessun dispositivo o media personale usato.
 
-SUITE ORDINARIA FINALE
+SUITE COMPLETA
 PASS copy and independently reread SHA256
 PASS truncation rejected
 PASS unexpected extra bytes rejected
@@ -23,8 +21,8 @@ PASS disk fills during copy and stops safely
 PASS read disconnect then reconnect
 PASS malicious names and catalog path escape rejected
 PASS concurrent importer is excluded
-PASS live photo hint and edited variants are ambiguous, not success
-PASS paired photo ambiguity, photos excluded
+PASS raw marker bytes do not exclude valid video and filename hints preserve extra copy
+PASS paired video is copied separately, photo remains unread and excluded
 PASS MOV MP4 M4V containers accepted; extension alone rejected
 PASS incomplete inventory and offline missing never claim full library
 PASS process termination and recovery at after-intent
@@ -242,9 +240,9 @@ PASS rc6 stale stream cannot consume a later resource after open
 PASS rc6 stale stream cannot consume a later resource after failed-open
 PASS rc6 stale stream cannot consume a later resource after inventory
 PASS rc6 stale stream cannot consume a later resource after connect
-PASS rc6 ambiguous report explains photo pairing and edited-name evidence: True/False
-PASS rc6 ambiguous report explains photo pairing and edited-name evidence: False/True
-PASS rc6 ambiguous report explains photo pairing and edited-name evidence: True/True
+PASS rc8 copied additional resource report explains photo pairing and edited-name evidence: True/False
+PASS rc8 copied additional resource report explains photo pairing and edited-name evidence: False/True
+PASS rc8 copied additional resource report explains photo pairing and edited-name evidence: True/True
 PASS rc6 native incomplete A is cancelled before B receives its own bytes
 PASS rc6 native clean S_FALSE tail is released without Cancel
 PASS rc6 native failed cleanup preserves read error and blocks subsequent Open and Inventory
@@ -271,15 +269,121 @@ PASS rc7 cancellation interrupts replacement inventory without blaming the next 
 PASS rc7 replacement factory failure preserves the original error and next pending item
 PASS rc7 late old-stream disposal cannot affect a recovered worker
 PASS rc7 recovery never opens a caller observation absent from the baseline
-265/265 passed
-
-QUATTRO TEST ESTESI - ESTRATTO DEL RUN
-  LARGE stream: 4294967313 bytes, 2,56s, working set 65 MiB
+PASS rc8 media arbitrary free text is not metadata: com.apple.quicktime.still-image-time
+PASS rc8 media arbitrary free text is not metadata: com.apple.quicktime.content.identifier
+PASS rc8 media structured still-image-time is only an additional-resource hint
+PASS rc8 media local timed key ID is not an atom semantic: 66726565
+PASS rc8 media local timed key ID is not an atom semantic: 6D6F6F76
+PASS rc8 media local timed key ID is not an atom semantic: 00000002
+PASS rc8 media no extra classification for content identifier
+PASS rc8 media no extra classification for wrong namespace
+PASS rc8 media no extra classification for unrelated key prefix
+PASS rc8 media no extra classification for audio track
+PASS rc8 media no extra classification for video track
+PASS rc8 media no extra classification for unused local key
+PASS rc8 media static content identifier alone stays eligible
+PASS rc8 media nested free payload cannot impersonate a metadata track
+PASS rc8 media misplaced key declaration is not timed metadata
+PASS rc8 media handler order does not change structured hint
+PASS rc8 media documented sample description zero padding stays valid
+PASS rc8 media inspection leaves synthetic bytes unchanged
+PASS rc8 media name and photo evidence is a copy hint, never a pre-read rejection
+PASS rc8 media malformed and truncated metadata never publishes as verified video
+PASS rc8 media large free payload does not provide metadata evidence
+PASS rc8 media cancellation remains observable
+PASS rc8 six hang-open failures recover before later healthy videos in one pass
+PASS rc8 six hang-read failures recover before later healthy videos in one pass
+PASS rc8 six disconnect failures recover before later healthy videos in one pass
+PASS rc8 six failures with remapped IDs and tied metadata reach every healthy video
+PASS rc8 continuation defers earlier healthy reads without skipping them; tied=False
+PASS rc8 continuation defers earlier healthy reads without skipping them; tied=True
+PASS rc8 metadata churn cannot expand the first inventory recovery budget; complete=False
+PASS rc8 metadata churn cannot expand the first inventory recovery budget; complete=True
+PASS rc8 cancellation stops before the next recovery continuation
+PASS rc8 disconnected replacement inventories stop within ordinary retry budget
+PASS rc8 changed final inventories alone cannot grant recovery continuation
+PASS rc8 coverage reuses prior videos and reads every new video hint without reading photos
+PASS rc8 coverage current edited hint does not inflate the primary count on hash reuse
+PASS rc8 coverage old verified quarantine is published with original part intact; additional=False
+PASS rc8 coverage old verified quarantine is published with original part intact; additional=True
+PASS rc8 coverage promotion survives process termination at promotion-intent; additional=False
+PASS rc8 coverage promotion survives process termination at promotion-intent; additional=True
+PASS rc8 coverage promotion survives process termination at promotion-flush; additional=False
+PASS rc8 coverage promotion survives process termination at promotion-flush; additional=True
+PASS rc8 coverage promotion survives process termination at promotion-ready; additional=False
+PASS rc8 coverage promotion survives process termination at promotion-ready; additional=True
+PASS rc8 coverage promotion survives process termination at promotion-rename; additional=False
+PASS rc8 coverage promotion survives process termination at promotion-rename; additional=True
+PASS rc8 coverage promotion survives process termination at promotion-complete; additional=False
+PASS rc8 coverage promotion survives process termination at promotion-complete; additional=True
+PASS rc8 coverage additional promotion collision preserves foreign file and folder
+PASS rc8 coverage promotion preserves identical-resource multiplicity
+PASS rc8 coverage invalid quarantine stays explicit and cannot be promoted
+PASS rc8 coverage new final-inventory work stays current while unread old IDs remain historical
+PASS rc8 coverage a missing prior copy stays historical with an empty current inventory
+PASS rc8 coverage previously published video failing the new parser stays ambiguous and unchanged
+  LARGE stream: 4294967313 bytes, 3,07s, working set 68 MiB
 PASS stream beyond 4 GiB: 4 GiB + 17 bytes actually read and hashed without disk allocation
-  LARGE inventory: 50000 items, 250 GB logical, 4,48s, working set 221 MiB
+  LARGE inventory: 50000 items, 250 GB logical, 8,87s, working set 226 MiB
 PASS 50000-item inventory and 250 GB logical capacity without writing payload
-  STRESS full loop: 2000 physical files twice verified, 50000 entries, 407,41s, working set 205 MiB
+  STRESS full loop: 2000 physical files twice verified, 50000 entries, 381,19s, working set 203 MiB
 PASS 50000 inventory entries with 2000 actual copies and verified second pass
-  LARGE NTFS: 4294971392 bytes written and reread, 25,78s, working set 87 MiB
+  LARGE NTFS: 4294971392 bytes written and reread, 25,30s, working set 117 MiB
 PASS video over 4 GiB actually written verified and published on NTFS
-4/4 extended passed
+322/322 passed
+
+RICONTROLLI SUL CODICE FINALE
+PASS rc8 media arbitrary free text is not metadata: com.apple.quicktime.still-image-time
+PASS rc8 media arbitrary free text is not metadata: com.apple.quicktime.content.identifier
+PASS rc8 media structured still-image-time is only an additional-resource hint
+PASS rc8 media local timed key ID is not an atom semantic: 66726565
+PASS rc8 media local timed key ID is not an atom semantic: 6D6F6F76
+PASS rc8 media local timed key ID is not an atom semantic: 00000002
+PASS rc8 media no extra classification for content identifier
+PASS rc8 media no extra classification for wrong namespace
+PASS rc8 media no extra classification for unrelated key prefix
+PASS rc8 media no extra classification for audio track
+PASS rc8 media no extra classification for video track
+PASS rc8 media no extra classification for unused local key
+PASS rc8 media static content identifier alone stays eligible
+PASS rc8 media nested free payload cannot impersonate a metadata track
+PASS rc8 media misplaced key declaration is not timed metadata
+PASS rc8 media handler order does not change structured hint
+PASS rc8 media documented sample description zero padding stays valid
+PASS rc8 media inspection leaves synthetic bytes unchanged
+PASS rc8 media name and photo evidence is a copy hint, never a pre-read rejection
+PASS rc8 media malformed and truncated metadata never publishes as verified video
+PASS rc8 media large free payload does not provide metadata evidence
+PASS rc8 media cancellation remains observable
+22/22 passed
+PASS rc8 coverage reuses prior videos and reads every new video hint without reading photos
+PASS rc8 coverage current edited hint does not inflate the primary count on hash reuse
+PASS rc8 coverage old verified quarantine is published with original part intact; additional=False
+PASS rc8 coverage old verified quarantine is published with original part intact; additional=True
+PASS rc8 coverage promotion survives process termination at promotion-intent; additional=False
+PASS rc8 coverage promotion survives process termination at promotion-intent; additional=True
+PASS rc8 coverage promotion survives process termination at promotion-flush; additional=False
+PASS rc8 coverage promotion survives process termination at promotion-flush; additional=True
+PASS rc8 coverage promotion survives process termination at promotion-ready; additional=False
+PASS rc8 coverage promotion survives process termination at promotion-ready; additional=True
+PASS rc8 coverage promotion survives process termination at promotion-rename; additional=False
+PASS rc8 coverage promotion survives process termination at promotion-rename; additional=True
+PASS rc8 coverage promotion survives process termination at promotion-complete; additional=False
+PASS rc8 coverage promotion survives process termination at promotion-complete; additional=True
+PASS rc8 coverage additional promotion collision preserves foreign file and folder
+PASS rc8 coverage promotion preserves identical-resource multiplicity
+PASS rc8 coverage invalid quarantine stays explicit and cannot be promoted
+PASS rc8 coverage new final-inventory work stays current while unread old IDs remain historical
+PASS rc8 coverage a missing prior copy stays historical with an empty current inventory
+PASS rc8 coverage previously published video failing the new parser stays ambiguous and unchanged
+20/20 passed
+PASS rc8 copied additional resource report explains photo pairing and edited-name evidence: True/False
+PASS rc8 copied additional resource report explains photo pairing and edited-name evidence: False/True
+PASS rc8 copied additional resource report explains photo pairing and edited-name evidence: True/True
+3/3 passed
+PASS rc5 inventory mixed resources separate transfer candidates and do not retry sidecars
+1/1 passed
+PASS paired video is copied separately, photo remains unread and excluded
+1/1 passed
+PASS raw marker bytes do not exclude valid video and filename hints preserve extra copy
+1/1 passed

@@ -1,20 +1,21 @@
 # Porto
 
-App locale italiana per importare via USB i video accessibili di un iPhone su Windows 11 x64. Versione **0.1.0-rc.7**, candidata sperimentale: il collegamento WPD è reale, ma **questa versione richiede ancora una prova con iPhone fisico**. I collaudi precedenti hanno evidenziato errori e conteggi ancora da riconciliare.
+App locale italiana per importare via USB i video accessibili di un iPhone su Windows 11 x64. Versione **0.1.0-rc.8**, candidata sperimentale: il collegamento WPD è reale, ma **questa versione richiede ancora una prova con iPhone fisico**. I collaudi precedenti hanno evidenziato errori e conteggi ancora da riconciliare.
 
-[Pagina e istruzioni](https://9gabri.github.io/porto-iphone-usb/) · [Download Windows](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.7/Porto-0.1.0-rc.7-win-x64.zip) · [Checksum SHA-256](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.7/SHA256SUMS.txt)
+[Pagina e istruzioni](https://9gabri.github.io/porto-iphone-usb/) · [Download Windows](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.8/Porto-0.1.0-rc.8-win-x64.zip) · [Checksum SHA-256](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.8/SHA256SUMS.txt)
 
-La rc.7 sostituisce il processo USB dopo una lettura rifiutata e verifica un
-nuovo inventario completo prima di passare al video successivo. Questo evita
-di continuare su una sessione potenzialmente alterata, anche se l'annullamento
-precedente non aveva restituito errori. Dimensioni, hash e verifica delle copie
-restano obbligatori. [Diagnosi e limiti](docs/REVIEW-RC7.md).
+La rc.8 tenta tutte le risorse video USB: nomi `IMG_E…`, foto omonime e
+indizi di Live Photo non impediscono più la lettura. Le copie con questi
+indizi vengono verificate e conservate in **Risorse video aggiuntive**,
+separatamente dai video riconosciuti senza tali indizi. Possono essere migliaia
+di clip brevi: non equivalgono a migliaia di video autonomi nell'app Foto.
+[Revisione, garanzie e limiti](docs/REVIEW-RC8.md).
 
-**Per riprendere una prova rc.5 o rc.6, usa la stessa destinazione conservando
-tutti i video, i report e la cartella `.porto`. Estrai l'app rc.7 separatamente.**
-Le copie presenti vengono rilette e verificate. Il collaudo rc.6 non ha risolto
-la catena di errori osservata: questa nuova candidata richiede una normale
-prova di importazione, senza copie manuali dei singoli video.
+**Per riprendere una prova precedente, usa la stessa destinazione conservando
+tutti i video, i report e `.porto`. Estrai l'app rc.8 separatamente.**
+Le copie già presenti vengono rilette e verificate senza spostarle. Gli errori
+USB vengono isolati con processi nuovi e continuazioni limitate, dando
+precedenza alle risorse non ancora raggiunte. Non serve selezionare i video.
 
 ## Provala
 
@@ -24,7 +25,16 @@ prova di importazione, senza copie manuali dei singoli video.
 
 L'app inventaria prima di copiare e non richiede selezioni di file o lotti. **Pausa** interrompe anche l'attesa di riconnessione. **Riprendi** esegue un nuovo inventario e confronta i contenuti già copiati. Un temporaneo appartenente allo stesso elemento viene confrontato integralmente con il prefisso USB: solo se coincide viene aggiunta la parte mancante. Nessun byte esistente viene sovrascritto o troncato. Se non è associabile o diverge, viene conservato e si prepara una nuova copia.
 
-Gli errori del singolo video invalidano il collegamento prima della lettura seguente. Se il nuovo inventario è completo e identico in tutti i campi, il passaggio continua con un processo nuovo; altrimenti il video ancora da aprire resta pendente e serve un altro passaggio. Il controllo può ripetere l’esame dei metadati e richiede tempo. Se gli identificativi cambiano a ogni riconnessione, ulteriori errori o timeout possono esaurire il limite dei tentativi: il risultato resta incompleto. Errori di connessione o inventario attivano fino a **tre passaggi automatici**, con attese cancellabili di 15 secondi. Ogni passaggio usa un collegamento nuovo allo stesso dispositivo. Disco pieno o permessi insufficienti sulla destinazione richiedono una pausa. Gli errori permanenti restano nel report: nessun retry infinito.
+Gli errori del singolo video invalidano il collegamento prima della lettura
+seguente. Ogni nuovo processo deve rileggere un inventario completo e identico
+prima di usare gli ID precedenti. Se cambia, il video non aperto resta pendente
+e il passaggio successivo usa gli ID nuovi. Tre passaggi ordinari possono essere
+seguiti da continuazioni aggiuntive solo finché viene raggiunto un nuovo ostacolo
+prima non tentato: massimo 128, con limite fissato dal primo inventario completo.
+Nomi e dimensioni servono soltanto all'ordine, mai a dichiarare una copia riuscita.
+Attese cancellabili di 15 secondi, stesso dispositivo, nessun retry infinito.
+Disco pieno e permessi insufficienti fermano il trasferimento. Errori persistenti,
+contenuti non riconosciuti e osservazioni storiche non riconciliate restano visibili.
 
 Al termine viene riletto l'inventario USB: se cambia o rimane incompleto, il risultato non è dichiarato completo. Le osservazioni precedenti ancora pendenti restano visibili. Se gli identificatori cambiano prima che un contenuto sia verificato, può restare un debito storico non riconciliabile: non viene cancellato per ottenere un risultato verde. Il confronto non è uno snapshot atomico della libreria Foto.
 
@@ -41,7 +51,7 @@ Il pacchetto non è firmato con un certificato commerciale: Windows può mostrar
 ## Che cosa viene salvato
 
 - Video MOV, MP4 e M4V, con controllo del contenitore e della traccia video, anche oltre 4 GB. Nessuna conversione, ricompressione o riscrittura dei metadati interni.
-- File in `Video Porto`, con nome originale sanificato e suffisso univoco. File preesistenti mai sovrascritti.
+- Nuovi file in `Video Porto` o `Risorse video aggiuntive`, con nome sanificato e suffisso univoco. Copie già verificate restano nella cartella precedente anche quando emergono nuovi indizi di classificazione. File preesistenti mai sovrascritti.
 - Catalogo SQLite, inventari e temporanei in `.porto`; report leggibile `.txt` ed esportabile `.json` in `Report Porto`.
 - SHA-256 calcolato sui byte ricevuti e confrontato con la rilettura locale. La verifica approfondita ripete anche la lettura USB e richiede più tempo; se fallisce, il nuovo file non viene pubblicato.
 - Identificatori USB, nome, data e dimensioni **non bastano** per saltare un file. Il confronto è sul contenuto completo, mantenendo la molteplicità degli elementi identici dell'inventario. Le importazioni ripetute rileggono quindi la sorgente.
@@ -52,9 +62,16 @@ La cartella scelta viene ricordata in `%LOCALAPPDATA%\Porto\destination.txt`, so
 
 ## Limiti da conoscere prima della prova
 
-**Integrità non significa originalità o completezza.** La verifica dimostra la corrispondenza con i byte ricevuti tramite USB. Non è un checksum calcolato dall'iPhone e non certifica che la risorsa sia l'originale Foto non modificato. “Mantieni originali” evita la conversione di formato; non rende tutte le risorse WPD originali certificati. Le varianti riconoscibili come `IMG_E…` vengono segnalate e non importate automaticamente; altre versioni modificate potrebbero non essere distinguibili.
+**Integrità non significa originalità o completezza.** La verifica dimostra la corrispondenza con i byte ricevuti tramite USB. Non è un checksum calcolato dall'iPhone e non certifica che la risorsa sia l'originale Foto non modificato. “Mantieni originali” evita la conversione di formato; non rende tutte le risorse WPD originali certificati. Le varianti con nome `IMG_E…` vengono copiate tra le risorse aggiuntive; altre versioni modificate potrebbero non essere distinguibili.
 
-Le fotografie sono escluse. Video con foto omonima nella stessa cartella, indicatori Live Photo o identificatori Apple di associazione sono **ambigui**, non vengono pubblicati tra i video autonomi e sono riportati. Se l'indizio viene trovato solo dopo la lettura, i byte restano come `.part` in `.porto`. Non si accede ai dati privati delle altre app iOS. Senza metadati distintivi l'associazione di una risorsa a una Live Photo non è verificabile.
+Le fotografie sono escluse dalla lettura dei contenuti. Tutte le risorse video
+candidate vengono tentate, anche se esiste una foto omonima. Il parser legge la
+struttura dei metadati temporizzati: una chiave `still-image-time` strutturata è
+un indizio, non la prova certa di una Live Photo. La sola stringa o il solo
+`content.identifier` non escludono un video. I contenitori invalidi restano
+conservati come temporanei e segnalati, senza fingere che siano video validi.
+Vecchi temporanei validi vengono riclassificati tramite una nuova copia,
+preservando i byte del temporaneo originale. Non si accede ai dati di altre app iOS.
 
 Porto funziona offline, non chiede Apple ID e non scarica da iCloud. WPD non offre in questa implementazione un conteggio affidabile degli originali solo cloud: **la copertura dell'intera libreria non è verificabile**, anche quando finisce l'inventario. “Mancanti noti: 0” non significa che non manchi nulla su iCloud. Non cambiamo impostazioni del telefono e non consigliamo di liberarlo cancellando contenuti.
 

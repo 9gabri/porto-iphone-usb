@@ -1,33 +1,37 @@
-# Porto 0.1.0-rc.7
+# Porto 0.1.0-rc.8
 
 Candidata Windows 11 x64 portabile, con runtime incluso.
 
-Dopo una lettura fallita Porto sostituisce il proprio processo USB e rilegge
-l'inventario prima di aprire il video successivo. Il controllo copre flussi
-con dimensione errata e hash discordante. Se l'inventario cambia o è
-incompleto, il video non ancora aperto resta pendente e serve un nuovo passaggio.
-Nessuna associazione per solo nome e nessuna falsa conferma di completamento.
+Porto tenta tutte le risorse video USB: foto omonime, nomi IMG_E e indizi Live Photo
+non bloccano più la lettura. Le copie con questi indizi vengono verificate e salvate
+in **Risorse video aggiuntive**. Possono essere migliaia di clip: non equivalgono
+al numero di video autonomi nell'app Foto.
 
-I test includono cinque video difettosi seguiti da tre sani, copiati esattamente
-nello stesso passaggio senza duplicati. Nessuna copia manuale richiesta.
-Report con versione dell'app e numero dei riavvii USB.
+Le copie precedenti restano nella loro cartella e vengono ricontrollate. I vecchi
+temporanei validi sono riclassificati tramite nuova copia, preservando il vecchio
+file. Nessuna conversione o cancellazione sul telefono.
 
-269 verifiche superate: 265 ordinarie e quattro estese, in due esecuzioni.
-Build senza avvisi/errori, regressioni sulla rc.6, mutazione e revisione
-indipendente. Nessun telefono o video personale usato nei test. Nessuna
-conversione, cancellazione sul telefono, installazione di driver o spesa.
+Recupero USB con processi nuovi, inventario verificato e precedenza ai file non
+ancora raggiunti. Dopo tre passaggi, continuazioni limitate solo con nuovi ostacoli
+raggiunti. Report corrente distinto dalle osservazioni storiche irrisolte.
 
-**Il recupero dei video reali resta da confermare con una normale importazione.**
-Inventari cambiati a ogni connessione, timeout e disconnessioni possono
-esaurire i tre passaggi. Restano i limiti rispetto all'intera libreria Foto,
-alle risorse ambigue e ai contenuti solo iCloud.
+322 casi della suite completa superati, più 48 ricontrolli pertinenti dopo
+l'ultimo aggiustamento di classificazione. Build senza avvisi/errori, quattro
+prove packaging, revisione indipendente e mutazione negativa rilevata.
+Solo dati sintetici, nessun servizio, driver o costo aggiunto.
 
-Chiudere Porto, estrarre l'intero ZIP in una cartella nuova e aprire Porto.exe.
-Scegliere la stessa destinazione della prova precedente, conservando video,
-report, temporanei e .porto. Mantenere la verifica approfondita e avviare.
-Durante il recupero può ripetersi l'esame dei metadati. Le copie presenti
-vengono rilette e verificate. Non disattivare le protezioni Windows.
+**Recupero dei video reali e totale Foto restano da confermare.** Non è garantito
+prima della prova un numero fisso di video recuperati. Contenuti non esposti via
+USB, eliminati o solo iCloud non diventano accessibili grazie a questa modifica.
+Le risorse aggiuntive richiedono più tempo e spazio; errori persistenti espliciti.
 
-[Istruzioni](https://9gabri.github.io/porto-iphone-usb/) · [Test](https://github.com/9gabri/porto-iphone-usb/blob/v0.1.0-rc.7/docs/TESTS.md) · [Revisione](https://github.com/9gabri/porto-iphone-usb/blob/v0.1.0-rc.7/docs/REVIEW-RC7.md)
+Chiudere Porto, estrarre tutto lo ZIP in una cartella nuova e aprire Porto.exe.
+Scegliere la stessa destinazione precedente, conservando video, report e .porto.
+Collegare, sbloccare e autorizzare l'iPhone; mantenere Mantieni originali, attivare
+la verifica approfondita e avviare una sola importazione. Nessuna selezione dei
+video. Dopo l'aggiornamento usare rc.8 per quella destinazione.
+Non disattivare le protezioni Windows.
 
-Scaricare Porto-0.1.0-rc.7-win-x64.zip e SHA256SUMS.txt dagli allegati.
+[Istruzioni](https://9gabri.github.io/porto-iphone-usb/) · [Test](https://github.com/9gabri/porto-iphone-usb/blob/v0.1.0-rc.8/docs/TESTS.md) · [Revisione](https://github.com/9gabri/porto-iphone-usb/blob/v0.1.0-rc.8/docs/REVIEW-RC8.md)
+
+Allegati: Porto-0.1.0-rc.8-win-x64.zip e SHA256SUMS.txt.

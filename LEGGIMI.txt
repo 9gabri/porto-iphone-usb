@@ -1,7 +1,7 @@
-PORTO 0.1.0-rc.7 — CANDIDATA WINDOWS 11 x64
+PORTO 0.1.0-rc.8 — CANDIDATA WINDOWS 11 x64
 
 RECUPERO DELLA PROVA rc.5 / rc.6: scegli la stessa destinazione e conserva video, report, temporanei e .porto. Estrai la nuova app separatamente.
-La rc.7 sostituisce il processo USB dopo una lettura fallita e ricontrolla l’inventario prima di continuare. Durante il recupero può quindi ripetere l’esame dei metadati. La risoluzione degli errori reali e la corrispondenza con Foto richiedono una nuova prova sull'iPhone.
+La rc.8 tenta tutte le risorse video USB, incluse quelle con nomi o foto abbinate sospette. Le copie aggiuntive verificate vanno in Risorse video aggiuntive. Possono essere migliaia di componenti di Live Photo o varianti: non sono un conteggio dei video autonomi di Foto. Il recupero reale richiede una nuova prova sull’iPhone.
 
 1. Estrai tutta la cartella dello ZIP e apri Porto.exe.
 2. Collega l'iPhone via USB, sbloccalo e autorizza il PC.
@@ -14,9 +14,9 @@ https://support.apple.com/en-us/120267
 Porto non installa driver e non richiede privilegi amministrativi.
 
 Pausa interrompe anche l'attesa automatica; Riprendi rilegge l'inventario e verifica le copie già fatte.
-Porto tenta fino a tre passaggi, con attesa di 15 secondi, sullo stesso telefono.
+Porto tenta tre passaggi ordinari, con attesa di 15 secondi, sullo stesso telefono.
 Gli errori di singoli video lasciano proseguire gli altri. Spazio insufficiente richiede una pausa.
-Se un video blocca la sessione, nei passaggi successivi vengono provati prima gli altri, anche con nomi e dimensioni uguali. Il limite resta di tre tentativi; i blocchi irrisolti rimangono nel report.
+Se un video blocca la sessione, nei passaggi successivi vengono provati prima gli altri, anche con nomi e dimensioni uguali. Dopo i tre passaggi sono ammesse continuazioni solo se raggiungono nuovi ostacoli: massimo 128 e limite fissato dal primo inventario completo. Nessun retry infinito.
 I temporanei associabili vengono confrontati con la sorgente dall'inizio, poi completati senza sovrascrivere il prefisso.
 Il controllo finale confronta due inventari USB. Pendenti, ambigui ed errori restano espliciti nel report.
 Vengono ricontrollate anche le copie storiche. Un elemento già osservato ma mai classificato o letto non scompare dai conteggi solo perché manca nell'inventario successivo.
@@ -36,12 +36,12 @@ Chiudi la vecchia app ed estrai questo ZIP in una nuova cartella. Non mescolare 
 La compatibilità dei cataloghi precedenti è mantenuta. Se in seguito si riutilizza una destinazione precedente, i vecchi lavori pendenti senza storia sufficiente restano esplicitamente non verificabili: non vengono cancellati per supposizione. Dopo un aggiornamento del catalogo usare la nuova app per quella destinazione.
 
 LIMITI DELLA CANDIDATA
-- Se ogni riconnessione cambia l’elenco USB, o persistono blocchi e disconnessioni, tre passaggi possono non bastare: gli elementi irrisolti restano segnalati.
-- La rc.7 richiede ancora una prova fisica. La differenza rispetto al numero di video mostrati da Foto non è ancora riconciliata; possibili Live Photos e varianti restano ambigue.
+- Se ogni riconnessione cambia l’elenco USB, o persistono blocchi e disconnessioni, anche le continuazioni limitate possono non bastare: gli elementi irrisolti restano segnalati.
+- La rc.8 richiede ancora una prova fisica. La differenza rispetto al numero dei video mostrati da Foto non è ancora riconciliata; non è possibile garantire un totale prima della prova.
 - Funziona offline, senza Apple ID. Non scarica da iCloud. Il numero degli originali solo cloud può essere sconosciuto.
 - Completare l'inventario USB NON certifica l'intera libreria Foto.
 - SHA-256 dimostra la corrispondenza con i byte ricevuti, non un originale Foto certificato.
-- Possibili Live Photos e versioni modificate sono segnalate come ambigue e non pubblicate tra i video autonomi; senza indizi non ogni caso è riconoscibile.
+- Possibili Live Photos e versioni modificate vengono copiate e verificate come risorse aggiuntive; non ogni caso è riconoscibile. Le copie precedenti restano nella loro cartella. I vecchi temporanei validi riclassificati sono preservati e pubblicati tramite una nuova copia.
 - Windows ARM, exFAT, rete e cartelle con collegamenti/junction non supportati; percorso destinazione fino a 120 caratteri.
 - Non firmata con certificato commerciale. Windows può mostrare avvisi o bloccare l'avvio. Non disattivare antivirus, SmartScreen o altre protezioni.
 

@@ -1,5 +1,15 @@
 # Novità
 
+## 0.1.0-rc.8
+
+- Tentativo di tutte le risorse video USB, senza esclusioni basate solo su nome o foto omonima.
+- Copie verificate aggiuntive separate e parser dei metadati temporizzati strutturato.
+- Riclassificazione dei temporanei precedenti preservandoli, con nuova copia e recupero transazionale.
+- Continuazioni USB limitate oltre tre passaggi quando raggiungono nuovi ostacoli; precedenza ai file non ancora raggiunti.
+- Conteggi correnti distinti dalle osservazioni storiche; file precedenti ricontrollati senza spostarli.
+- Prove sintetiche e revisione indipendente; recupero fisico e totale Foto ancora da confermare.
+
+
 ## 0.1.0-rc.7 — recupero su un processo USB nuovo
 
 - Dopo un errore di lettura il video successivo viene aperto su un nuovo worker, previo controllo dell’intero inventario. Non si presume che un annullamento riuscito abbia ripristinato il driver.
