@@ -1,8 +1,8 @@
 # Porto
 
-App locale in italiano per copiare foto e video dal telefono al PC, senza conversioni. **0.1.0-rc.13**, candidata Windows 11 x64 con runtime incluso.
+App locale in italiano per copiare foto e video dal telefono al PC, senza conversioni. **0.1.0-rc.14**, candidata Windows 11 x64 con runtime incluso.
 
-[Scarica Windows](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.13/Porto-0.1.0-rc.13-win-x64.zip) · [Checksum](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.13/SHA256SUMS.txt) · [Guida](docs/PHONES-AND-ALBUMS.md)
+[Scarica Windows](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.14/Porto-0.1.0-rc.14-win-x64.zip) · [Checksum](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.14/SHA256SUMS.txt) · [Guida](docs/PHONES-AND-ALBUMS.md)
 
 ## Scegli origine, contenuti e destinazione
 
@@ -13,6 +13,12 @@ App locale in italiano per copiare foto e video dal telefono al PC, senza conver
 Premi **Avvia importazione** per copiare in massa il tipo scelto. Non occorre selezionare i singoli file. Pausa e Riprendi conservano il lavoro e ripetono i controlli.
 
 **Non è compatibilità universale:** tutti i modelli di telefono, tutte le app Galleria e qualsiasi raccolta non possono essere dichiarati supportati. In particolare raccolte intelligenti/condivise iPhone e album privati/cloud Android possono non essere accessibili. Porto segnala questi limiti; non sostituisce silenziosamente un album con l'intero telefono. [Capacità e confini](docs/GALLERY-IMPORT.md).
+
+## Autenticazione iPhone rc.14
+
+Corrette incompatibilità riprodotte nella negoziazione di firme RSA/SHA-384 e RSA-PSS. I messaggi TLS ora distinguono le categorie di errore senza mostrare credenziali. TLS 1.2, cifratura, certificato abbinato e autenticazione reciproca restano obbligatori. La prova reale rc.13 si è fermata prima della lettura degli album: non è ancora dimostrato che queste correzioni risolvano quel preciso telefono. La rc.14 serve a riprovare e, in caso di blocco, ottenere un motivo utile alla diagnosi. [Revisione rc.14](docs/REVIEW-RC14.md).
+
+Se una copia USB è in corso, attendi la fine o una pausa confermata e chiudi Porto prima di aggiornare. Estrai la candidata in una cartella nuova, conservando tutti i file delle prove.
 
 ## Revisione iPhone rc.13
 
@@ -39,7 +45,7 @@ Le nuove foto sono in **Foto Porto**, i video in **Video Porto**. Le vecchie ris
 
 **Candidata per il collaudo, non versione certificata o definitiva.** Le verifiche sintetiche non dimostrano compatibilità hardware. Restano da confermare collegamento Apple reale, schema iOS, album e conteggi sul telefono, trasferimento e ripresa su iPhone/Android.
 
-[Test](docs/TESTS.md) · [Revisione rc.13](docs/REVIEW-RC13.md) · [Architettura](docs/ARCHITECTURE.md) · [Licenze](THIRD-PARTY-NOTICES.md) · [Verifica pubblicazione](docs/RELEASE-VERIFICATION.md).
+[Test](docs/TESTS.md) · [Revisione rc.14](docs/REVIEW-RC14.md) · [Architettura](docs/ARCHITECTURE.md) · [Licenze](THIRD-PARTY-NOTICES.md) · [Verifica pubblicazione](docs/RELEASE-VERIFICATION.md).
 
 SDK .NET 10, runtime incluso 10.0.14. `scripts/dev.ps1 test -Large`, `scripts/dev.ps1 build`, `scripts/dev.ps1 publish`. Test isolati; `--ui-smoke <percorso.png>` non cerca telefoni. Nessuna discovery hardware automatica all'avvio.
 

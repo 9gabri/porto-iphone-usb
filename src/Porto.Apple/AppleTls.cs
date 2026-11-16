@@ -21,7 +21,8 @@ internal static class AppleTls
             protocol.Connect(client);
             return AppleWire.Command(cancel,token=>{encrypted.Handshake(()=>client.Complete,token).GetAwaiter().GetResult();return (Stream)encrypted;});
         }
-        catch(TlsFatalAlert){encrypted.Dispose();throw new IOException("Autenticazione USB Apple non riuscita: richiesti TLS 1.2, certificato del dispositivo abbinato e autenticazione reciproca.");}
+        catch(TlsFatalAlert ex){encrypted.Dispose();throw client.Failure(ex.AlertDescription,false);}
+        catch(TlsFatalAlertReceived ex){encrypted.Dispose();throw client.Failure(ex.AlertDescription,true);}
         catch{encrypted.Dispose();throw;}
     }
     internal static AsymmetricKeyParameter PrivateKey(X509Certificate2 certificate)
@@ -31,21 +32,48 @@ internal static class AppleTls
         try{return PrivateKeyFactory.CreateKey(bytes);}finally{CryptographicOperations.ZeroMemory(bytes);}
     }
     internal static readonly SignatureAndHashAlgorithm Signature=new(Org.BouncyCastle.Tls.HashAlgorithm.sha256,SignatureAlgorithm.rsa);
+    private static readonly SignatureAndHashAlgorithm[] StrongSignatures=
+    [Signature, new(Org.BouncyCastle.Tls.HashAlgorithm.sha384,SignatureAlgorithm.rsa),
+        new(Org.BouncyCastle.Tls.HashAlgorithm.sha512,SignatureAlgorithm.rsa),
+        SignatureAndHashAlgorithm.rsa_pss_rsae_sha256,SignatureAndHashAlgorithm.rsa_pss_rsae_sha384,
+        SignatureAndHashAlgorithm.rsa_pss_rsae_sha512];
     private sealed class Client(X509Certificate2 certificate,byte[] peerCertificate) : DefaultTlsClient(new BcTlsCrypto())
     {
         private readonly X509Certificate2 ownCertificate=certificate;
         private readonly byte[] expectedPeer=peerCertificate;
         internal bool Complete {get;private set;}
         private bool credentialsProvided;
+        private string? failureCode;
         protected override ProtocolVersion[] GetSupportedVersions()=>[ProtocolVersion.TLSv12];
-        protected override IList<SignatureAndHashAlgorithm> GetSupportedSignatureAlgorithms()=>new List<SignatureAndHashAlgorithm>{Signature};
+        protected override IList<SignatureAndHashAlgorithm> GetSupportedSignatureAlgorithms()=>StrongSignatures.ToList();
         protected override int[] GetSupportedCipherSuites()=>[CipherSuite.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,CipherSuite.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384];
         public override int GetMaxHandshakeMessageSize()=>65536;
         public override int GetHandshakeTimeoutMillis()=>30000;
+        public override void NotifySecureRenegotiation(bool secureRenegotiation)
+        {
+            if(!secureRenegotiation)failureCode="RENEGOTIATION";
+            base.NotifySecureRenegotiation(secureRenegotiation);
+        }
+        internal IOException Failure(short alert,bool received)
+        {
+            // Only our fixed categories and a protocol alert number. Never log certificates, keys or peer text.
+            string code=received?$"PEER-{alert}":failureCode??$"LOCAL-{alert}";
+            string detail=code switch
+            {
+                "PIN"=>"Il certificato ricevuto non coincide con quello dell'iPhone abbinato.",
+                "CLIENT-AUTH"=>"Il collegamento non ha richiesto l'autenticazione del computer.",
+                "CLIENT-TYPE"=>"Il tipo di autenticazione richiesto non è supportato.",
+                "CLIENT-SIGNATURE"=>"Non è stata concordata una firma di autenticazione supportata (SHA-256 o superiore).",
+                "RENEGOTIATION"=>"Il collegamento non offre l'estensione di sicurezza richiesta per TLS 1.2.",
+                _ when received=>"L'iPhone ha rifiutato la negoziazione TLS.",
+                _=>"Porto ha rifiutato la negoziazione TLS."
+            };
+            return new IOException($"Autenticazione USB Apple non riuscita [APPLE-TLS-{code}]. {detail} Conserva questo messaggio. Nessuna protezione è stata ridotta.");
+        }
         public override void NotifyHandshakeComplete()
         {
             base.NotifyHandshakeComplete();
-            if(!credentialsProvided)throw new TlsFatalAlert(AlertDescription.handshake_failure);
+            if(!credentialsProvided){failureCode="CLIENT-AUTH";throw new TlsFatalAlert(AlertDescription.handshake_failure);}
             Complete=true;
         }
         public override TlsAuthentication GetAuthentication()=>new Authentication(this);
@@ -55,16 +83,18 @@ internal static class AppleTls
             {
                 var chain=serverCertificate.Certificate;
                 if(chain.IsEmpty||!CryptographicOperations.FixedTimeEquals(chain.GetCertificateAt(0).GetEncoded(),owner.expectedPeer))
-                    throw new TlsFatalAlert(AlertDescription.bad_certificate);
+                {owner.failureCode="PIN";throw new TlsFatalAlert(AlertDescription.bad_certificate);}
             }
             public TlsCredentials GetClientCredentials(Org.BouncyCastle.Tls.CertificateRequest request)
             {
-                if(request.CertificateTypes==null||!request.CertificateTypes.Contains(ClientCertificateType.rsa_sign)||
-                   request.SupportedSignatureAlgorithms==null||!request.SupportedSignatureAlgorithms.Contains(Signature))
-                    throw new TlsFatalAlert(AlertDescription.handshake_failure);
+                if(request.CertificateTypes==null||!request.CertificateTypes.Contains(ClientCertificateType.rsa_sign))
+                {owner.failureCode="CLIENT-TYPE";throw new TlsFatalAlert(AlertDescription.handshake_failure);}
+                var signature=StrongSignatures.FirstOrDefault(s=>request.SupportedSignatureAlgorithms?.Contains(s)==true);
+                if(signature==null)
+                {owner.failureCode="CLIENT-SIGNATURE";throw new TlsFatalAlert(AlertDescription.handshake_failure);}
                 var crypto=(BcTlsCrypto)owner.Crypto;
                 var signer=new BcDefaultTlsCredentialedSigner(new TlsCryptoParameters(owner.m_context),crypto,PrivateKey(owner.ownCertificate),
-                    new Certificate([crypto.CreateCertificate(owner.ownCertificate.RawData)]),Signature);
+                    new Certificate([crypto.CreateCertificate(owner.ownCertificate.RawData)]),signature);
                 owner.credentialsProvided=true;return signer;
             }
         }

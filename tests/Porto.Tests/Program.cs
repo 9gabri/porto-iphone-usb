@@ -64,6 +64,7 @@ Rc12PhotoRecoveryTests.Add(tests);
 MultiMediaImportTests.Add(tests);
 UsbNavigationTests.Add(tests);
 AppleGalleryTests.Add(tests);
+AppleTlsRegressionTests.Add(tests);
 GalleryImportTests.Add(tests);
 if(args.Contains("--large"))LargeTests.Add(tests);
 int failures = 0;

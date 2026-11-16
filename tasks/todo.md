@@ -122,3 +122,10 @@ prova con il telefono. Nessun totale artificiale basato sui componenti Live Phot
 - [x] Verifiche integrate 479/479, incluse quattro prove estese e regressioni Android; dopo i chiarimenti testuali, 16/16 casi report e due smoke UI.
 - [x] Nuovo pacchetto rc.13 pubblicato e riscaricato: checksum/CRC, versione/contenuto, undici smoke e pagina pubblica verificati; dodici archivi precedenti invariati.
 - [ ] Collaudo iPhone reale: collegamento, catalogo, video/Live Photo, copie e ripresa.
+
+## rc.14 — blocco TLS osservato su iPhone
+- [x] Analisi del messaggio reale e fonti primarie; nessuna lettura del telefono.
+- [x] Quattro rifiuti di firme forti riprodotti; ipotesi catena SHA-1 esclusa.
+- [x] Negoziazione e diagnostica corrette; 15/15 nuovi casi, revisione indipendente.
+- [ ] Suite finale, pacchetto nuovo, pubblicazione e verifica download.
+- [ ] Collaudo iPhone: causa reale non ancora attribuita con certezza o dichiarata risolta.

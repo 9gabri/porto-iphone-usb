@@ -116,3 +116,6 @@ Queste fonti dimostrano che la fine dell'immagine JPEG principale non coincide n
 - [Apple: importazione su PC](https://support.apple.com/en-la/120267), consultata il 16 novembre 2026: componenti Apple, sblocco/autorizzazione e necessità di originali locali per USB. La guida ufficiale riguarda il flusso Apple/Microsoft, non certifica l'implementazione Porto. Nessuna installazione eseguita durante la revisione.
 
 Scelte progettuali Porto: conservare le incertezze, non dichiarare completa una selezione ridotta fra tentativi automatici, ammettere un journal PERSIST solo con intestazione interamente azzerata e stabile, e mantenere il contratto TLS esistente. Fonti e test sintetici non sostituiscono la prova con l'iPhone della cliente.
+## rc.14 — firme forti e diagnostica TLS
+
+Confrontate le fonti primarie BouncyCastle AbstractTlsPeer, SignatureAndHashAlgorithm e BcDefaultTlsCredentialedSigner, RFC 8446 e i client libimobiledevice/pymobiledevice3. Link e distinzione delle ipotesi in [REVIEW-RC14.md](REVIEW-RC14.md). Nessun nuovo pacchetto: BouncyCastle 2.7.0 resta fissato. Nessun fallback che disabilita la verifica del peer o riduce la politica TLS.

@@ -1,13 +1,10 @@
-Porto 0.1.0-rc.13 — verifiche del 2026-11-16
-Build Release integrata: 0 avvisi, 0 errori. Suite integrata: 479/479 (475 ordinari + 4 estesi).
-Baseline rc.12: 37/37 Apple. Difetti riprodotti prima della correzione: dettagli in REVIEW-RC13.md.
-Dopo le correzioni: 49/49 Apple, 12/12 galleria; riesame indipendente completato.
-Dopo il solo chiarimento testuale dei conteggi iniziali: nuova build senza avvisi/errori,
-16/16 casi filtro report e due smoke UI (iPhone/USB). Nessun cambiamento logico ulteriore.
-Confezionamento: 4/4 prove passate. Nessun telefono o archivio personale usato.
-La prova hardware iPhone resta da effettuare. I tempi sintetici non predicono quelli USB.
-
---- Suite integrata ---
+Porto 0.1.0-rc.14 — verifiche 17 novembre 2026
+Build test e app: 0 avvisi, 0 errori.
+Suite ordinaria finale: 490/490 passati (incluse 15 nuove regressioni TLS).
+Matrice iniziale su DLL pubblicata rc.13: 5/9 passati; quattro rifiuti SHA384/PSS riprodotti.
+Matrice finale mirata: 15/15. Revisione indipendente superata.
+Nessun telefono o dato personale usato. Causa del blocco reale ancora da confermare.
+Le quattro prove estese rc.13 non sono state ripetute in questa modifica TLS.
 PASS copy and independently reread SHA256
 PASS truncation rejected
 PASS unexpected extra bytes rejected
@@ -471,6 +468,21 @@ PASS apple rc13 visibility uncertainty of excluded photos does not block video s
 PASS apple rc13 visibility change rejects read recovery before opening original
 PASS apple rc13 visibility uncertainty is ambiguous while healthy video siblings copy
 PASS apple rc13 visibility change in final catalog prevents verified selection
+PASS apple TLS matrix accepts fragmented SHA256 with root in device certificate chain
+PASS apple TLS matrix accepts exactly pinned SHA1 leaf plus root with SHA256 handshake
+PASS apple TLS matrix accepts SHA384 server and client handshake signatures
+PASS apple TLS matrix accepts client certificate request with SHA384 only
+PASS apple TLS matrix accepts RSA PSS SHA256 server handshake signature
+PASS apple TLS matrix accepts RSA PSS SHA256 client certificate request
+PASS apple TLS matrix accepts SHA512 server and client handshake signatures
+PASS apple TLS matrix accepts RSA PSS SHA384 server and client signatures
+PASS apple TLS matrix accepts RSA PSS SHA512 server and client signatures
+PASS apple TLS matrix rejects wrong pinned device despite strong signatures
+PASS apple TLS matrix rejects a different certificate with the same device key
+PASS apple TLS matrix rejects SHA1-only client certificate request
+PASS apple TLS matrix rejects SHA1 server signature with a two-certificate chain
+PASS apple TLS matrix rejects server omitting mutual authentication
+PASS apple TLS matrix reports peer fatal alert with only a fixed diagnostic code
 PASS gallery import unknown asset roles never become videos from filename extensions
 PASS gallery import selects true video and preserves old Live Photo copies
 PASS gallery import empty chosen type reports no matches instead of failure
@@ -483,31 +495,4 @@ PASS gallery import retry retains an asset first observed only in the final inve
 PASS gallery import empty retry cannot erase an earlier selected failure
 PASS gallery import source selection uncertainty is ambiguous without opening the original
 PASS gallery import temporarily disappeared asset can return and finish the same session
-  LARGE stream: 4294967313 bytes, 2,61s, working set 114 MiB
-PASS stream beyond 4 GiB: 4 GiB + 17 bytes actually read and hashed without disk allocation
-  LARGE inventory: 50000 items, 250 GB logical, 5,98s, working set 263 MiB
-PASS 50000-item inventory and 250 GB logical capacity without writing payload
-  STRESS full loop: 2000 physical files twice verified, 50000 entries, 393,96s, working set 271 MiB
-PASS 50000 inventory entries with 2000 actual copies and verified second pass
-  LARGE NTFS: 4294971392 bytes written and reread, 40,54s, working set 149 MiB
-PASS video over 4 GiB actually written verified and published on NTFS
-479/479 passed
-
---- Report dopo il chiarimento testuale ---
-PASS corrupt completed copy is preserved and reported
-PASS truncation reports error and no final filename
-PASS Ready without either file is reported missing immediately
-PASS final USB missing WPD registration reports the Windows component instead of phone trust
-PASS final USB eof during Read reports session loss before blaming the next healthy file
-PASS final USB native-session during Read reports session loss before blaming the next healthy file
-PASS failed atomic report writes expose no partial final file
-PASS process termination during report write leaves only a temporary file
-PASS report JSON and text are published complete
-PASS rc8 copied additional resource report explains photo pairing and edited-name evidence: True/False
-PASS rc8 copied additional resource report explains photo pairing and edited-name evidence: False/True
-PASS rc8 copied additional resource report explains photo pairing and edited-name evidence: True/True
-PASS folder source reports a lost root as incomplete instead of silently empty
-PASS folder source reports unreadable files and keeps readable siblings
-PASS gallery import empty chosen type reports no matches instead of failure
-PASS gallery import retry reports when an already copied asset disappears from the selection
-16/16 passed
+490/490 passed

@@ -1,4 +1,6 @@
-# Telefoni, foto, video e album — rc.13
+# Telefoni, foto, video e album — rc.14
+
+La rc.13 ha incontrato un blocco TLS in una prova iPhone reale, prima di leggere gli album. La rc.14 corregge negoziazioni di firme forti riprodotte nei test e rende specifici gli errori; non è ancora confermato che risolva quel dispositivo. Se compare un codice APPLE-TLS, conserva il messaggio completo. Non cambiare le protezioni di Windows e non ripristinare l'iPhone. Se è in corso una copia USB, attendi la fine o una pausa confermata, chiudi Porto e apri la candidata estratta in una cartella nuova.
 
 Porto copia dal telefono al PC, senza cancellare o spostare gli originali. La nuova modalità iPhone legge il catalogo della libreria Foto; non richiede un'esportazione preliminare. È una candidata da collaudare: compatibilità reale non ancora confermata.
 

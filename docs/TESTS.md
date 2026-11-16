@@ -1,30 +1,23 @@
-# Prove della candidata 0.1.0-rc.13
+# Verifiche della candidata 0.1.0-rc.14
 
-Windows 11 x64, SDK .NET 10.0.403 e runtime 10.0.14. Tre revisori indipendenti e coordinatore; test esclusivamente sintetici, senza telefoni, credenziali o archivi personali. La precedente prova Oppo dell'utente non è una prova del trasporto Apple.
+Windows 11 x64, SDK .NET 10.0.403 e runtime 10.0.14. Nessun telefono o archivio personale usato nei test. Il caso reale resta da ricontrollare: la foto del messaggio rc.13 non identifica la causa precisa.
 
-## Sequenza verificabile
+## Prima e dopo
 
-- Baseline compilata rc.12: 37/37 verifiche Apple.
-- Difetti riprodotti prima delle correzioni: STATUS AFC malformato lasciava la sessione utilizzabile; selezione ridotta tra tentativi dava falso successo; journal PERSIST realmente prodotto da SQLite veniva rifiutato; stati di visibilità non considerati consentivano copie non giustificate. Il raccordo per gli elementi incerti ha anch'esso fallito prima della modifica al motore.
-- Verifiche mirate dopo le correzioni: 49/49 Apple (nove nuovi casi catalogo), 12/12 galleria, cinque AFC e sei TLS. Revisione reciproca Core/catalogo/protocollo senza nuovi difetti confermati nel perimetro.
-- Suite integrata con prove estese: 479/479 passati (475 ordinari e quattro estesi). Stream di 4 GiB + 17 byte letto e verificato: 2,61 s; inventario di 50.000 elementi / 250 GB logici senza payload: 5,98 s; 2.000 copie fisiche tra 50.000 elementi e secondo passaggio senza duplicati: 393,96 s; file NTFS di 4 GiB + 4.096 byte scritto, riletto e pubblicato: 40,54 s. Tempi del sistema di prova, non previsioni per USB. Log in test-results.txt.
-- Dopo il solo chiarimento testuale che i conteggi GalleryCoverage descrivono l'inventario iniziale: build finale senza errori/avvisi, 16/16 casi filtro report e smoke UI iPhone/USB. Nessun cambiamento alla logica dopo la suite integrata.
-- Confezionamento: quattro prove della sezione effettiva dello script (compressione interrotta, archivio invalido, file esistente preservato, pubblicazione riuscita).
+Matrice iniziale eseguita contro Porto.Apple.dll della rc.13 pubblicata: 5/9 passati, quattro fallimenti su firme server/client SHA-384 e RSA-PSS/SHA-256. Il certificato leaf SHA-1 con root e handshake SHA-256 passava gia: nessuna correzione speculativa della catena.
 
-I risultati del pacchetto autonomo e del suo download pubblico sono aggiunti a RELEASE-VERIFICATION.md dopo la pubblicazione, senza sostituire lo ZIP immutabile.
+Dopo: 15/15 nella matrice finale. Tutte le sei firme forti ammesse, traffico frammentato bidirezionale; rifiuto di pin errato e certificato diverso con stessa chiave, SHA-1 nel handshake server/client, autenticazione reciproca assente. Alert ricevuto e motivi locali con categorie fisse, senza segreti o eccezioni interne.
 
-## Copertura aggiunta
+TLS 1.2, ECDHE_RSA/AES-GCM, pin DER, autenticazione client e requisito di rinegoziazione sicura mantenuti. Revisione indipendente senza difetti bloccanti nel diff. Nessuna modifica a copia USB generica, ledger, cataloghi o filesystem.
 
-STATUS AFC di lunghezze errate su stat/open/read, risorse mancanti e accesso negato con risposta valida; certificati sintetici firmati dalla radice, pin errato, autenticazione reciproca, firma handshake debole e cancellazione; SQLite WAL nativo con coda non conclusa, journal PERSIST azzerato e journal attivo/cambiato; visibilità zero/nonzero/null/nuova/assente, membership e filtri, riconnessione e controllo finale; selezioni ridotte/vuote tra tentativi, ritorno al terzo tentativo, nuovo avvio esplicito e storico conservato; elemento incerto mai aperto e fratelli sani copiati.
+## Verifica integrata
 
-Restano attive le regressioni precedenti su byte discordanti, file troncati, duplicati distinti, copie corrotte/mancanti, processi interrotti, spazio/permessi, filesystem ostile e migrazioni. Nessun test storico rimosso per ottenere un risultato verde.
+Suite ordinaria finale: 490/490 passati, incluse le 15 nuove regressioni TLS. Log in test-results.txt. Build test e app senza avvisi/errori; UI compilata con dati sintetici. Le quattro prove estese rc.13 (50.000 elementi, 2.000 copie ripetute, stream/file oltre 4 GiB) non sono ripetute in questo ciclo TLS e restano documentate nel tag precedente. Nessun test esistente rimosso o indebolito.
+
+Il confezionamento esegue interop/worker e nove stati UI senza enumerazione telefoni. Il download pubblico viene verificato e registrato dopo il tag in RELEASE-VERIFICATION.md senza cambiare lo ZIP.
 
 ## Riproduzione e limiti
 
-`scripts/dev.ps1 test -Large` esegue suite ordinaria più quattro prove estese. Filtri dell'eseguibile: `--filter=apple`, `--filter=gallery`, `--filter=report`; `tests/PackageStagingTests.ps1` verifica il confezionamento. Il package esegue interop COM e worker senza enumerazione hardware, più nove stati UI con dati sintetici.
+`scripts/dev.ps1 test` esegue la suite ordinaria; `--filter=apple TLS matrix` filtra i 15 nuovi casi. Client e server sintetici usano BouncyCastle: non costituiscono prova di interoperabilita con iPhone.
 
-I test non dimostrano compatibilità con uno specifico iPhone. Restano da confermare servizio Apple/abbinamento, TLS e AFC reali, accessibilità e schema Photos.sqlite, album e originali locali, confronto con la selezione Foto, trasferimento e ripresa. Il limite catalogo+WAL di 512 MiB riguarda i dati acquisiti, non il picco di memoria del processo. Una lettura ripetuta non prova atomicità. TLS o schemi non supportati restano rifiutati; originali solo cloud non vengono scaricati.
-
-La ripresa conserva osservazioni complete: cambiamenti di metadati/disponibilità possono richiedere un nuovo avvio esplicito. Non si promette assenza di bug, velocità universale, un totale fisso di video o copertura dell'intera libreria.
-
-[Revisione e scenari](REVIEW-RC13.md) · [Fonti](SOURCES.md) · [Verifica pubblicazione](https://github.com/9gabri/porto-iphone-usb/blob/main/docs/RELEASE-VERIFICATION.md).
+Restano da verificare autenticazione reale, catalogo, album, originali locali, copia e ripresa. In caso di errore conservare il codice APPLE-TLS. Non si dichiara risolto il caso reale. Dettagli e fonti in REVIEW-RC14.md.

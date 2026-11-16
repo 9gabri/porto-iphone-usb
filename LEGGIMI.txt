@@ -1,4 +1,6 @@
-PORTO 0.1.0-rc.13 — CANDIDATA WINDOWS 11 x64
+PORTO 0.1.0-rc.14 — CANDIDATA WINDOWS 11 x64
+
+rc.14: negoziazione firme TLS forti e messaggi di errore specifici. Il blocco reale iPhone della rc.13 non è ancora dichiarato risolto: occorre una nuova prova. Non aggiornare mentre Porto sta copiando; attendi fine/pausa confermata e chiudi l'app. Nessuna modifica al percorso USB generico o ai file delle prove.
 
 1. Chiudi Porto ed estrai TUTTO lo ZIP in una nuova cartella. Conserva le versioni precedenti e apri il nuovo Porto.exe.
 2. Collega e sblocca il telefono. Android: Trasferimento file. iPhone: computer già autorizzato e collegamento Apple già disponibile.
