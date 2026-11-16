@@ -89,3 +89,12 @@ Queste indicazioni non costituiscono un collaudo del flusso iPhone → cartella 
 - [Nokia HEIF technical](https://nokiatech.github.io/heif/technical.html): contenitore, item primario, proprietà e immagine grid. Il parser supporta un sottoinsieme conservativo HEVC, senza certificare la decodifica.
 
 Le fonti documentano i protocolli/formati; non sostituiscono prove di compatibilità con telefoni reali. La scelta di cartelle fisiche è un limite esplicito del prodotto; non viene affermata la lettura universale degli album delle app.
+
+## rc.11 — catalogo Foto e navigazione per livello
+
+Le fonti e le distinzioni fra protocolli, fatti osservati e inferenze sono raccolte in [GALLERY-IMPORT.md](GALLERY-IMPORT.md). Lo schema privato di Photos.sqlite non è una promessa di compatibilità Apple; nessuna implementazione GPL è incorporata.
+
+- [Microsoft WPD_OBJECT_REFERENCES](https://learn.microsoft.com/en-us/windows/win32/wpd_sdk/object-properties): appartenenze dichiarate degli oggetti riferiti; nessuna inferenza da nomi cartella.
+- [SQLite WAL format](https://www.sqlite.org/fileformat2.html#walformat): header, checksum, salt e commit. La validità del WAL non dimostra atomicità di una copia live.
+- [SQLite deserialize](https://www.sqlite.org/c3ref/deserialize.html): database in memoria in modalità di sola lettura, senza persistenza del catalogo del telefono.
+- [BouncyCastle 2.7.0 su NuGet](https://www.nuget.org/packages/BouncyCastle.Cryptography/2.7.0) e [sorgente ufficiale](https://github.com/bcgit/bc-csharp/tree/4007498b13582d90ee1eda5d9920c324428b98b3): implementazione TLS gestita, licenze e versione fissata nel progetto. Uso locale, nessuna API a consumo.

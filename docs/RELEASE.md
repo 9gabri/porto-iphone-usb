@@ -1,17 +1,15 @@
-# Porto 0.1.0-rc.10
+# Porto 0.1.0-rc.11
 
-Candidata Windows 11 x64 portabile, runtime incluso. Aggiunge **Solo foto / Solo video / Foto e video**, ricerca dei dispositivi portatili WPD anche non Apple e scelta di una cartella fisica USB con le sottocartelle.
+Candidata Windows 11 x64 con runtime incluso. Aggiunge un nuovo percorso **iPhone · libreria Foto via USB**: legge il catalogo Foto per selezionare la galleria visibile o un album personale e copiare Solo video, Solo foto oppure Foto e video, senza esportazione preliminare. Le Live Photo sono foto; la loro componente animata è esclusa da Solo video.
 
-La copia massiva resta disponibile: scegli tutto il dispositivo accessibile e avvia una volta. Gli album virtuali di Foto/Google Foto non sono necessariamente esposti via USB: per quelli usa **Cartella / album esportato** dopo l’esportazione sul PC. Non è promessa compatibilità con ogni telefono.
+La navigazione USB generica legge un livello alla volta, senza scansione preliminare del telefono. L'importazione di una cartella resta nel ramo scelto anche dopo riconnessione. Sono selezionabili anche raccolte WPD native quando il dispositivo le espone; i loro riferimenti sono distinti dalle cartelle fisiche.
 
-Le copie precedenti restano al loro posto, senza cancellazioni o sovrascritture. Confronto completo e SHA-256 per riutilizzare copie identiche; file distinti selezionati con gli stessi byte mantengono copie distinte. Foto nuove in Foto Porto, video in Video Porto, indizi Apple separati nelle Risorse video aggiuntive.
+Le copie precedenti restano conservate e sono riutilizzate solo dopo confronto completo. Nessun file esistente cancellato o sovrascritto. Estrai il programma in una cartella nuova e usa lo stesso Archivio PC per confrontare le copie precedenti.
 
-Chiudi la vecchia app, estrai tutto lo ZIP separatamente e apri Porto.exe. Scegli fonte, contenuti, ambito e archivio PC. Per riutilizzare le vecchie copie scegli lo stesso archivio, conservando .porto e report. Poi Avvia importazione e consulta il risultato.
+**Non è una versione definitiva o universalmente compatibile.** Il nuovo collegamento Apple deve essere provato con un iPhone reale. Richiede supporto USB Apple e abbinamento già presenti, schema Foto riconosciuto, catalogo+journal entro 512 MiB. Sono esclusi Nascosti/Eliminati e non sono supportate tutte le raccolte intelligenti/condivise. Android: gli album virtuali delle diverse app possono non essere esposti via USB. Originali soltanto cloud non scaricati. I formati non supportati rimangono non verificabili.
 
-Verifiche finali documentate in TESTS.md: suite sintetica completa, build senza avvisi/errori, sette stati UI e quattro prove di confezionamento. Revisione indipendente di filtri, selezione USB e parser immagini con controesempi riprodotti. Nessun file personale o telefono letto durante lo sviluppo.
+Verifiche effettive, risultati e limiti nella documentazione allegata. Nessun telefono reale, archivio personale o credenziale reale usato durante sviluppo e test. Nessuna installazione di driver/servizi o riduzione delle protezioni Windows. TLS Apple gestito con libreria gratuita inclusa e credenziali soltanto in memoria.
 
-**Resta da confermare il trasferimento fisico su iPhone/Android e l’esportazione degli album reali.** Formati controllati: MOV/MP4/M4V, JPEG, PNG statico e HEIF/HEIC HEVC riconosciuti. Controlli strutturali, nessuna certificazione di decodifica completa. Formati non supportati e incertezze restano nel report. Contenuti solo cloud possono mancare. Non disattivare le protezioni Windows.
+[Guida](https://github.com/9gabri/porto-iphone-usb/blob/v0.1.0-rc.11/docs/PHONES-AND-ALBUMS.md) · [Test](https://github.com/9gabri/porto-iphone-usb/blob/v0.1.0-rc.11/docs/TESTS.md) · [Revisione](https://github.com/9gabri/porto-iphone-usb/blob/v0.1.0-rc.11/docs/REVIEW-RC11.md)
 
-[Guida](https://github.com/9gabri/porto-iphone-usb/blob/v0.1.0-rc.10/docs/PHONES-AND-ALBUMS.md) · [Test](https://github.com/9gabri/porto-iphone-usb/blob/v0.1.0-rc.10/docs/TESTS.md) · [Revisione](https://github.com/9gabri/porto-iphone-usb/blob/v0.1.0-rc.10/docs/REVIEW-RC10.md)
-
-Allegati: Porto-0.1.0-rc.10-win-x64.zip e SHA256SUMS.txt.
+Allegati: Porto-0.1.0-rc.11-win-x64.zip e SHA256SUMS.txt.

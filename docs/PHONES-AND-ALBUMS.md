@@ -1,48 +1,46 @@
-# Telefoni, foto, video e album — rc.10
+# Telefoni, foto, video e album — rc.11
 
-Porto copia **dal telefono al PC**, con accesso in sola lettura al dispositivo. Puoi scegliere **Solo video**, **Solo foto** oppure **Foto e video**. L’elenco viene cercato automaticamente: non devi selezionare ogni file.
+Porto copia dal telefono al PC, senza cancellare o spostare gli originali. La nuova modalità iPhone legge il catalogo della libreria Foto; non richiede un'esportazione preliminare. È una candidata da collaudare: compatibilità reale non ancora confermata.
 
-## Collegamento USB
+## Aggiornamento
 
-1. Estrai tutto il nuovo ZIP in una cartella separata e apri Porto.exe.
-2. Collega il telefono con un cavo dati e sbloccalo. Su iPhone autorizza il computer e imposta **Mantieni originali**. Su Android scegli **Trasferimento file** nella notifica USB; i nomi possono cambiare secondo il modello.
-3. In Porto scegli **Importa da → Telefono / dispositivo USB**, premi **Cerca dispositivi** e scegli il tuo dispositivo.
-4. In **Cosa copiare**, scegli Solo video, Solo foto oppure Foto e video.
-5. In **Ambito USB**, lascia **Tutto il dispositivo accessibile**, oppure scegli **Una cartella del dispositivo → Scegli cartella USB**. Sono incluse le sottocartelle. Se la cartella sparisce, cambia identità o è ambigua, Porto interrompe la selezione senza allargarla al telefono intero.
-6. In **Archivio PC**, scegli la cartella dove conservare le copie. Per confrontare un archivio Porto esistente scegli la sua radice, conservando .porto, report e file.
-7. Premi **Avvia importazione**. Alla fine apri il report. Pausa e Riprendi conservano il lavoro e ripetono i controlli.
+1. Chiudi Porto.
+2. Scarica ed estrai tutto lo ZIP in una cartella nuova. Conserva la vecchia versione e l'intero archivio precedente.
+3. Apri il nuovo Porto.exe. Non disattivare le protezioni Windows.
 
-Porto vede i dispositivi portatili esposti da Windows tramite WPD, normalmente MTP/PTP. È supporto al protocollo, **non una promessa di compatibilità con ogni telefono**. Un dispositivo non esposto dal sistema non viene raggiunto da Porto. L’app non installa driver, non modifica permessi del telefono e non riduce le protezioni Windows.
+## iPhone: galleria o album personale
 
-## Album delle app
+1. Collega l'iPhone con un cavo dati, sbloccalo e autorizza il computer. Il collegamento Apple e l'abbinamento devono essere già presenti: Porto non installa componenti né crea nuovi abbinamenti.
+2. In Porto scegli **Importa da → iPhone · libreria Foto via USB**, poi **Cerca dispositivi** e scegli l'iPhone.
+3. Scegli **Solo video**, **Solo foto** oppure **Foto e video**.
+4. In **Ambito USB** scegli **Galleria visibile · tutti gli elementi**, oppure **Un album della libreria Foto → Scegli album** e seleziona l'album personale.
+5. In **Archivio PC → Scegli cartella**, scegli la destinazione. Per confrontare le copie precedenti usa la loro cartella principale, conservando `.porto` e Report Porto.
+6. Premi **Avvia importazione**. Tieni il telefono collegato e sbloccato. Puoi usare **Pausa** e poi **Riprendi**.
+7. Leggi l'esito e **Apri report**. Errori, originali mancanti o inventario cambiato non equivalgono a importazione completata.
 
-Una cartella USB non è necessariamente un album. Alcune gallerie Android mostrano cartelle reali come DCIM/Camera o Pictures/Vacanze; Foto di iPhone e Google Foto possono invece usare album logici che non compaiono come cartelle USB. Porto non ricostruisce questi album da nomi o date.
+Le Live Photo sono trattate come immagini: con Solo video le componenti animate non vengono copiate. Con Solo foto o Foto e video viene copiata la sola immagine originale della Live Photo, non l'effetto animato. Le copie precedenti, anche eventuali clip Live, restano al loro posto.
 
-Per scegliere un vero album non esposto via USB, esportane gli originali in una cartella separata sul PC usando gli strumenti già disponibili. Poi in Porto:
+Sono supportati gli album personali riconosciuti nel catalogo, non tutte le raccolte intelligenti/condivise. Nascosti ed Eliminati di recente sono esclusi con conteggi visibili. Gli originali presenti solo su iCloud non sono scaricati da Porto. Un catalogo non accessibile, oltre 512 MiB o con schema non riconosciuto blocca questa modalità; non viene sostituito con i file USB generici. La lettura del catalogo può richiedere tempo, ma non esplora tutte le cartelle del telefono.
 
-1. **Importa da → Cartella / album esportato**.
-2. **Scegli origine**: la cartella dell’album, comprese le sottocartelle.
-3. **Cosa copiare**: solo foto, solo video o entrambi.
-4. **Archivio PC**: la cartella precedente oppure una cartella dedicata a quell’album.
-5. **Avvia importazione**.
+## Android e altri dispositivi USB
 
-Porto verifica la cartella ricevuta; non può verificare che l’esportazione comprenda l’intero album. Non configura condivisioni di rete né richiede Mac o nuove app a pagamento. La preparazione dell’esportazione dipende dall’app fotografica e va provata sul dispositivo reale. [Dettagli dell’esportazione iPhone](FOLDER-IMPORT.md).
+1. Collega il telefono, sbloccalo e scegli **Trasferimento file** nella notifica USB, se disponibile.
+2. In Porto scegli **Importa da → Dispositivo USB · cartelle e raccolte → Cerca dispositivi**, poi il telefono.
+3. Scegli Solo video, Solo foto oppure Foto e video.
+4. In **Ambito USB** scegli tutti i file accessibili oppure **Una cartella o raccolta USB → Scegli cartella / raccolta**.
+5. Apri una memoria/cartella con doppio clic. Porto legge solo quel livello, senza una scansione preliminare dell'intero telefono. Seleziona la cartella e premi **Usa questa cartella**; le eventuali raccolte native sono indicate come **[Raccolta USB]**.
+6. Scegli Archivio PC e premi Avvia importazione. Una cartella comprende le sue sottocartelle; una raccolta comprende soltanto i riferimenti esposti dal dispositivo.
 
-## Copie precedenti e destinazioni
+Per copiare una cartella puoi selezionarla dal genitore senza aprirla: eviti una lettura preliminare di tutti i suoi figli. Tutti i file accessibili richiede invece un inventario completo; senza un indice della galleria non è corretto saltare cartelle e affermare che non manchi nulla.
 
-I file precedenti restano al loro posto. Le copie identiche sono riutilizzate dopo confronto completo e SHA-256; file distinti della selezione con gli stessi byte richiedono copie distinte. File mancanti o danneggiati non sono considerati copie valide; un recupero usa un nuovo nome e conserva il danneggiato. Versioni convertite o modificate con byte diversi restano distinte.
+Le cartelle fisiche e le raccolte WPD non equivalgono a tutti gli album della galleria. Album virtuali privati di Google Foto, OPPO o altre app potrebbero non comparire. Questa candidata non risolve l'accesso universale a tali raccolte e non dichiara supportato qualsiasi cellulare.
 
-Le nuove foto vanno in **Foto Porto**, i video in **Video Porto**. Gli indizi Apple di Live Photo o modifiche possono indirizzare video in **Risorse video aggiuntive**: non sono prove della loro appartenenza all’album Video. Questi indizi Apple non vengono applicati indiscriminatamente ai dispositivi di altri produttori. Le vecchie copie non riutilizzate non sono automaticamente Live Photo.
+## Copie precedenti e limiti
 
-L’app non riordina le copie precedenti per album. Una copia già verificata resta nel percorso originale indicato nel report. Un archivio separato per telefono/libreria mantiene più semplice lo storico. I nuovi identificatori USB includono il dispositivo; gli archivi precedenti restano leggibili e vengono confrontati per contenuto.
+Usa lo stesso archivio per riutilizzare copie integre con gli stessi byte. Il confronto è completo e richiede letture: non si basa soltanto su nomi o dimensioni. Due elementi distinti con byte uguali mantengono due copie. File danneggiati, estranei e copie non riutilizzate restano conservati. Le copie non vengono riorganizzate per album.
 
-## Formati e limiti espliciti
+Nuove foto in Foto Porto, video in Video Porto. Cartella del PC resta una fonte accessoria per file già disponibili localmente.
 
-- Video: MOV, MP4, M4V, con verifiche strutturali del contenitore. Non viene decodificato ogni fotogramma.
-- Foto: JPEG, PNG statico, HEIF/HEIC con immagini HEVC e metadati riconosciuti. Verifica della struttura, non certificazione della decodifica dei pixel. PNG: anche CRC, decompressione limitata e coerenza delle scanline. Limite prudenziale foto 512 MiB; altri profili sono segnalati come ambigui.
-- Foto/video riconosciuti ma non supportati, file troncati e metadati contraddittori restano visibili come non verificabili; non vengono spacciati per copie completate. I tipi esclusi dal filtro scelto hanno una motivazione nel report.
-- Solo contenuti accessibili localmente; Porto non scarica file da iCloud, Google Foto o altri cloud. Il totale USB non è il totale della libreria sul telefono.
-- Origine locale e archivio: cartelle NTFS separate. Destinazione locale Windows 11 x64, percorso massimo 120 caratteri. Rete, exFAT, Windows ARM, collegamenti e junction non supportati.
-- Byte ricevuti conservati, nessuna conversione. È il telefono a decidere quali byte esporre: Porto non può provare che siano gli originali fotografici senza una fonte indipendente.
+Formati: MOV/MP4/M4V, JPEG, PNG statico, HEIF/HEIC HEVC riconosciuti. Gli altri formati rimangono non verificabili. Archivio locale NTFS su Windows 11 x64, percorso massimo 120 caratteri, niente rete/exFAT/link/junction. Nessuna conversione o decodifica completa dei media.
 
-**Stato:** candidata verificata con dati sintetici; collegamento reale iPhone/Android, cartelle effettivamente esposte e album esportati restano da collaudare. Nessun totale di file o compatibilità universale promesso.
+Non è stata effettuata una nuova prova con telefoni reali durante questo sviluppo. Il collaudo deve confermare accessibilità del catalogo, album, conteggi, riconnessione e trasferimento effettivo; nessun totale, velocità o compatibilità universale garantiti.

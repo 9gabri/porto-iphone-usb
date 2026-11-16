@@ -194,7 +194,7 @@ internal static class MultiMediaImportTests
         new("album","dcim","Album",MediaKind.Container,PersistentId:"album-puid"),
         new("inside","album","in.mov",MediaKind.Video),new("outside","dcim","out.mov",MediaKind.Video),
         new("nested","album","Nested",MediaKind.Container),new("nested-photo","nested","nested.png",MediaKind.Image)],[],true);
-    private sealed class MutableUsb(Inventory initial):IVideoSource,IReadFailureRecovery
+    private sealed class MutableUsb(Inventory initial):IUsbFolderSource,IReadFailureRecovery
     {
         public Inventory Current=initial;
         public List<string> Reads {get;}=[];
@@ -202,6 +202,8 @@ internal static class MultiMediaImportTests
         public int Invalidations {get;private set;}
         public int SessionRestarts=>7;
         public Inventory Inventory(CancellationToken cancel)=>Current;
+        public Inventory Inventory(UsbFolderChoice folder,CancellationToken cancel)=>Current;
+        public IReadOnlyList<UsbFolderChoice> ListFolders(UsbFolderChoice? parent,CancellationToken cancel)=>throw new NotSupportedException();
         public Stream OpenRead(SourceItem item,CancellationToken cancel){Reads.Add(item.Id);RawReads.Add(item);return new MemoryStream([1,2,3]);}
         public void InvalidateRead()=>Invalidations++;
         public void Dispose(){}

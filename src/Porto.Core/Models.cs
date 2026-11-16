@@ -1,6 +1,6 @@
 namespace Porto.Core;
 
-public enum MediaKind { Video, Image, Container, Other, Unknown }
+public enum MediaKind { Video, Image, Container, Other, Unknown, Collection }
 public enum ImportMedia { Videos, Photos, PhotosAndVideos }
 public enum Outcome { Imported, AlreadyPresent, Excluded, Ambiguous, Missing, Error, Pending, Additional, AdditionalAlreadyPresent }
 public sealed record DeviceInfo(string Id, string Name, bool IsApple = false);
@@ -14,6 +14,12 @@ public interface IVideoSource : IDisposable
     Inventory Inventory(CancellationToken cancel);
     Stream OpenRead(SourceItem item, CancellationToken cancel);
 }
+// Enumerates only the opened level; a scoped inventory must never widen to the device root.
+public interface IUsbFolderSource : IVideoSource
+{
+    IReadOnlyList<UsbFolderChoice> ListFolders(UsbFolderChoice? parent, CancellationToken cancel);
+    Inventory Inventory(UsbFolderChoice folder, CancellationToken cancel);
+}
 // A folder explicitly selected by the user. This does not certify membership in Photos.
 public interface ISelectedVideoSource : IVideoSource
 {
@@ -24,6 +30,13 @@ public interface ISourceContext
     string SourceDescription { get; }
     bool AppleResourceHints { get; }
 }
+// The source supplies asset membership, rather than inferring it from USB filenames.
+public interface IGallerySource : IVideoSource, ISourceContext
+{
+    GalleryCoverage? Coverage { get; }
+}
+public sealed record GalleryCoverage(string Note, int Photos, int Videos, int Unresolved,
+    int HiddenExcluded, int DeletedExcluded, bool AtomicSnapshotVerified = false);
 public sealed record PreviousCopyComparison(string File, long Bytes, string? Sha256,
     bool ReusedForSelection, bool IntegrityVerified, string Detail);
 // Mark a failed read without performing I/O or replacing its original exception.
@@ -41,8 +54,12 @@ public sealed class ImportReport
     public int SelectedPhotoCount { get; set; }
     public int SelectedVideoCount { get; set; }
     public bool SelectedFolder { get; init; }
-    public string SourceDescription { get; init; } = "Dispositivo tramite USB";
+    public string SourceDescription { get; set; } = "Dispositivo tramite USB";
     public bool SelectedFolderVerified { get; set; }
+    public bool SelectedGallery { get; init; }
+    public bool GallerySelectionCopiesVerified { get; set; }
+    public GalleryCoverage? GalleryCoverage { get; set; }
+    public int ExcludedByMediaFilter { get; set; }
     public List<PreviousCopyComparison> PreviousCopies { get; } = [];
     public string ApplicationVersion => typeof(ImportReport).Assembly
         .GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute),false)

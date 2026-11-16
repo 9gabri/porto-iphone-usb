@@ -130,7 +130,8 @@ internal static class Rc7RecoveryTests
                     && report.Count(Outcome.Pending) == 0, "A healthy file was skipped, blamed for the prior failure, or copied without verification.");
                 Fixtures.Check(connections == badCount + 1 && !watchdog.IsCancellationRequested,
                     "Recovery must replace each poisoned process once and remain bounded within one pass.");
-                Fixtures.Check(report.UsbSessionRestarts==badCount && report.ApplicationVersion=="0.1.0-rc.10",
+                string expectedVersion=System.Reflection.CustomAttributeExtensions.GetCustomAttribute<System.Reflection.AssemblyInformationalVersionAttribute>(typeof(Rc7RecoveryTests).Assembly)!.InformationalVersion.Split('+')[0];
+                Fixtures.Check(report.UsbSessionRestarts==badCount && report.ApplicationVersion==expectedVersion,
                     "The diagnostic report must identify this candidate and its actual session restart count.");
                 Fixtures.Check(report.FinalInventoryChecked && !report.Status.StartsWith("Completati", StringComparison.Ordinal),
                     "The stable final inventory or the unresolved failed files were hidden.");

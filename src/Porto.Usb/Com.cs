@@ -49,6 +49,32 @@ internal sealed unsafe class Com(nint pointer) : IDisposable
         ulong result=0;int hr=((delegate* unmanaged[Stdcall]<nint,PropertyKey*,ulong*,int>)Slot(14))(Pointer,&key,&result);
         CheckSession(hr);return hr<0||result>long.MaxValue?null:(long)result;
     }
+    public List<string> StringCollection(PropertyKey key,CancellationToken cancel,Action? progress=null)
+    {
+        nint pointer=0;
+        // IPortableDeviceValues::GetIPortableDevicePropVariantCollectionValue.
+        int hr=((delegate* unmanaged[Stdcall]<nint,PropertyKey*,nint*,int>)Slot(34))(Pointer,&key,&pointer);
+        using var collection=pointer==0?null:new Com(pointer);Check(hr);
+        if(collection==null)throw new IOException("L'album USB non espone un elenco di riferimenti leggibile.");
+        uint count=0;Check(((delegate* unmanaged[Stdcall]<nint,uint*,int>)collection.Slot(3))(collection.Pointer,&count));
+        if(count>1_000_000)throw new IOException("Troppi riferimenti nell'album USB.");
+        List<string> values=new((int)count);
+        for(uint index=0;index<count;index++)
+        {
+            cancel.ThrowIfCancellationRequested();PropVariant value=default;
+            try
+            {
+                Check(((delegate* unmanaged[Stdcall]<nint,uint,PropVariant*,int>)collection.Slot(4))(collection.Pointer,index,&value));
+                if(value.Type!=31||value.Pointer==0)throw new IOException("Riferimento di album USB non valido.");
+                string? id=Marshal.PtrToStringUni(value.Pointer);
+                if(string.IsNullOrEmpty(id)||id.Length>32768)throw new IOException("Identificativo nell'album USB non valido.");
+                values.Add(id);
+            }
+            finally{PropVariantClear(ref value);}
+            progress?.Invoke();
+        }
+        return values;
+    }
     public void SetUInt(PropertyKey key,uint value)=>Check(((delegate* unmanaged[Stdcall]<nint,PropertyKey*,uint,int>)Slot(9))(Pointer,&key,value));
     public void SetString(PropertyKey key,string value)
     {fixed(char* v=value)Check(((delegate* unmanaged[Stdcall]<nint,PropertyKey*,char*,int>)Slot(7))(Pointer,&key,v));}
@@ -59,4 +85,14 @@ internal sealed unsafe class Com(nint pointer) : IDisposable
     internal static extern int CoInitializeEx(nint reserved,uint mode);
     [DllImport("ole32.dll")][DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     internal static extern void CoUninitialize();
+    [DllImport("ole32.dll")][DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    private static extern int PropVariantClear(ref PropVariant value);
+}
+
+// PROPVARIANT's union is at offset 8. The largest Windows x64 member needs 24 bytes.
+[StructLayout(LayoutKind.Explicit,Size=24)]
+internal struct PropVariant
+{
+    [FieldOffset(0)]public ushort Type;
+    [FieldOffset(8)]public nint Pointer;
 }

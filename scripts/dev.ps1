@@ -10,12 +10,14 @@ $env:DOTNET_ADD_GLOBAL_TOOLS_TO_PATH='false'
 $sdk=Join-Path $root '.tools/dotnet-curl/dotnet.exe'
 if(!(Test-Path -LiteralPath $sdk)){$sdk='dotnet'}
 $project=if($Task -eq 'test'){'tests/Porto.Tests'}else{'src/Porto.App'}
-& $sdk restore $project --configfile NuGet.Config
+& $sdk restore $project --configfile NuGet.Config -m:1 --disable-parallel
 if($LASTEXITCODE -ne 0){throw 'Restore failed'}
 if($Task -eq 'test'){
-    if($Large){& $sdk run --project $project --no-restore -c Release -- --large}
-    else{& $sdk run --project $project --no-restore -c Release}
+    & $sdk build $project --no-restore -c Release -m:1 --disable-build-servers -p:UseSharedCompilation=false
+    if($LASTEXITCODE -ne 0){throw 'Test build failed'}
+    if($Large){& $sdk run --project $project --no-build --no-restore -c Release -- --large}
+    else{& $sdk run --project $project --no-build --no-restore -c Release}
 }
-elseif($Task -eq 'build'){& $sdk build $project --no-restore -c Release}
-else{& $sdk publish $project -c Release -r win-x64 --self-contained true --configfile NuGet.Config -p:DebugType=None -p:DebugSymbols=false -o $Output}
+elseif($Task -eq 'build'){& $sdk build $project --no-restore -c Release -m:1 --disable-build-servers -p:UseSharedCompilation=false}
+else{& $sdk publish $project -c Release -r win-x64 --self-contained true --configfile NuGet.Config -m:1 --disable-build-servers -p:UseSharedCompilation=false -p:DebugType=None -p:DebugSymbols=false -o $Output}
 if($LASTEXITCODE -ne 0){throw "$Task failed"}

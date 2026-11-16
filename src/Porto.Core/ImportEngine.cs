@@ -23,9 +23,11 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
         using var catalog=new Catalog(destination);
         using var ledger=new WorkLedger(destination);
         string runId=DateTime.UtcNow.ToString("yyyyMMdd-HHmmss")+"-"+Guid.NewGuid().ToString("N")[..8];
-        bool selected=source is ISelectedVideoSource;
+        bool folderSelection=source is ISelectedVideoSource;
+        var gallery=source as IGallerySource;
+        bool selected=folderSelection||gallery!=null;
         bool appleHints=!selected&&((source as ISourceContext)?.AppleResourceHints??true);
-        var report=new ImportReport{SecondSourceRead=deep,Attempt=Attempt,SelectedFolder=selected,Media=Media,
+        var report=new ImportReport{SecondSourceRead=deep,Attempt=Attempt,SelectedFolder=folderSelection,SelectedGallery=gallery!=null,Media=Media,
             SourceDescription=(source as ISelectedVideoSource)?.SelectionDescription??(source as ISourceContext)?.SourceDescription??"Dispositivo tramite USB"};
         var previousCopies=new List<CatalogEntry>();
         var reusedPrevious=new HashSet<string>(StringComparer.Ordinal);
@@ -44,23 +46,27 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
         ledger.Migrate(catalog.Entries());
         try
         {
-            Notify(selected?"Inventario cartella":"Inventario USB", "Lettura dell'elenco, prima di copiare",true);
+            Notify(folderSelection?"Inventario cartella":gallery!=null?"Catalogo galleria":"Inventario USB", "Lettura dell'elenco, prima di copiare",true);
             var inventory=source.Inventory(cancel);
+            report.GalleryCoverage=gallery?.Coverage;
+            if(gallery!=null)report.SourceDescription=gallery.SourceDescription;
             observed=inventory.Items;
             var observedKeys=observed.Where(NeedsTracking).Select(WorkLedger.Key).ToHashSet(StringComparer.Ordinal);
             currentKeys=observedKeys;
             report.CandidateCount=observed.Count(IsCandidate);
             report.UsbItemCount=observed.Count;
+            if(gallery!=null)report.ExcludedByMediaFilter=observed.Count(item=>item.Kind is MediaKind.Image or MediaKind.Video&&!IsCandidate(item));
             ledger.Observe(observed.Where(NeedsTracking),runId+"-initial");
             report.UsbEnumerationComplete=inventory.EnumerationComplete;
             report.InventoryErrors=inventory.Errors;
             // Save the inventory result before any transfer. Each item has an explicit pending category.
             catalog.SaveReport(runId+"-inventory",new ImportReport{
-                SelectedFolder=selected,SourceDescription=report.SourceDescription,Media=Media,
+                SelectedFolder=folderSelection,SelectedGallery=gallery!=null,GalleryCoverage=report.GalleryCoverage,SourceDescription=report.SourceDescription,Media=Media,
                 Status=$"Inventario: {inventory.Items.Count} elementi; candidati {inventory.Items.Count(IsCandidate)}",
                 UsbEnumerationComplete=inventory.EnumerationComplete,InventoryErrors=inventory.Errors});
             string invPath=destination.Resolve(Path.Combine(".porto",$"inventory-{runId}.json"));
-            AtomicFile.WriteNew(invPath,inv=>System.Text.Json.JsonSerializer.Serialize(inv,inventory));
+            var persistedInventory=gallery==null?inventory:new Inventory(inventory.Items.Where(NeedsTracking).ToList(),inventory.Errors,inventory.EnumerationComplete);
+            AtomicFile.WriteNew(invPath,inv=>System.Text.Json.JsonSerializer.Serialize(inv,persistedInventory));
             Recover(catalog,cancel);
             var entries=catalog.Entries();
             if(selected)
@@ -165,9 +171,11 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                 cancel.ThrowIfCancellationRequested();
                 if(!IsCandidate(item))
                 {
-                    if(item.Kind!=MediaKind.Container)
+                    // Keep aggregate exclusions without persisting the names of unselected gallery media.
+                    if(gallery!=null&&item.Kind is MediaKind.Image or MediaKind.Video)continue;
+                    if(item.Kind is not(MediaKind.Container or MediaKind.Collection))
                     {
-                        bool sidecar=MediaInspector.IsAdjustmentSidecar(item);
+                        bool sidecar=gallery==null&&MediaInspector.IsAdjustmentSidecar(item);
                         bool uncertain=NeedsTracking(item)&&!sidecar;
                         report.Items.Add(new(item.Id,item.Name,uncertain?Outcome.Ambiguous:Outcome.Excluded,
                             sidecar?"File accessorio .AAE: escluso dalla copia.":uncertain?"Formato non supportato o metadati insufficienti: da verificare; nessuna copia verificata.":
@@ -343,7 +351,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                     }
                 }
             }
-            Notify("Controllo finale", selected?"Verifico che l’elenco della cartella non sia cambiato":"Verifico che l’elenco dei file USB non sia cambiato",true);
+            Notify("Controllo finale", folderSelection?"Verifico che l’elenco della cartella non sia cambiato":gallery!=null?"Verifico di nuovo il catalogo e la selezione della galleria":"Verifico che l’elenco dei file USB non sia cambiato",true);
             var finalInventory=source.Inventory(cancel);
             currentKeys.UnionWith(finalInventory.Items.Where(NeedsTracking).Select(WorkLedger.Key));
             report.FinalInventoryChecked=finalInventory.EnumerationComplete&&finalInventory.Errors.Count==0&&
@@ -366,15 +374,21 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                 :"Importazione incompleta o con elementi non verificabili. Consulta il report.";
             if(selected)
             {
-                report.SelectedFolderVerified=total>0&&report.FinalInventoryChecked&&report.UsbEnumerationComplete&&report.InventoryErrors.Count==0&&
+                bool selectionVerified=total>0&&report.FinalInventoryChecked&&report.UsbEnumerationComplete&&report.InventoryErrors.Count==0&&
                     report.CurrentCount(Outcome.Imported)+report.CurrentCount(Outcome.AlreadyPresent)==total&&
                     !report.Items.Any(i=>!i.Historical&&i.Outcome is Outcome.Error or Outcome.Ambiguous or Outcome.Missing or Outcome.Pending);
-                report.Status=report.SelectedFolderVerified
+                report.SelectedFolderVerified=folderSelection&&selectionVerified;
+                report.GallerySelectionCopiesVerified=gallery!=null&&selectionVerified;
+                report.Status=gallery!=null
+                    ?selectionVerified?$"Verificate le copie dei {total:N0} elementi selezionati nel catalogo Foto osservato. Completezza dell’intera libreria non certificata.":"Selezione della galleria incompleta o non verificabile. Consulta il report."
+                    :report.SelectedFolderVerified
                     ?$"Verificati i {total:N0} file della cartella selezionata. "+(report.HistoricalCount>0?"Restano osservazioni precedenti da verificare nel report.":"Copertura della libreria del telefono non verificata.")
                     :"Importazione da cartella incompleta o non verificabile. Consulta il report.";
-                report.RetryRecommended=false;
+                if(folderSelection)report.RetryRecommended=false;
             }
-            if(total==0&&report.Items.Count==0&&report.InventoryErrors.Count==0)report.Status=selected?"Nessun file del tipo scelto trovato nella cartella selezionata.":"Nessun file del tipo scelto individuato via USB. Verifica telefono e contenuti disponibili localmente.";
+            if(total==0&&report.FinalInventoryChecked&&report.UsbEnumerationComplete&&report.InventoryErrors.Count==0&&
+                !report.Items.Any(item=>(!selected||!item.Historical)&&item.Outcome is Outcome.Error or Outcome.Ambiguous or Outcome.Missing or Outcome.Pending))
+                report.Status=gallery!=null?"Nessun elemento del tipo scelto nel catalogo della selezione.":folderSelection?"Nessun file del tipo scelto trovato nella cartella selezionata.":"Nessun file del tipo scelto individuato via USB. Verifica telefono e contenuti disponibili localmente.";
             return report;
             void SaveProgress(SourceItem item)
             {
@@ -383,7 +397,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                 if(result.Sha256!=null&&result.Outcome is Outcome.Imported or Outcome.AlreadyPresent or Outcome.Additional or Outcome.AdditionalAlreadyPresent)
                     report.RetryVisited.Add(RetryOrder.AfterFailure(inventory.Items,item));
             }
-            string ClassificationDetail(SourceItem item,MediaInspection media)=>selected?"File della cartella scelta: struttura e byte verificati. Selezione nell’app fotografica non verificata indipendentemente.":media.Detail+
+            string ClassificationDetail(SourceItem item,MediaInspection media)=>gallery!=null?"Elemento del catalogo Foto osservato: struttura e byte verificati. "+report.GalleryCoverage?.Note:folderSelection?"File della cartella scelta: struttura e byte verificati. Selezione nell’app fotografica non verificata indipendentemente.":media.Detail+
                 (companions.TryGetValue(item.Id,out string? hint)?" "+hint:"")+
                 (appleHints&&media.IsVideo&&(companions.ContainsKey(item.Id)||media.AdditionalResource)?" Copia verificata in Risorse video aggiuntive: corrispondenza con un video autonomo di Foto non certificabile via USB.":"");
             void SaveFinalEntry(CatalogEntry replacement)
@@ -411,7 +425,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
             AddOutstanding();
             if(selected)
             {
-                report.RetryRecommended=false;
+                if(folderSelection)report.RetryRecommended=false;
                 foreach(var prior in previousCopies)
                 {
                     bool intact=verifiedCopies.TryGetValue(new(prior.Length,prior.Hash!),out var verified)&&verified.Contains(prior.Id);
@@ -453,7 +467,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
         if(media.IsImage||!MediaInspector.VideoExtensions.Contains(ext))ext=media.Extension;
         return Path.Combine(media.IsImage?Destination.PhotoDirectory:additional?Destination.AdditionalDirectory:"Video Porto",Destination.SafeStem(item.Name)+"_"+id+ext.ToLowerInvariant());
     }
-    private bool IsCandidate(SourceItem item)=>MediaSelectionRules.Candidate(item,Media);
+    private bool IsCandidate(SourceItem item)=>(source is not IGallerySource||item.Kind is MediaKind.Image or MediaKind.Video)&&MediaSelectionRules.Candidate(item,Media);
     private MediaInspection InspectSelected(string path,SourceItem item,CancellationToken cancel)
     {
         var result=MediaSelectionRules.Inspect(path,item,cancel);
@@ -461,7 +475,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
             ?result with{Ambiguous=true,Detail="Il contenuto verificato contraddice il tipo selezionato (foto/video) o i metadati: nessuna copia verificata per questa selezione."}
             :result;
     }
-    private bool NeedsTracking(SourceItem item)=>IsCandidate(item)||
+    private bool NeedsTracking(SourceItem item)=>IsCandidate(item)||source is IGallerySource&&item.Kind==MediaKind.Unknown||
         Media!=ImportMedia.Photos&&(item.Kind is MediaKind.Other or MediaKind.Unknown)&&UnsupportedVideoExtension(item)||
         item.Kind==MediaKind.Unknown&&!MediaInspector.IsAdjustmentSidecar(item)&&
             !MediaSelectionRules.Candidate(item,ImportMedia.PhotosAndVideos)&&

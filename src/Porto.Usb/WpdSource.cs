@@ -3,7 +3,7 @@ using Porto.Core;
 
 namespace Porto.Usb;
 
-public sealed unsafe class WpdSource : IVideoSource
+public sealed unsafe class WpdSource : IUsbCollectionSource
 {
     private static readonly Guid ObjectKeys=new("ef6b490d-5cd8-437a-affc-da8b60ee4a3c");
     private static readonly Guid ClientKeys=new("204d9f0c-2292-4080-9f42-40664e70f859");
@@ -14,7 +14,10 @@ public sealed unsafe class WpdSource : IVideoSource
     private static readonly Guid Audio=new("4ad2c85e-5e2d-45e5-8864-4f229e3c6cf0");
     private static readonly Guid Document=new("680adf52-950a-4041-9b41-65e393648155");
     private static readonly Guid GenericFile=new("0085e0a6-8d34-45d7-bc5c-447e59c73d48");
+    private static readonly HashSet<Guid> Albums=[new("75793148-15f5-4a30-a813-54ed8a37e226"),
+        new("012b0db7-d4c1-45d6-b081-94b87779614f"),new("00f0c3ac-a593-49ac-9219-24abca5a2563")];
     private readonly Com device,content,properties,resources;
+    private Com? metadataKeys;
     private WpdReadStream? activeStream;
     private Exception? cleanupFailure;
     private bool disposed;
@@ -78,22 +81,112 @@ public sealed unsafe class WpdSource : IVideoSource
             var chars=new char[length];fixed(char* text=chars){if(call(manager.Pointer,device,text,&length)<0)return "";return new string(chars).TrimEnd('\0').Trim();}
         }
     }
-    private Com ReadProperties(string objectId)
+    private static Com PropertyKeys(params uint[] ids)
     {
+        var keys=Com.Create("de2d022d-2480-43be-97f0-d1fa2cf98f4f","dada2357-e0ad-492e-98db-dd61c53ba353");
+        try
+        {
+            foreach(uint id in ids)
+            {
+                var key=new PropertyKey(ObjectKeys,id);
+                Com.Check(((delegate* unmanaged[Stdcall]<nint,PropertyKey*,int>)keys.Slot(5))(keys.Pointer,&key));
+            }
+            return keys;
+        }
+        catch{keys.Dispose();throw;}
+    }
+    private Com ReadProperties(string objectId,Com? keys=null)
+    {
+        // Null pKeys requests every property, including potentially large references
+        // and vendor metadata. Browse with the six fields actually consumed here.
+        keys??=metadataKeys??=PropertyKeys(4,5,6,7,11,12);
         nint result=0;
-        fixed(char* id=objectId)Com.Check(((delegate* unmanaged[Stdcall]<nint,char*,nint,nint*,int>)properties.Slot(5))(properties.Pointer,id,0,&result));
+        fixed(char* id=objectId)Com.Check(((delegate* unmanaged[Stdcall]<nint,char*,nint,nint*,int>)properties.Slot(5))(properties.Pointer,id,keys.Pointer,&result));
+        if(result==0)throw new IOException("Metadati USB assenti.");
         return new(result);
     }
-    public Inventory Inventory(CancellationToken cancel)
+    private SourceItem ReadObject(string objectId,string parent)
+    {
+        using var values=ReadProperties(objectId);
+        var kind=values.GuidValue(new(ObjectKeys,7));
+        MediaKind media=kind==Video?MediaKind.Video:kind==Image?MediaKind.Image:
+            kind==Folder||kind==Functional?MediaKind.Container:
+            kind.HasValue&&Albums.Contains(kind.Value)?MediaKind.Collection:
+            kind==Audio||kind==Document||kind==GenericFile?MediaKind.Other:MediaKind.Unknown;
+        string name=values.String(new(ObjectKeys,12))??values.String(new(ObjectKeys,4))??"Senza nome";
+        var item=new SourceItem(objectId,parent,name,media,values.Length(new(ObjectKeys,11)),
+            values.String(new(ObjectKeys,5)),values.GuidValue(new(ObjectKeys,6))?.ToString());
+        return MediaInspector.IsAdjustmentSidecar(item)?item with{Kind=MediaKind.Other}:item;
+    }
+    public Inventory Inventory(CancellationToken cancel)=>Enumerate("DEVICE",true,cancel);
+    public IReadOnlyList<UsbFolderChoice> ListFolders(UsbFolderChoice? parent,CancellationToken cancel)
+    {
+        PrepareOperation();cancel.ThrowIfCancellationRequested();
+        return Navigation().ListFolders(parent,cancel);
+    }
+    public Inventory Inventory(UsbFolderChoice folder,CancellationToken cancel)
+    {
+        PrepareOperation();cancel.ThrowIfCancellationRequested();
+        return Navigation().Inventory(folder,cancel);
+    }
+    public IReadOnlyList<UsbCollectionChoice> ListCollections(UsbFolderChoice? parent,CancellationToken cancel)
+    {
+        PrepareOperation();cancel.ThrowIfCancellationRequested();return Navigation().ListCollections(parent,cancel);
+    }
+    public UsbNavigationLevel ReadLevel(UsbFolderChoice? parent,CancellationToken cancel)
+    {
+        PrepareOperation();cancel.ThrowIfCancellationRequested();return Navigation().ReadLevel(parent,cancel);
+    }
+    public Inventory Inventory(UsbCollectionChoice collection,CancellationToken cancel)
+    {
+        PrepareOperation();cancel.ThrowIfCancellationRequested();int examined=0;
+        var items=Navigation(count=>examined=count).ResolveCollection(collection,cancel);
+        var album=items[^1];List<string> errors=[];var guard=new EnumerationGuard();
+        foreach(var item in items)guard.Visit(item.Id);
+        using var referenceKeys=PropertyKeys(14);
+        using var values=ReadProperties(album.Id,referenceKeys);
+        // Missing reference support is a failure, never an empty album or folder fallback.
+        var references=values.StringCollection(new(ObjectKeys,14),cancel,()=>InventoryProgress?.Invoke(examined));
+        try
+        {
+            foreach(string id in references)
+            {
+                cancel.ThrowIfCancellationRequested();guard.Visit(id);
+                try
+                {
+                    var item=ReadObject(id,album.Id);items.Add(item);
+                    if(item.Kind is MediaKind.Container or MediaKind.Collection)
+                        Error("L'album USB contiene una raccolta annidata non supportata: "+item.Name);
+                    else if(item.Kind==MediaKind.Unknown&&!MediaInspector.Candidate(item)&&!PhotoInspector.Candidate(item))
+                        Error("Tipo USB non riconosciuto nell'album: "+item.Name);
+                }
+                catch(IOException error)when(error is not SourceUnavailableException){Error("Elemento dell'album USB: "+error.Message);}
+                InventoryProgress?.Invoke(++examined);
+            }
+        }
+        catch(EnumerationStoppedException error){errors.Add(error.Message);}
+        return new(items,errors,errors.Count==0);
+        void Error(string message){guard.Error();errors.Add(message);}
+    }
+    private UsbFolderNavigation Navigation(Action<int>? examinedTotal=null)
+    {
+        int examined=0;
+        return new((id,token)=>
+        {
+            var result=Enumerate(id,false,token,examined);examined+=result.Items.Count;examinedTotal?.Invoke(examined);return result;
+        });
+    }
+    private Inventory Enumerate(string root,bool recursive,CancellationToken cancel,int progressOffset=0)
     {
         PrepareOperation();
         List<SourceItem> items=[];List<string> errors=[];var guard=new EnumerationGuard();
         void Error(string message){guard.Error();errors.Add(message);}
-        Queue<(string Id,int Depth)> pending=new();pending.Enqueue(("DEVICE",0));
+        if(root!="DEVICE")guard.Visit(root);
+        Queue<(string Id,int Depth)> pending=new();pending.Enqueue((root,0));
         try{
         while(pending.TryDequeue(out var parent))
         {
-            cancel.ThrowIfCancellationRequested();InventoryProgress?.Invoke(items.Count);
+            cancel.ThrowIfCancellationRequested();InventoryProgress?.Invoke(progressOffset+items.Count);
             if(parent.Depth>128){Error("Gerarchia USB troppo profonda.");continue;}
             try
             {
@@ -114,26 +207,18 @@ public sealed unsafe class WpdSource : IVideoSource
                             guard.Visit(objectId);
                             try
                             {
-                                using var values=ReadProperties(objectId);
-                                var kind=values.GuidValue(new(ObjectKeys,7));
-                                MediaKind media=kind==Video?MediaKind.Video:kind==Image?MediaKind.Image:
-                                    kind==Folder||kind==Functional?MediaKind.Container:
-                                    kind==Audio||kind==Document||kind==GenericFile?MediaKind.Other:MediaKind.Unknown;
-                                string name=values.String(new(ObjectKeys,12))??values.String(new(ObjectKeys,4))??"Senza nome";
-                                var item=new SourceItem(objectId,parent.Id,name,media,values.Length(new(ObjectKeys,11)),
-                                    values.String(new(ObjectKeys,5)),values.GuidValue(new(ObjectKeys,6))?.ToString());
-                                if(MediaInspector.IsAdjustmentSidecar(item)){media=MediaKind.Other;item=item with{Kind=media};}
+                                var item=ReadObject(objectId,parent.Id);var media=item.Kind;
                                 items.Add(item);
-                                if(media==MediaKind.Container)pending.Enqueue((objectId,parent.Depth+1));
+                                if(media==MediaKind.Container&&recursive)pending.Enqueue((objectId,parent.Depth+1));
                                 else if(media==MediaKind.Unknown&&!MediaInspector.Candidate(item)&&!PhotoInspector.Candidate(item))
-                                    Error($"Tipo USB non riconosciuto per {name}; contenuto non esplorato.");
+                                    Error($"Tipo USB non riconosciuto per {item.Name}; contenuto non esplorato.");
                             }
                             catch(IOException ex)when(ex is not SourceUnavailableException){Error($"Metadati elemento {items.Count+1}: {ex.Message}");}
-                            InventoryProgress?.Invoke(items.Count);
+                            InventoryProgress?.Invoke(progressOffset+items.Count);
                         }
                     }
                     finally{foreach(var id in batch)if(id!=0)Marshal.FreeCoTaskMem(id);}
-                    InventoryProgress?.Invoke(items.Count);
+                    InventoryProgress?.Invoke(progressOffset+items.Count);
                     if(fetched==0||hr==1)break;
                 }
             }
@@ -186,7 +271,7 @@ public sealed unsafe class WpdSource : IVideoSource
     {
         if(disposed)return;disposed=true;
         try{activeStream?.Dispose();activeStream=null;}
-        finally{resources.Dispose();properties.Dispose();content.Dispose();device.Dispose();}
+        finally{metadataKeys?.Dispose();resources.Dispose();properties.Dispose();content.Dispose();device.Dispose();}
     }
     // No device discovery or connection: safe development smoke test for ABI and COM registration.
     public static void SmokeWithoutDevices()

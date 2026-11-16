@@ -5,7 +5,7 @@ using Porto.Core;
 
 namespace Porto.Usb;
 
-public sealed record Command(string Op,string? Device=null,string? Object=null,int Count=0);
+public sealed record Command(string Op,string? Device=null,string? Object=null,int Count=0,UsbFolderChoice? Folder=null,UsbCollectionChoice? Collection=null);
 internal sealed record OpenedResource(long? ResourceLength);
 internal sealed record WorkerSessionError(string Message,int? NativeHResult,bool PreviousOperation=false)
 {
@@ -39,6 +39,7 @@ public static class WorkerProtocol
                 {
                     if(line.Length>65536)throw new IOException("Comando troppo lungo.");
                     var command=JsonSerializer.Deserialize<Command>(line)??throw new IOException("Comando vuoto.");
+                    if(command.Folder!=null&&command.Collection!=null)throw new IOException("Selezioni USB incompatibili.");
                     switch(command.Op)
                     {
                         case "smoke":WpdSource.SmokeWithoutDevices();Json(true);break;
@@ -47,7 +48,16 @@ public static class WorkerProtocol
                         case "connect":stream?.Dispose();stream=null;source?.Dispose();source=new(command.Device??throw new IOException("Dispositivo assente"));
                             source.InventoryProgress=heartbeat.Report;
                             Json(true);break;
-                        case "inventory":stream?.Dispose();stream=null;heartbeat.Reset();Json((source??throw new IOException("Non connesso")).Inventory(default));break;
+                        case "inventory":stream?.Dispose();stream=null;heartbeat.Reset();
+                            var inventorySource=source??throw new IOException("Non connesso");
+                            Json(command.Collection!=null?inventorySource.Inventory(command.Collection,default):
+                                command.Folder==null?inventorySource.Inventory(default):inventorySource.Inventory(command.Folder,default));break;
+                        case "folders":stream?.Dispose();stream=null;heartbeat.Reset();
+                            Json((source??throw new IOException("Non connesso")).ListFolders(command.Folder,default));break;
+                        case "collections":stream?.Dispose();stream=null;heartbeat.Reset();
+                            Json((source??throw new IOException("Non connesso")).ListCollections(command.Folder,default));break;
+                        case "browse":stream?.Dispose();stream=null;heartbeat.Reset();
+                            Json((source??throw new IOException("Non connesso")).ReadLevel(command.Folder,default));break;
                         case "open":stream?.Dispose();stream=null;stream=(source??throw new IOException("Non connesso")).OpenRead(new(command.Object!,"","",MediaKind.Video),default);Json(new OpenedResource((stream as ISourceStreamInfo)?.ResourceLength));break;
                         case "read":
                             if(command.Count<0||command.Count>VerifiedCopy.BufferSize)throw new IOException("Lettura non valida");

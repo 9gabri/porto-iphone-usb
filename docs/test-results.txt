@@ -1,7 +1,5 @@
-Porto 0.1.0-rc.10 — dati sintetici isolati, nessun telefono o archivio personale letto
-Build test e app: 0 avvisi, 0 errori
-
-SUITE COMPLETA
+Porto rc.11 - synthetic verification
+Ordinary full regression (before the final Apple-only source recovery fixes; see subsequent focused rechecks):
 PASS copy and independently reread SHA256
 PASS truncation rejected
 PASS unexpected extra bytes rejected
@@ -385,29 +383,83 @@ PASS media conflicting photo video hints cannot publish or certify a video in ph
 PASS media non Apple phones do not inherit Apple paired-name routing hints
 PASS media physical folder displays cannot confuse names with path separators
 PASS media generic unsupported videos remain ambiguous in video modes
-  LARGE stream: 4294967313 bytes, 2,41s, working set 71 MiB
+PASS USB navigation opens immediate folders without scanning 60000 unrelated files
+PASS USB navigation resolves remapped object IDs from a fresh physical path
+PASS USB navigation rejects missing selected folders without widening scope
+PASS USB navigation rejects changed-persistent-id selected folders without widening scope
+PASS USB navigation rejects ambiguous selected folders without widening scope
+PASS USB navigation refuses partial folder listings and pre-cancelled operations
+PASS USB navigation scoped enumeration rejects cycles and keeps progress monotonic
+PASS USB navigation worker transports only the requested parent and scope
+PASS USB navigation recovery revalidates the same scope and rejects changed media=False
+PASS USB navigation recovery revalidates the same scope and rejects changed media=True
+PASS USB navigation failed scoped refresh invalidates previous read authorization
+PASS USB navigation stuck folder listing terminates on timeout
+PASS USB navigation stuck folder listing terminates on cancellation
+PASS USB navigation native album 75793148-15f5-4a30-a813-54ed8a37e226 reads only its explicit references
+PASS USB navigation native album 012b0db7-d4c1-45d6-b081-94b87779614f reads only its explicit references
+PASS USB navigation native album 00f0c3ac-a593-49ac-9219-24abca5a2563 reads only its explicit references
+PASS USB navigation whole-device inventory does not descend albums or duplicate their references
+PASS USB navigation native album empty references never widen to folders
+PASS USB navigation native album missing references never widen to folders
+PASS USB navigation native album duplicate references never widen to folders
+PASS USB navigation native album cycle references never widen to folders
+PASS USB navigation native album nested references never widen to folders
+PASS USB navigation native album unknown references never widen to folders
+PASS USB navigation native album missing-member references never widen to folders
+PASS USB navigation native album invalid-type references never widen to folders
+PASS USB navigation album selection rejects a replacement physical folder
+PASS USB navigation native album recovery preserves membership scope; changed=False
+PASS USB navigation native album recovery preserves membership scope; changed=True
+PASS USB navigation combines folders and albums in one native level read and worker call
+PASS apple TLS uses ephemeral existing credentials and authenticates the pinned device in memory
+PASS apple TLS rejects a different device certificate in memory
+PASS apple TLS rejects pinned server that does not request client authentication
+PASS apple TLS rejects SHA1 handshake signatures without reducing protection
+PASS apple TLS blocked handshake honors cancellation without credentials on disk
+PASS apple plist rejects duplicate keys external entities and malformed binary
+PASS apple binary plist shares repeated objects without materialization explosion
+PASS apple mux validates framing and is cancellable without any network
+PASS apple AFC only reads file with mode one and validates every packet
+PASS apple AFC rejects forbidden paths malformed lengths and sequence drift
+PASS apple AFC malformed UTF8 metadata is normalized and poisons the session
+PASS apple WAL verifies both checksum endiannesses and applies committed pages only
+PASS apple WAL rejects short header short frame and altered salt header
+PASS apple catalog distinguishes true video from Live Photo and preserves missing paths
+PASS apple catalog reads native album membership without paths and rejects absent selection
+PASS apple catalog uses native parent folders to distinguish identical album names
+PASS apple catalog rejects unsupported schema and malformed membership
+PASS apple catalog rejects duplicate asset UUID and ambiguous album relationship
+PASS apple catalog rejects traversal paths without dropping known media
+PASS apple catalog memory reader rejects truncated database and cancellation
+PASS apple catalog source counts unavailable originals and never exposes Live companion video
+PASS apple video filter avoids stat for ten thousand photos and missing unselected originals
+PASS apple source album does not widen selection and records missing image
+PASS apple unknown catalog type named mov remains unresolved and cannot be read
+PASS apple source recovery reconnects only with matching complete selection
+PASS apple source recovery rejects changed original before reading another file
+PASS apple capture rejects changing database and active rollback journal
+PASS gallery import unknown asset roles never become videos from filename extensions
+PASS gallery import selects true video and preserves old Live Photo copies
+PASS gallery import empty chosen type reports no matches instead of failure
+PASS gallery import unresolved video remains counted and blocks verified selection
+PASS gallery import changed album membership prevents verified selection
+PASS gallery import retry continues past failed file without duplicating successful copy
+445/445 passed
+
+Extended tests from the earlier run; 4/4 passed. That whole run was 442/449; seven failures corrected and retested above. No single final 449/449 run is claimed:
+  LARGE stream: 4294967313 bytes, 3,66s, working set 105 MiB
 PASS stream beyond 4 GiB: 4 GiB + 17 bytes actually read and hashed without disk allocation
-  LARGE inventory: 50000 items, 250 GB logical, 3,85s, working set 234 MiB
+  LARGE inventory: 50000 items, 250 GB logical, 11,85s, working set 271 MiB
 PASS 50000-item inventory and 250 GB logical capacity without writing payload
-  STRESS full loop: 2000 physical files twice verified, 50000 entries, 343,60s, working set 218 MiB
+  STRESS full loop: 2000 physical files twice verified, 50000 entries, 464,70s, working set 228 MiB
 PASS 50000 inventory entries with 2000 actual copies and verified second pass
-  LARGE NTFS: 4294971392 bytes written and reread, 37,42s, working set 99 MiB
+  LARGE NTFS: 4294971392 bytes written and reread, 30,27s, working set 111 MiB
 PASS video over 4 GiB actually written verified and published on NTFS
-387/387 passed
 
-INTERFACCIA
-PASS ui.png
-PASS ui-compact-retry.png
-PASS ui-compact-paused.png
-PASS ui-compact-incomplete.png
-PASS ui-compact-folder-result.png
-PASS ui-compact-media.png
-PASS ui-folder-picker.png
-7/7 passed
-
-CONFEZIONAMENTO
-PASS package staging interrupted
-PASS package staging invalid
-PASS package staging existing
-PASS package staging success
-4/4 passed
+Final Apple-only source corrections, independently executed by iphone_gallery on the final code (aggregate report, not a replay of raw stdout):
+Baseline of four new regression cases: 2/4 passed; recovery bookkeeping and usable metadata failure reproduced.
+Final Release build: 0 warnings, 0 errors.
+Apple focused checks: 37/37 passed.
+Gallery engine focused checks: 6/6 passed.
+New scenarios: unopened siblings stay pending after failed recovery; automatic session retry completes; cancellation propagates; one usable metadata failure preserves the asset and allows two healthy copies; poisoned connection stops inventory.

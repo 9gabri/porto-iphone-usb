@@ -15,6 +15,7 @@ New-Item -ItemType Directory -Path $stage -ErrorAction Stop | Out-Null
 $output=Join-Path $stage 'Porto-win-x64'
 & "$PSScriptRoot/dev.ps1" publish -Output $output
 foreach($name in @('LEGGIMI.txt','LICENSE','THIRD-PARTY-NOTICES.md')){Copy-Item -LiteralPath $name -Destination $output}
+Copy-Item -LiteralPath 'licenses' -Destination "$output/licenses" -Recurse
 Copy-Item -LiteralPath '.tools/packages/microsoft.netcore.app.runtime.win-x64/10.0.14/LICENSE.TXT' -Destination "$output/LICENSE-DOTNET.txt"
 Copy-Item -LiteralPath '.tools/packages/microsoft.netcore.app.runtime.win-x64/10.0.14/THIRD-PARTY-NOTICES.TXT' -Destination "$output/THIRD-PARTY-DOTNET.txt"
 Copy-Item -LiteralPath '.tools/packages/microsoft.windowsdesktop.app.runtime.win-x64/10.0.14/LICENSE' -Destination "$output/LICENSE-WINDOWSDESKTOP.txt"
@@ -24,6 +25,7 @@ Copy-Item -LiteralPath 'docs/SOURCES.md' -Destination "$output/SOURCES.md"
 Copy-Item -LiteralPath 'docs/ARCHITECTURE.md' -Destination "$output/ARCHITECTURE.md"
 Copy-Item -LiteralPath 'docs/FOLDER-IMPORT.md' -Destination "$output/FOLDER-IMPORT.md"
 Copy-Item -LiteralPath 'docs/PHONES-AND-ALBUMS.md' -Destination "$output/PHONES-AND-ALBUMS.md"
+Copy-Item -LiteralPath 'docs/GALLERY-IMPORT.md' -Destination "$output/GALLERY-IMPORT.md"
 $manifest=[ordered]@{name='Porto';version=$version;source_commit=(git rev-parse HEAD);runtime='10.0.14';target='win-x64';signed=$false;hardware_tested=$false}
 $manifest | ConvertTo-Json | Set-Content -LiteralPath "$output/build-info.json" -Encoding utf8NoBOM
 $exe=Join-Path $output 'Porto.exe'
@@ -33,7 +35,7 @@ foreach($mode in @('--interop-smoke','--worker-smoke')){
     if($p.ExitCode -ne 0){throw "$mode failed"}
 }
 $image=Join-Path $root 'artifacts/package-ui.png'
-foreach($imageName in @('package-ui.png','package-ui-compact-retry.png','package-ui-compact-paused.png','package-ui-compact-incomplete.png','package-ui-compact-folder-result.png','package-ui-compact-media.png','package-ui-folder-picker.png')){
+foreach($imageName in @('package-ui.png','package-ui-compact-retry.png','package-ui-compact-paused.png','package-ui-compact-incomplete.png','package-ui-compact-folder-result.png','package-ui-compact-media.png','package-ui-folder-picker.png','package-ui-compact-apple-gallery.png','package-ui-apple-albums.png')){
     $image=Join-Path $root ('artifacts/'+$imageName)
     $p=Start-Process -FilePath $exe -ArgumentList @('--ui-smoke',('"'+$image+'"')) -WindowStyle Hidden -PassThru
     if(!$p.WaitForExit(15000)){Stop-Process -Id $p.Id;throw 'UI timeout'}

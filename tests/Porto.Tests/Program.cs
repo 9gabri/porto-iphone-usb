@@ -9,6 +9,7 @@ if(args.Length>0&&args[0].StartsWith("--protocol-",StringComparison.Ordinal))ret
 if(args.Length>0&&args[0].StartsWith("--adversarial-usb-",StringComparison.Ordinal))return AdversarialUsbTests.Child(args[0]);
 if(args.Length>0&&args[0].StartsWith("--final-usb-",StringComparison.Ordinal))return FinalUsbTests.Child(args[0]);
 if(args.Length>0&&args[0]=="--storage-crash")return AdversarialStorageTests.Child(args[1],args[2]);
+if(args.Length>0&&args[0].StartsWith("--usb-navigation-",StringComparison.Ordinal))return UsbNavigationTests.Child(args[0]);
 
 if(args.Length>0&&args[0].StartsWith("--rc5-protocol-",StringComparison.Ordinal))return Rc5ProtocolTests.Child(args[0]);
 if(args.Length>0&&args[0]=="--rc6-lifetime")return Rc6StreamLifetimeTests.Child();
@@ -60,6 +61,9 @@ FolderImportTests.Add(tests);
 MultiDeviceUsbTests.Add(tests);
 PhotoInspectionTests.Add(tests);
 MultiMediaImportTests.Add(tests);
+UsbNavigationTests.Add(tests);
+AppleGalleryTests.Add(tests);
+GalleryImportTests.Add(tests);
 if(args.Contains("--large"))LargeTests.Add(tests);
 int failures = 0;
 string? filter=args.FirstOrDefault(a=>a.StartsWith("--filter=",StringComparison.Ordinal))?[9..];

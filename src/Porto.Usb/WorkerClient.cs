@@ -9,7 +9,7 @@ namespace Porto.Usb;
 // Frame 3 rejects one operation; frame 4 invalidates the connection and its object IDs.
 internal sealed class RemoteOperationException(string message):IOException(message);
 
-public sealed class WorkerClient : IVideoSource
+public sealed class WorkerClient : IUsbCollectionSource
 {
     private readonly Process process;
     private readonly Stream output;
@@ -35,6 +35,16 @@ public sealed class WorkerClient : IVideoSource
     {streamGeneration++;Json<bool>(new("connect",Device:id),cancel);}
     public Inventory Inventory(CancellationToken cancel)
     {streamGeneration++;return Json<Inventory>(new("inventory"),cancel);}
+    public Inventory Inventory(UsbFolderChoice folder,CancellationToken cancel)
+    {ArgumentNullException.ThrowIfNull(folder);streamGeneration++;return Json<Inventory>(new("inventory",Folder:folder),cancel);}
+    public IReadOnlyList<UsbFolderChoice> ListFolders(UsbFolderChoice? parent,CancellationToken cancel)
+    {streamGeneration++;return Json<List<UsbFolderChoice>>(new("folders",Folder:parent),cancel);}
+    public Inventory Inventory(UsbCollectionChoice collection,CancellationToken cancel)
+    {ArgumentNullException.ThrowIfNull(collection);streamGeneration++;return Json<Inventory>(new("inventory",Collection:collection),cancel);}
+    public IReadOnlyList<UsbCollectionChoice> ListCollections(UsbFolderChoice? parent,CancellationToken cancel)
+    {streamGeneration++;return Json<List<UsbCollectionChoice>>(new("collections",Folder:parent),cancel);}
+    public UsbNavigationLevel ReadLevel(UsbFolderChoice? parent,CancellationToken cancel)
+    {streamGeneration++;return Json<UsbNavigationLevel>(new("browse",Folder:parent),cancel);}
     public Stream OpenRead(SourceItem item,CancellationToken cancel)
     {
         long generation=++streamGeneration;

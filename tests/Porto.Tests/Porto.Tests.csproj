@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
-  <ItemGroup><ProjectReference Include="../../src/Porto.Core/Porto.Core.csproj" /><ProjectReference Include="../../src/Porto.Usb/Porto.Usb.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../../src/Porto.Core/Porto.Core.csproj" /><ProjectReference Include="../../src/Porto.Usb/Porto.Usb.csproj" /><ProjectReference Include="../../src/Porto.Apple/Porto.Apple.csproj" /></ItemGroup>
   <ItemGroup><None Update="Fixtures/*" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
   <ItemGroup><Compile Include="../../src/Porto.App/AppPreferences.cs" Link="AppPreferences.cs" /></ItemGroup>
 </Project>

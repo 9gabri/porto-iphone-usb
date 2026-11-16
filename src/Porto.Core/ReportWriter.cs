@@ -18,7 +18,18 @@ public static class ReportWriter
             .AppendLine($"Contenuti scelti: {MediaLabel(report.Media)}; candidati foto: {report.SelectedPhotoCount}; candidati video: {report.SelectedVideoCount}")
             .AppendLine($"Inventario terminato: {(report.UsbEnumerationComplete ? "sì" : "no")}")
             .AppendLine($"Controllo finale inventario: {(report.FinalInventoryChecked ? "stabile" : "non verificato o cambiato")}; tentativo: {report.Attempt}");
-        if(report.SelectedFolder)
+        if(report.SelectedGallery)
+        {
+            text.AppendLine($"Elementi candidati nella selezione del catalogo: {report.CandidateCount}; copie della selezione verificate: {(report.GallerySelectionCopiesVerified?"sì":"no")}");
+            if(report.GalleryCoverage is {} coverage)
+                text.AppendLine(coverage.Note)
+                    .AppendLine($"Catalogo: foto {coverage.Photos}; video {coverage.Videos}; non risolti {coverage.Unresolved}; Nascosti esclusi {coverage.HiddenExcluded}; Eliminati di recente esclusi {coverage.DeletedExcluded}.")
+                    .AppendLine($"Snapshot atomico del catalogo verificato: {(coverage.AtomicSnapshotVerified?"sì":"no")}. Una lettura ripetuta non certifica l’intera libreria.");
+            text.AppendLine("Live Photo: l’immagine è una foto; la componente animata non viene inclusa nella selezione Solo video. Gli originali non disponibili localmente restano pendenti/errori.")
+                .AppendLine($"Elementi esclusi dal filtro foto/video: {report.ExcludedByMediaFilter}. Nomi e identificatori degli elementi esclusi non sono salvati nell’inventario della galleria.")
+                .AppendLine("Le copie precedenti non riutilizzate restano al loro posto; questo non le identifica come Live Photo né ne autorizza la cancellazione.");
+        }
+        else if(report.SelectedFolder)
         {
             text.AppendLine($"File candidati nella cartella selezionata: {report.CandidateCount}; cartella verificata: {(report.SelectedFolderVerified?"sì":"no")}")
                 .AppendLine("La selezione viene dalla cartella indicata dall’utente: Porto non può confermare che contenga tutti e soltanto gli elementi dell’album o della raccolta desiderata.")
@@ -45,7 +56,7 @@ public static class ReportWriter
         text.AppendLine($"Osservazioni storiche ancora da verificare: {report.HistoricalCount}")
             .AppendLine("Lo storico può contenere osservazioni dello stesso file con ID USB cambiati. Senza prove dei byte non può essere cancellato né contato come nuovi file distinti.")
             .AppendLine("Risorse video aggiuntive: copie integre con indizi di foto abbinate, modifiche o metadati temporizzati; nessuna esclusione basata solo sul nome.");
-        if(report.SelectedFolder)
+        if(report.SelectedFolder||report.SelectedGallery)
         {
             text.AppendLine("CONFRONTO DELLE COPIE PRECEDENTI (tutti i percorsi conservati)");
             foreach(var copy in report.PreviousCopies)text.AppendLine($"[{(copy.ReusedForSelection?"RIUTILIZZATA":copy.IntegrityVerified?"CONSERVATA, NON RIUTILIZZATA":"DA VERIFICARE")}] {copy.File} — {copy.Detail}");

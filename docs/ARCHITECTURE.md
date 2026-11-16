@@ -1,5 +1,21 @@
 # Architettura e sicurezza
 
+## rc.11 — catalogo Foto e navigazione USB
+
+`Porto.Apple` implementa un collegamento distinto da WPD. Discovery esplicita tramite usbmuxd già presente su 127.0.0.1:27015, solo dispositivi USB, identificativo scelto esatto e abbinamento esistente. Non crea pairing o servizi Windows. Lockdown avvia soltanto il servizio Apple AFC del telefono. Il protocollo AFC ammette stat/open-read/read/close e percorsi confinati a PhotoData/Photos.sqlite (e WAL/journal) e DCIM. Nessun comando di modifica o cancellazione.
+
+TLS gestito BouncyCastle 2.7.0 fissato con contentHash: TLS 1.2, ECDHE_RSA/AES-GCM, firme handshake RSA/SHA-256, pin esatto del certificato associato e autenticazione client obbligatoria. Le chiavi sono importate solo in memoria; nessun archivio certificati, key store o file di credenziali. Il test Schannel ha dimostrato il limite Windows delle chiavi effimere: non viene aggirato persistendo segreti o modificando policy. Handshake e I/O usano cancellazione e scadenze; plist e frame hanno limiti di dimensione/profondità/materializzazione. Test TLS completamente in memoria, senza connessioni a telefoni o al servizio reale.
+
+`AppleCatalogCapture` legge due volte DB e WAL, confronta byte e metadati, rifiuta journal attivi, troncamenti e cambiamenti; massimo 512 MiB cumulativi per acquisizione e tre minuti. WAL validato secondo la specifica SQLite, checksum e sali controllati, applicazione fino all'ultimo commit valido. SQLite System32 apre esclusivamente la copia in RAM, query_only/trusted_schema e integrity_check con limiti. Le copie RAM vengono azzerate. La stabilità osservata NON è uno snapshot atomico certificato: EntireLibraryVerified rimane false.
+
+Il decoder accetta le tabelle/colonne attese, mantiene i ruoli sconosciuti come non risolti, distingue ZKIND immagine/video e Live Photo, esclude Nascosti/Eliminati con conteggi. Album personali da appartenenze esplicite e UUID, gerarchia ZPARENTFOLDER opzionale con controlli su cicli e riferimenti; raccolte intelligenti/condivise non implementate. Nessuna deduzione di appartenenza da nomi o estensioni. I tipi non selezionati restano valutabili in RAM ma non provocano stat dei file né persistenza dei loro nomi/UUID nell'inventario galleria.
+
+`IGallerySource` distingue questa selezione dalla cartella locale. Il report aggiunge copertura osservata, tipo selezionato, esclusioni aggregate e `GallerySelectionCopiesVerified`, separato da verifica dell'intera libreria. Confronto dell'archivio completo e molteplicità preservati come nella selezione locale; storico irrisolto conservato. Gli asset sconosciuti non vengono promossi a video dall'estensione MOV. Dopo errori di lettura, il collegamento allo stesso dispositivo e il catalogo vengono riconvalidati prima di riaprire una risorsa. Originali non disponibili rimangono nel conteggio.
+
+`IUsbFolderSource` e `IUsbCollectionSource` permettono `ReadLevel` senza inventario globale. Metadati WPD limitati alle sei proprietà necessarie; riferimenti di raccolte richiesti solo con scelta esplicita. Un inventario fisico percorre solo il ramo scelto; una raccolta WPD copia solo i suoi riferimenti. La risoluzione degli antenati viene ripetuta dopo riconnessione, senza fallback al DEVICE. Nomi ambigui omessi dal selettore hanno un avviso visibile. Gli album privati delle app Android non vengono inventati quando Windows non li espone.
+
+Le sezioni successive descrivono anche le versioni precedenti; dove parlano di inventario USB completo per la selezione cartella sono superate dal percorso limitato rc.11. [Criteri e limiti](GALLERY-IMPORT.md), [revisione](REVIEW-RC11.md).
+
 ## Cartella selezionata — rc.9
 
 `FolderVideoSource` implementa `ISelectedVideoSource`: è una selezione dell’utente, non un inventario PhotoKit. Prima di creare Destination verifica radici locali NTFS, percorsi canonici e assenza di sovrapposizione. Inventario ricorsivo senza scrittura, senza attraversare reparse point o file cloud offline. Handle aperti in sola lettura con FileShare.Read; percorso effettivo, numero di hard link, identità NTFS, lunghezza e ultima modifica devono coincidere. ID derivati da radice/percorso; la versione dei metadati entra in WorkLedger.Key. Una sostituzione con stessi byte e stessa data ma altra identità NTFS viene rilevata.

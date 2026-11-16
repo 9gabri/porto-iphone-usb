@@ -9,24 +9,32 @@ public sealed class UsbImportSource : IVideoSource,IReadFailureRecovery,ISourceC
     private readonly IVideoSource inner;
     private readonly string sourceNamespace;
     private readonly UsbFolderChoice? folder;
+    private readonly UsbCollectionChoice? collection;
     private Dictionary<string,(SourceItem Public,SourceItem Raw)> observed=new(StringComparer.Ordinal);
     private bool disposed;
     public string SourceDescription {get;}
     public bool AppleResourceHints {get;}
     public int SessionRestarts=>(inner as IReadFailureRecovery)?.SessionRestarts??0;
-    public UsbImportSource(IVideoSource inner,string deviceId,string deviceName,bool useAppleHints,UsbFolderChoice? folder=null)
+    public UsbImportSource(IVideoSource inner,string deviceId,string deviceName,bool useAppleHints,UsbFolderChoice? folder=null,UsbCollectionChoice? collection=null)
     {
         if(string.IsNullOrWhiteSpace(deviceId)||deviceId.Length>32768||deviceId.Contains('\0'))
             throw new ArgumentException("Identificativo telefono non valido.",nameof(deviceId));
+        if(folder!=null&&collection!=null)throw new ArgumentException("Scegli una cartella oppure una raccolta USB.");
         this.inner=inner;sourceNamespace="usb:"+Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(deviceId)));
         this.folder=folder==null?null:new(folder.DisplayPath,folder.Segments.ToArray());
+        this.collection=collection==null?null:new(collection.DisplayPath,collection.Segments.ToArray());
         AppleResourceHints=useAppleHints;
-        SourceDescription=$"{deviceName} tramite USB"+(folder==null?" — tutti i file accessibili":$" — cartella fisica: {folder.DisplayPath}");
+        SourceDescription=$"{deviceName} tramite USB"+(collection!=null?$" — raccolta esposta da Windows: {collection.DisplayPath}":folder==null?" — tutti i file accessibili":$" — cartella fisica: {folder.DisplayPath}");
     }
     public Inventory Inventory(CancellationToken cancel)
     {
         ObjectDisposedException.ThrowIf(disposed,this);cancel.ThrowIfCancellationRequested();observed.Clear();
-        var inventory=inner.Inventory(cancel);
+        var inventory=collection!=null
+            ?inner is IUsbCollectionSource collections?collections.Inventory(collection,cancel)
+                :throw new IOException("La sorgente non supporta le raccolte USB.")
+            :folder==null?inner.Inventory(cancel)
+            :inner is IUsbFolderSource scoped?scoped.Inventory(folder,cancel)
+            :throw new IOException("La sorgente USB non supporta l’importazione limitata alla cartella scelta.");
         var items=folder==null?inventory.Items:UsbFolders.Select(inventory,folder);
         var next=new Dictionary<string,(SourceItem Public,SourceItem Raw)>(StringComparer.Ordinal);
         foreach(var raw in items)

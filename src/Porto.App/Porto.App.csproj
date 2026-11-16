@@ -4,5 +4,5 @@
     <AssemblyName>Porto</AssemblyName><ApplicationManifest>app.manifest</ApplicationManifest>
     <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
-  <ItemGroup><ProjectReference Include="../Porto.Core/Porto.Core.csproj" /><ProjectReference Include="../Porto.Usb/Porto.Usb.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../Porto.Core/Porto.Core.csproj" /><ProjectReference Include="../Porto.Usb/Porto.Usb.csproj" /><ProjectReference Include="../Porto.Apple/Porto.Apple.csproj" /></ItemGroup>
 </Project>

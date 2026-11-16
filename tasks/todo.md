@@ -95,3 +95,12 @@ prova con il telefono. Nessun totale artificiale basato sui componenti Live Phot
 - [x] Revisione indipendente, suite 387/387, sette stati UI e quattro prove packaging.
 - [x] Pacchetto autonomo, release pubblica, riscaricamento SHA-256/CRC, nove smoke sul download e pagina pubblica verificati.
 - [ ] Prova fisica con iPhone/Android e album reali (richiede dispositivo dell’utente).
+
+## Gallerie e album — richiesta del 16 novembre 2026
+- [x] Requisiti e limiti scritti in docs/GALLERY-IMPORT.md; nessuna esportazione preliminare nel flusso richiesto.
+- [x] Navigazione USB per livello e inventario del solo ramo selezionato, anche dopo riconnessione.
+- [x] Accesso in sola lettura al catalogo Foto iPhone, asset e appartenenze album; originali mancanti visibili.
+- [x] Interfaccia coerente con capacità e limiti reali dei dispositivi.
+- [x] Verifiche sintetiche, revisione indipendente e build senza avvisi/errori.
+- [ ] Pacchetto nuovo, pubblicazione e verifica del download pubblico.
+- [ ] Collaudo hardware autorizzato su iPhone e Android; compatibilità universale non dichiarabile.
