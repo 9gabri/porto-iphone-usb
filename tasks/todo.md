@@ -127,5 +127,5 @@ prova con il telefono. Nessun totale artificiale basato sui componenti Live Phot
 - [x] Analisi del messaggio reale e fonti primarie; nessuna lettura del telefono.
 - [x] Quattro rifiuti di firme forti riprodotti; ipotesi catena SHA-1 esclusa.
 - [x] Negoziazione e diagnostica corrette; 15/15 nuovi casi, revisione indipendente.
-- [ ] Suite finale, pacchetto nuovo, pubblicazione e verifica download.
+- [x] Suite finale 490/490, pacchetto nuovo, pubblicazione e riscaricamento: checksum/CRC, versione/contenuto, undici smoke e pagina pubblica verificati; tredici archivi precedenti invariati.
 - [ ] Collaudo iPhone: causa reale non ancora attribuita con certezza o dichiarata risolta.
