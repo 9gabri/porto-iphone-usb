@@ -263,6 +263,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                 catch(Exception ex) when(ex is IOException or UnauthorizedAccessException or InvalidDataException)
                 {
                     bool previousCleanup=ex is PreviousReadCleanupException;
+                    if(!previousCleanup && source is IReadFailureRecovery recovery)recovery.InvalidateRead();
                     report.Items.Add(new(item.Id,item.Name,previousCleanup?Outcome.Pending:Outcome.Error,ex.Message+sizeNote));
                     // Remember the actual failed reads, including those preceding a
                     // cleanup failure. A resource not opened yet must not be penalized.
@@ -319,6 +320,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
             report.RetryRecommended=ex is IOException&&!report.StoppedForCapacity;mayRetryDeficits=report.RetryRecommended;report.Status="Importazione in pausa: "+ex.Message;return report;}
         finally
         {
+            report.UsbSessionRestarts=(source as IReadFailureRecovery)?.SessionRestarts??0;
             report.EndedUtc=DateTimeOffset.UtcNow;
             AddOutstanding();
             // If persistence fails (e.g. disk completely full), surface it instead of claiming success.

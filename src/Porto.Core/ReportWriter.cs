@@ -13,6 +13,7 @@ public static class ReportWriter
         Directory.CreateDirectory(directory);
         WriteNew(Path.Combine(directory,$"report-{id}.json"),JsonSerializer.Serialize(report,JsonOptions));
         StringBuilder text=new();text.AppendLine("PORTO — REPORT DI IMPORTAZIONE").AppendLine(report.Status)
+            .AppendLine($"Versione Porto: {report.ApplicationVersion}; riavvii USB tentati in questo passaggio: {report.UsbSessionRestarts}")
             .AppendLine($"Inventario USB terminato: {(report.UsbEnumerationComplete ? "sì" : "no")}")
             .AppendLine($"Controllo finale inventario: {(report.FinalInventoryChecked ? "stabile" : "non verificato o cambiato")}; tentativo: {report.Attempt}")
             .AppendLine($"Risorse USB totali (incluse cartelle): {report.UsbItemCount}; immagini: {report.ImageCount}; file accessori AAE: {report.SidecarCount}")

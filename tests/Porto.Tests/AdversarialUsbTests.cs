@@ -125,8 +125,11 @@ internal static class AdversarialUsbTests
             WorkerClient Create(){connections++;return new(Environment.ProcessPath!,"--adversarial-usb-mixed-files");}
             var session=new ImportSession(()=>new ReconnectingUsbSource(Create,SelectedDevice),destination){RetryDelay=TimeSpan.Zero};
             var report=session.Run(false,default);
-            Fixtures.Check(session.Attempts==ImportSession.MaximumAttempts&&connections==ImportSession.MaximumAttempts,
-                "A valid operation error must not replace the worker within an import pass.");
+            // rc.7 intentionally replaces the worker once for each rejected read,
+            // including the final inventory after a last-file failure.
+            Fixtures.Check(session.Attempts==ImportSession.MaximumAttempts&&connections==4*ImportSession.MaximumAttempts
+                &&report.UsbSessionRestarts==3,
+                "Each pass must use its initial worker and exactly three bounded recoveries.");
             Fixtures.Check(report.Count(Outcome.Error)==3&&report.Count(Outcome.AlreadyPresent)==2&&report.Count(Outcome.Pending)==0,report.Status);
             Fixtures.Check(report.Items.Where(item=>item.Outcome==Outcome.Error).All(item=>item.Detail.Contains("Synthetic unreadable file",StringComparison.Ordinal)));
             var files=Directory.GetFiles(destination.Videos);Fixtures.Check(files.Length==2,"Healthy files after the failures were not imported exactly once.");

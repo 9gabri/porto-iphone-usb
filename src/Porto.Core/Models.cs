@@ -11,10 +11,21 @@ public interface IVideoSource : IDisposable
     Inventory Inventory(CancellationToken cancel);
     Stream OpenRead(SourceItem item, CancellationToken cancel);
 }
+// Mark a failed read without performing I/O or replacing its original exception.
+// The next read must use a fresh connection and a fully revalidated inventory.
+public interface IReadFailureRecovery
+{
+    void InvalidateRead();
+    int SessionRestarts { get; }
+}
 public sealed record ReportItem(string SourceId, string Name, Outcome Outcome, string Detail,
     string? File = null, long? Bytes = null, string? Sha256 = null);
 public sealed class ImportReport
 {
+    public string ApplicationVersion => typeof(ImportReport).Assembly
+        .GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute),false)
+        .OfType<System.Reflection.AssemblyInformationalVersionAttribute>().FirstOrDefault()?.InformationalVersion.Split('+')[0]??"sconosciuta";
+    public int UsbSessionRestarts { get; set; }
     public DateTimeOffset StartedUtc { get; init; } = DateTimeOffset.UtcNow;
     public DateTimeOffset? EndedUtc { get; set; }
     public bool UsbEnumerationComplete { get; set; }

@@ -14,6 +14,7 @@ if(args.Length>0&&args[0].StartsWith("--rc5-protocol-",StringComparison.Ordinal)
 if(args.Length>0&&args[0]=="--rc6-lifetime")return Rc6StreamLifetimeTests.Child();
 if(args.Length>0&&args[0]=="--rc6-cleanup-hang")return Rc6StreamLifetimeTests.Child(true);
 if(args.Length>0&&args[0]=="--rc6-cleanup-failure")return Rc6StreamLifetimeTests.Child(failCleanup:true);
+if(args.Length>0&&args[0].StartsWith("--rc7-recovery-",StringComparison.Ordinal))return Rc7RecoveryTests.Child(args[0]);
 var tests = new List<(string, Action)>
 {
     ("copy and independently reread SHA256", () => {
@@ -48,6 +49,7 @@ Rc6StreamLifetimeTests.Add(tests);
 Rc6ClassificationTests.Add(tests);
 Rc6NativeCleanupTests.Add(tests);
 Rc6RecoveryTests.Add(tests);
+Rc7RecoveryTests.Add(tests);
 if(args.Contains("--large"))LargeTests.Add(tests);
 int failures = 0;
 string? filter=args.FirstOrDefault(a=>a.StartsWith("--filter=",StringComparison.Ordinal))?[9..];
