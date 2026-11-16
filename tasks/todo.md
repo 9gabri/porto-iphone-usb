@@ -93,5 +93,5 @@ prova con il telefono. Nessun totale artificiale basato sui componenti Live Phot
 - [x] Importazione foto e cataloghi compatibili; conservazione copie precedenti.
 - [x] UI esplicita, album virtuali distinti da cartelle fisiche, nessuna ricerca hardware negli smoke.
 - [x] Revisione indipendente, suite 387/387, sette stati UI e quattro prove packaging.
-- [ ] Pacchetto autonomo, release pubblica e riscaricamento verificato.
+- [x] Pacchetto autonomo, release pubblica, riscaricamento SHA-256/CRC, nove smoke sul download e pagina pubblica verificati.
 - [ ] Prova fisica con iPhone/Android e album reali (richiede dispositivo dell’utente).

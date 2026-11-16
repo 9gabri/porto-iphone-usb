@@ -326,3 +326,20 @@ presentata come certificata o definitivamente compatibile.
 - Pagina pubblica e `app-preview.png` riscaricati via HTTPS: byte coincidenti con il tag. Immagine dell’app corrente esaminata.
 
 Test del codice: 348 casi distinti coperti, sequenza esatta in TESTS.md (suite 347/347 e ricontrolli 28/28 dopo l’aggiunta di un caso). Il chiarimento finale del testo per file non registrati non cambia la logica. Esportazione reale da Foto e confronto con l’archivio personale ancora da eseguire con l’utente; nessun totale Foto garantito.
+
+
+## 0.1.0-rc.10 — 16 novembre 2026
+
+- Tag immutabile `v0.1.0-rc.10`, sorgente `73d803595b535842a73ff4f3d20a87da8a25983a`.
+- [Release pubblica](https://github.com/9gabri/porto-iphone-usb/releases/tag/v0.1.0-rc.10), candidata pubblicata alle 15:02:09 UTC.
+- [ZIP verificato](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.10/Porto-0.1.0-rc.10-win-x64.zip): 51.653.759 byte, 285 elementi.
+- SHA-256: `a94fa59543a96ad07887180dc2aadc08a223657a7ee98e824b8e62aeffb61c69`.
+- [SHA256SUMS.txt](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.10/SHA256SUMS.txt): 97 byte; SHA-256 `258746c071417bab7b98011f6c699032814c79be953bf0072888fc0ff96f30d9`.
+- Nuovo staging isolato, manifest/versione/commit coerenti, runtime 10.0.14 incluso, assenza di percorsi privati nei binari, nessun allegato personale, simbolo esterno, credenziale o vecchio file sentinella.
+- ZIP riscaricato senza autenticazione dal link pubblico: checksum, CRC, nomi, duplicati, percorsi e manifest ricontrollati prima dell’estrazione in una nuova cartella.
+- Eseguibile riscaricato: versione informativa `0.1.0-rc.10+73d803595b535842a73ff4f3d20a87da8a25983a`. Nove smoke superati con DOTNET_ROOT e DOTNET_ROOT_X64 indirizzati a una cartella inesistente: interop, worker, sette stati UI (compreso selettore cartella). Nessuna ricerca o lettura di telefoni.
+- HTML e immagine della pagina pubblica confrontati byte per byte con quelli del tag: corrispondono.
+- Gli archivi rc.1–rc.9 e i checksum storici controllati sono rimasti invariati. Il primo tentativo di packaging si è fermato nel restore limitato dal sandbox, prima di produrre lo ZIP; il tentativo successivo ha usato un nuovo stage, senza sovrascrivere precedenti release.
+- Suite applicativa 387/387, sette controlli UI e quattro prove del confezionamento documentati in TESTS.md.
+
+Questa verifica dimostra integrità e avvio del pacchetto distribuito, non compatibilità con ogni iPhone/Android, accessibilità degli album reali, assenza di bug o completezza di una libreria cloud. Il collaudo fisico resta necessario.
