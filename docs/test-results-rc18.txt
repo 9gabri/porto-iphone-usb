@@ -1,0 +1,138 @@
+Porto rc18 - Apple suite (109 cases)
+PASS discovery retries S_FALSE instead of silently losing Apple device
+PASS discovery distinguishes Windows empty, non Apple and incomplete metadata
+PASS rc8 media arbitrary free text is not metadata: com.apple.quicktime.still-image-time
+PASS rc8 media arbitrary free text is not metadata: com.apple.quicktime.content.identifier
+PASS multidevice discovery includes Apple Android and other portable devices
+PASS media non Apple phones do not inherit Apple paired-name routing hints
+PASS apple TLS uses ephemeral existing credentials and authenticates the pinned device in memory
+PASS apple TLS rejects a different device certificate in memory
+PASS apple TLS rejects pinned server that does not request client authentication
+PASS apple TLS rejects SHA1 handshake signatures without reducing protection
+PASS apple TLS pinned SHA1 device certificate still requires SHA256 handshake signatures
+PASS apple TLS blocked handshake honors cancellation without credentials on disk
+PASS apple plist rejects duplicate keys external entities and malformed binary
+PASS apple binary plist shares repeated objects without materialization explosion
+PASS apple mux validates framing and is cancellable without any network
+PASS apple AFC only reads file with mode one and validates every packet
+PASS apple AFC rejects forbidden paths malformed lengths and sequence drift
+PASS apple AFC malformed UTF8 metadata is normalized and poisons the session
+PASS apple AFC malformed status poisons stat open and read before another command
+PASS apple AFC valid per-file errors preserve the session and exact packet boundary
+PASS apple WAL verifies both checksum endiannesses and applies committed pages only
+PASS apple WAL rejects short header short frame and altered salt header
+PASS apple catalog distinguishes true video from Live Photo and preserves missing paths
+PASS apple catalog reads native album membership without paths and rejects absent selection
+PASS apple catalog uses native parent folders to distinguish identical album names
+PASS apple catalog rejects unsupported schema and malformed membership
+PASS apple catalog rejects duplicate asset UUID and ambiguous album relationship
+PASS apple catalog rejects traversal paths without dropping known media
+PASS apple catalog memory reader rejects truncated database and cancellation
+PASS apple catalog source counts unavailable originals and never exposes Live companion video
+PASS apple video filter avoids stat for ten thousand photos and missing unselected originals
+PASS apple source album does not widen selection and records missing image
+PASS apple unknown catalog type named mov remains unresolved and cannot be read
+PASS apple source recovery reconnects only with matching complete selection
+PASS apple source recovery rejects changed original before reading another file
+PASS apple final recovery failure leaves unopened siblings pending and outer retry succeeds
+PASS apple final recovery cancellation propagates without blaming the unopened file
+PASS apple final recoverable stat error preserves uncertain asset and copies healthy siblings
+PASS apple final poisoned stat failure aborts inventory instead of accepting partial siblings
+PASS apple capture rejects changing database and active rollback journal
+PASS apple rc13 capture reads committed native SQLite WAL with uncommitted tail
+PASS apple rc13 capture accepts settled native SQLite persist journal
+PASS apple rc13 capture rejects active unknown truncated or changing journal headers
+PASS apple rc13 visibility nonzero null and new states preserve membership without opening originals
+PASS apple rc13 visibility zero and missing-column profiles keep original selection identity
+PASS apple rc13 visibility uncertainty of excluded photos does not block video selection
+PASS apple rc13 visibility change rejects read recovery before opening original
+PASS apple rc13 visibility uncertainty is ambiguous while healthy video siblings copy
+PASS apple rc13 visibility change in final catalog prevents verified selection
+PASS apple TLS matrix accepts fragmented SHA256 with root in device certificate chain
+PASS apple TLS matrix accepts exactly pinned SHA1 leaf plus root with SHA256 handshake
+PASS apple TLS matrix accepts SHA384 server and client handshake signatures
+PASS apple TLS matrix accepts client certificate request with SHA384 only
+PASS apple TLS matrix accepts RSA PSS SHA256 server handshake signature
+PASS apple TLS matrix accepts RSA PSS SHA256 client certificate request
+PASS apple TLS matrix accepts SHA512 server and client handshake signatures
+PASS apple TLS matrix accepts RSA PSS SHA384 server and client signatures
+PASS apple TLS matrix accepts RSA PSS SHA512 server and client signatures
+PASS apple TLS matrix rejects wrong pinned device despite strong signatures
+PASS apple TLS matrix rejects a different certificate with the same device key
+PASS apple TLS matrix rejects SHA1-only client certificate request
+PASS apple TLS matrix rejects SHA1 server signature with a two-certificate chain
+PASS apple TLS matrix rejects server omitting mutual authentication
+PASS apple TLS matrix reports peer fatal alert with only a fixed diagnostic code
+PASS apple pairing TLS factory preserves DER metadata copies and default parser policy
+PASS apple pairing TLS factory rejects duplicate extensions in exact paired certificate
+PASS apple pairing TLS accepts empty names and serial zero
+PASS apple pairing TLS accepts empty names and serial one
+PASS apple pairing TLS accepts empty names serial zero SHA1 certificate SHA256 handshake
+PASS apple pairing TLS accepts absent RSA algorithm parameters
+PASS apple pairing TLS rejects wrong pinned certificate with empty names
+PASS apple pairing TLS rejects different paired certificate with identical key
+PASS apple pairing TLS rejects device certificate without digitalSignature usage
+PASS apple pairing TLS rejects SHA1 server handshake
+PASS apple pairing TLS rejects SHA1 client authentication request
+PASS apple pairing TLS rejects missing mutual authentication
+PASS apple pairing TLS rejects exact-pinned malformed certificate
+PASS apple catalog diagnostic reports nonregular database before opening any file
+PASS apple catalog diagnostic reports empty database before opening any file
+PASS apple catalog diagnostic reports oversize database before opening any file
+PASS apple catalog diagnostic reports nonregular WAL before opening any file
+PASS apple catalog diagnostic reports negative WAL length before opening any file
+PASS apple catalog diagnostic reports oversize WAL before opening any file
+PASS apple catalog diagnostic reports combined size overflow before opening any file
+PASS apple catalog diagnostic reports hostile long size without arithmetic overflow before opening any file
+PASS apple catalog diagnostic boundary permits exact database limit with absent WAL
+PASS apple catalog diagnostic boundary permits exact combined limit and empty WAL
+PASS apple catalog diagnostic AFC distinguishes file directory link and unknown without exposing raw types
+PASS apple streaming capture compares every byte with bounded cleared scratch
+PASS apple streaming capture rejects second database byte-change
+PASS apple streaming capture rejects second database truncate
+PASS apple streaming capture rejects second database grow
+PASS apple streaming capture rejects WAL appearance disappearance and modification
+PASS apple streaming capture rejects second WAL byte change even when metadata is stable
+PASS apple streaming capture checks metadata after final verification byte
+PASS apple streaming capture rejects active journal after database verification
+PASS apple streaming capture cancellation closes second stream and clears scratch
+PASS apple memory guard accepts exact physical and commit boundary
+PASS apple memory guard rejects insufficient physical memory or commit
+PASS apple memory guard reads Windows availability without private data
+PASS apple large catalog accepts reported database and WAL sizes without allocating media
+PASS apple large catalog accepts reported database with no WAL
+PASS apple album association isolates a broken album without broadening a healthy selection
+PASS apple album association reports unknown album links without treating them as deleted
+PASS apple album association missing assets remain explicit and cannot masquerade as an empty album
+PASS apple album association healthy source reads only its selected video despite another broken album
+PASS apple album association rejected album and gallery never stat or open any original
+PASS apple album association known hidden and deleted members are exclusions not missing relations
+PASS apple album association duplicate membership remains rejected
+109/109 passed
+
+Gallery import (12 cases)
+PASS gallery import unknown asset roles never become videos from filename extensions
+PASS gallery import selects true video and preserves old Live Photo copies
+PASS gallery import empty chosen type reports no matches instead of failure
+PASS gallery import unresolved video remains counted and blocks verified selection
+PASS gallery import changed album membership prevents verified selection
+PASS gallery import retry continues past failed file without duplicating successful copy
+PASS gallery import retry cannot certify a smaller selection after a failed asset disappears
+PASS gallery import retry reports when an already copied asset disappears from the selection
+PASS gallery import retry retains an asset first observed only in the final inventory
+PASS gallery import empty retry cannot erase an earlier selected failure
+PASS gallery import source selection uncertainty is ambiguous without opening the original
+PASS gallery import temporarily disappeared asset can return and finish the same session
+12/12 passed
+
+Final dedicated association tests (9 cases, 7 already above)
+PASS apple album association isolates a broken album without broadening a healthy selection
+PASS apple album association reports unknown album links without treating them as deleted
+PASS apple album association missing assets remain explicit and cannot masquerade as an empty album
+PASS apple album association healthy source reads only its selected video despite another broken album
+PASS apple album association rejected album and gallery never stat or open any original
+PASS apple album association known hidden and deleted members are exclusions not missing relations
+PASS apple album association duplicate membership remains rejected
+PASS apple album association unresolved system and deleted albums remain globally visible
+PASS apple album association final membership uncertainty preserves copy but blocks successful report
+9/9 passed

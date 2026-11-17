@@ -1,4 +1,8 @@
-PORTO 0.1.0-rc.18 — CANDIDATA WINDOWS 11 x64
+PORTO 0.1.0-rc.19 — CANDIDATA WINDOWS 11 x64
+
+rc.19: ridotte le riletture complete dei nuovi file durante il confronto con copie precedenti in modalità iPhone. Richieste Apple da 256 KiB; opzione USB iPhone compatibile (64 KiB) per dispositivi che dessero errori. Rilettura locale SHA-256, controlli della selezione e ripresa conservati. Per la prima prova lascia la compatibilità non selezionata. Nuovi contatori locali performance-*.json in Report Porto; nessun invio. Tempi reali da misurare: nessuna promessa di 800 video in un'ora.
+
+Per riprendere: scegli lo stesso iPhone, lo stesso album, Solo video e lo stesso Archivio PC con .porto e report. Avvia importazione. Le copie verificate restano al loro posto; il confronto può richiedere tempo. Non eliminare o rinominare i file della prova. La preparazione temporanea usa spazio fino alla dimensione di un file, oltre alla sua copia; se manca il margine viene usato il percorso precedente. Nessun originale sul telefono modificato.
 
 rc.18: una associazione irrisolta non blocca più tutti gli album. Gli album coinvolti restano visibili e NON SELEZIONABILI; quelli con associazioni integre possono essere scelti. La galleria completa resta bloccata se esistono associazioni irrisolte. iPhone - libreria Foto via USB, Cerca dispositivi, Un album della libreria Foto, Scegli album: verifica se il tuo album è selezionabile e prova prima uno piccolo. Nessuna garanzia che il tuo album sia già risolto. Conserva i file delle prove e qualsiasi errore completo.
 

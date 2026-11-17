@@ -1,3 +1,20 @@
+# Verifiche 0.1.0-rc.19
+
+Solo dati sintetici e nuove cartelle isolate; nessun telefono o file personale delle prove consultato. Versione candidata: tempi e compatibilità del trasporto da 256 KiB da confermare sul dispositivo reale.
+
+- Suite ordinaria: 553 casi distinti verificati. Primo giro 545/553; otto fixture hard link/junction bloccate dal sandbox. Ripetuti gli stessi otto casi fuori da quel limite, tutti passati, senza ridurre i controlli o toccare file personali.
+- Dopo gli ultimi dettagli dei contatori: 16/16 test rc.19 passati (13 copia/confronto/ripresa e 3 AFC).
+- Due test estesi oltre 4 GiB: replay con una sola apertura sorgente e percorso ordinario, entrambi passati. Conservazione del file precedente, SHA-256 e pubblicazione verificati. Memoria osservata a fine prova circa 60/61 MiB. La fixture di replay finale è conservata; il test ordinario elimina solo il proprio payload sintetico come già previsto dal test.
+- Catalogo sintetico SQLite da 566.362.112 byte con WAL da 4.227.152: cattura, doppia lettura, integrità, selezione e hash sorgenti passati. Nessuna modifica all'algoritmo di cattura.
+- Benchmark con 3 ripetizioni per variante e DLL pubblica rc.18: 24 MiB di payload, vecchia copia non corrispondente, attesa simulata di 5 ms per Read da 64 KiB. Byte sorgente 48 -> 24 MiB; mediana 4,47 -> 2,84 s. Non sono tempi dell'iPhone. Prime misure con la stessa DLL accidentalmente caricata scartate e conservate; variante valida verificata tramite SHA-256.
+- Build test e applicazione senza avvisi/errori. Smoke UI compatta iPhone passata e controllata visivamente: nuovo checkbox accessibile, disabilitato mentre lavora e non selezionato per default, azioni raggiungibili.
+- Packaging: 4/4 scenari (compressione interrotta, ZIP invalido, archivio precedente, successo). Screenshot del confezionamento salvati nello staging nuovo per preservare quelli precedenti.
+
+Le verifiche pertinenti sono state eseguite per incrementi: non si dichiara una seconda esecuzione completa dopo le sole aggiunte ai contatori/testi UI. La build finale e il pacchetto pubblico vengono verificati separatamente. Nessun collaudo hardware rc.19. Le revisioni indipendenti della diagnosi sono disponibili; una nuova revisione indipendente dell'implementazione non è stata completata per limite di quota, senza fallback a pagamento.
+
+Dettagli in REVIEW-RC19.md; log del ciclo in test-results.txt. Verifiche del pacchetto riscaricato in RELEASE-VERIFICATION.md dopo il tag. Di seguito è conservata la documentazione del ciclo precedente.
+
+---
 # Verifiche 0.1.0-rc.18
 
 Solo dati sintetici e cartelle isolate. Nessun telefono, catalogo personale, media o file delle prove aperto o modificato.

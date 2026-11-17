@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><NuGetAudit>false</NuGetAudit></PropertyGroup>
+  <ItemGroup><Reference Include="Porto.Core"><HintPath>$(CoreDll)</HintPath></Reference></ItemGroup>
+</Project>

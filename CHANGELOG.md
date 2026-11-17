@@ -1,5 +1,13 @@
 # Novità
 
+## 0.1.0-rc.19
+
+- Importazione galleria: riuso locale della prima lettura per il confronto dei nuovi file, evitando una seconda lettura completa della sorgente quando è disponibile spazio sufficiente.
+- Richieste AFC fino a 256 KiB, con opzione esplicita da 64 KiB per compatibilità. Controlli di protocollo e autenticazione invariati.
+- Contatori locali per tempi, letture, aperture e trasporto; etichetta della velocità chiarita come media complessiva.
+- Rilettura locale SHA-256, verifica approfondita opzionale, selezione, molteplicità e salvataggi durevoli conservati. Nuove prove di crash, cancellazione, disco pieno e file grandi.
+- Nessuna promessa sui tempi dell'iPhone reale; candidata per un confronto misurato. Dettagli in REVIEW-RC19.md.
+
 ## 0.1.0-rc.9
 
 - Importazione da cartella esportata da Foto, senza Mac o componente iOS.

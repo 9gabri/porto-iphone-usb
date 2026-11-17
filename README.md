@@ -1,12 +1,20 @@
 # Porto
 
-App locale in italiano per copiare foto e video dal telefono al PC, senza conversioni. **0.1.0-rc.18 candidata**, Windows 11 x64 con runtime incluso. Consente di scegliere album con associazioni integre anche quando altri collegamenti del catalogo non sono risolti. Gli album coinvolti restano visibili ma bloccati; copia da confermare sul telefono reale.
+App locale in italiano per copiare foto e video dal telefono al PC, senza conversioni. **0.1.0-rc.19 candidata**, Windows 11 x64 con runtime incluso. Riduce le riletture nell'importazione iPhone e usa richieste Apple più grandi, conservando i controlli sui file. Prestazioni e compatibilità della nuova versione da confermare sul telefono reale.
 
-[Scarica Windows](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.18/Porto-0.1.0-rc.18-win-x64.zip) · [Checksum](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.18/SHA256SUMS.txt) · [Guida](docs/PHONES-AND-ALBUMS.md)
+[Scarica Windows](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.19/Porto-0.1.0-rc.19-win-x64.zip) · [Checksum](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.19/SHA256SUMS.txt) · [Guida](docs/PHONES-AND-ALBUMS.md)
+
+## Prestazioni iPhone rc.19
+
+Quando trova copie precedenti, Porto conserva temporaneamente sul PC i byte letti per il confronto. Se sono nuovi, li usa per creare la copia senza dover rileggere tutto il file dall'iPhone. La rilettura SHA-256 del file salvato resta obbligatoria. Servono spazio per il temporaneo e per la copia; se manca il margine, viene usato il percorso precedente. I file identici già verificati sono riutilizzati; elementi distinti con gli stessi byte mantengono copie distinte.
+
+Il trasporto Apple richiede fino a 256 KiB per lettura invece di 64 KiB. L'opzione **USB iPhone compatibile** ripristina blocchi da 64 KiB se la prova reale incontra errori. Non attivarla per il primo confronto di velocità. La verifica approfondita continua a richiedere una lettura indipendente aggiuntiva.
+
+I nuovi file locali `performance-*.json` in Report Porto registrano byte letti, aperture e tempi per passaggio. Nessun invio automatico. Non garantiamo 29 GB in un'ora: catalogo, connessione, disco e verifiche continuano a richiedere tempo. [Modifiche e misure](docs/REVIEW-RC19.md).
 
 ## Scegli origine, contenuti e destinazione
 
-- **iPhone · libreria Foto via USB:** nuovo accesso al catalogo Foto tramite il collegamento Apple già installato e abbinato. Se il catalogo è compatibile, scegli galleria visibile o un album personale, poi Solo video / Solo foto / Foto e video. Le Live Photo sono foto: la loro componente animata non entra in Solo video. Nessuna esportazione preliminare. Questa integrazione deve ancora essere collaudata con un iPhone reale.
+- **iPhone · libreria Foto via USB:** nuovo accesso al catalogo Foto tramite il collegamento Apple già installato e abbinato. Se il catalogo è compatibile, scegli galleria visibile o un album personale, poi Solo video / Solo foto / Foto e video. Le Live Photo sono foto: la loro componente animata non entra in Solo video. Nessuna esportazione preliminare. Le ottimizzazioni rc.19 devono ancora essere collaudate con un iPhone reale.
 - **Dispositivo USB · cartelle e raccolte:** dispositivi WPD/MTP/PTP esposti da Windows, inclusi Android compatibili. Scegli tutti i file accessibili oppure una cartella fisica o raccolta USB nativa. La scelta legge soltanto il livello aperto; la copia di una cartella resta limitata al suo ramo. Gli album virtuali delle app non sono sempre esposti.
 - **Cartella del PC:** opzione accessoria per file già presenti sul computer; confronto e copia verificata nella destinazione scelta.
 
@@ -45,7 +53,7 @@ Le nuove foto sono in **Foto Porto**, i video in **Video Porto**. Le vecchie ris
 
 **Candidata per il collaudo, non versione certificata o definitiva.** Le verifiche sintetiche non dimostrano compatibilità hardware. Restano da confermare collegamento Apple reale, schema iOS, album e conteggi sul telefono, trasferimento e ripresa su iPhone/Android.
 
-[Test](docs/TESTS.md) · [Revisione rc.18](docs/REVIEW-RC18.md) · [Architettura](docs/ARCHITECTURE.md) · [Licenze](THIRD-PARTY-NOTICES.md) · [Verifica pubblicazione](docs/RELEASE-VERIFICATION.md).
+[Test](docs/TESTS.md) · [Revisione rc.19](docs/REVIEW-RC19.md) · [Architettura](docs/ARCHITECTURE.md) · [Licenze](THIRD-PARTY-NOTICES.md) · [Verifica pubblicazione](docs/RELEASE-VERIFICATION.md).
 
 SDK .NET 10, runtime incluso 10.0.14. `scripts/dev.ps1 test -Large`, `scripts/dev.ps1 build`, `scripts/dev.ps1 publish`. Test isolati; `--ui-smoke <percorso.png>` non cerca telefoni. Nessuna discovery hardware automatica all'avvio.
 
