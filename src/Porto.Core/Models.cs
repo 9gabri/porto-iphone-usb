@@ -52,6 +52,7 @@ public sealed record ReportItem(string SourceId, string Name, Outcome Outcome, s
     string? File = null, long? Bytes = null, string? Sha256 = null, bool Historical = false);
 public sealed class ImportReport
 {
+    public ImportPerformance? Performance {get;set;}
     public ImportMedia Media { get; init; } = ImportMedia.Videos;
     public int SelectedPhotoCount { get; set; }
     public int SelectedVideoCount { get; set; }

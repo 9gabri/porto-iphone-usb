@@ -23,7 +23,8 @@ internal static class AppleTransportTests
             for(int offset=0;offset<bytes.Length;offset+=limit)
                 responses.AddRange(Packet(sequence++,2,bytes.AsSpan(offset,Math.Min(limit,bytes.Length-offset)).ToArray()));
             responses.AddRange(Packet(sequence++,2,[]));responses.AddRange(Packet(sequence,1,U64(0)));
-            using var wire=new ScriptedStream(responses.ToArray());using var fs=new AppleAfcFileSystem(wire){ReadLimit=limit};
+            var metrics=new Porto.Core.SourceTransportMetrics();
+            using var wire=new ScriptedStream(responses.ToArray());using var fs=new AppleAfcFileSystem(wire,metrics:metrics){ReadLimit=limit};
             using(var source=fs.OpenRead("/DCIM/100APPLE/test.MOV",default))
             {
                 using var saved=new MemoryStream();Porto.Core.VerifiedCopy.Copy(source,saved,bytes.Length,null,null,default);
@@ -34,6 +35,7 @@ internal static class AppleTransportTests
                 if(BinaryPrimitives.ReadUInt64LittleEndian(sent.AsSpan(offset+32))==15)
                 {Fixtures.Check(BinaryPrimitives.ReadUInt64LittleEndian(sent.AsSpan(offset+48))==(ulong)limit);reads++;}
             Fixtures.Check(reads==(bytes.Length+limit-1)/limit+1);
+            Fixtures.Check(metrics.ReadRequests==reads&&metrics.OpenRequests==1&&metrics.MediaBytes==bytes.Length&&metrics.CatalogBytes==0&&metrics.ReadBlockBytes==limit);
         }));
         tests.Add(("rc19 AFC larger default still rejects oversized response before delivery",()=>
         {

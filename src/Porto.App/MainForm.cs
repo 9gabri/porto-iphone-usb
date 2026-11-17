@@ -161,7 +161,8 @@ public sealed class MainForm:Form
                     sourceMode.SelectedIndex=2;phones.Items.Add(new AppleDevice("synthetic-no-device-access","iPhone · esempio sintetico"));phones.SelectedIndex=0;
                     mediaMode.SelectedIndex=0;usbScope.SelectedIndex=1;chosenAppleAlbum=new("synthetic-1","Vacanze",45,40,5);UpdateScope();
                     if(!selectUsbFolder.Enabled||!usbSelection.Text.Contains("Vacanze",StringComparison.Ordinal))throw new InvalidOperationException("Selezione album Foto non funzionante.");
-                    SetBusy(true);if(selectUsbFolder.Enabled||sourceMode.Enabled)throw new InvalidOperationException("Selezione Foto modificabile durante il lavoro.");SetBusy(false);
+                    SetBusy(true);if(selectUsbFolder.Enabled||sourceMode.Enabled||compatibleUsb.Enabled)throw new InvalidOperationException("Selezione Foto modificabile durante il lavoro.");SetBusy(false);
+                    if(!compatibleUsb.Enabled||!compatibleUsb.Visible||compatibleUsb.Checked)throw new InvalidOperationException("Opzione compatibilità USB non disponibile o attiva per impostazione predefinita.");
                     ShowResult(new ImportReport{SelectedGallery=true,SelectedVideoCount=5,CandidateCount=5,
                         GalleryCoverage=new("Catalogo Foto osservato; completezza della libreria non certificata.",0,5,1,2,3),
                         Status="Selezione della galleria incompleta: un originale non è disponibile sul telefono."});
@@ -356,7 +357,7 @@ public sealed class MainForm:Form
             $"Dimensioni candidate USB: {(p.TotalBytes.HasValue?FormatBytes(p.TotalBytes.Value):"da determinare / non note")}   ·   Disponibile: {(p.FreeBytes.HasValue?FormatBytes(p.FreeBytes.Value):"—")}";
         }
         string eta=p.Done<p.Total&&p.TotalBytes.HasValue&&p.BytesPerSecond>0?TimeSpan.FromSeconds(Math.Clamp((p.TotalBytes.Value-p.Bytes)/p.BytesPerSecond,0,31536000)).ToString(@"d\.hh\:mm\:ss"):"—";
-        speed.Text=$"Copia media: {(p.BytesPerSecond>0?FormatBytes((long)p.BytesPerSecond)+"/s":"—")}   ·   Stima copia: {eta} (verifiche escluse)";
+        speed.Text=$"Media complessiva: {(p.BytesPerSecond>0?FormatBytes((long)p.BytesPerSecond)+"/s":"—")}   ·   Stima copia: {eta} (verifiche finali escluse)";
         progress.Value=p.Total>0?(int)Math.Clamp(1000L*p.Done/p.Total,0,1000):0;
     }
     private void ShowResult(ImportReport report)

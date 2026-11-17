@@ -21,6 +21,9 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
 
     public ImportReport Run(bool deep,CancellationToken cancel)
     {
+        timer.Restart();
+        using var measuredProcess=Process.GetCurrentProcess();
+        var cpuStart=measuredProcess.TotalProcessorTime;
         using var catalog=new Catalog(destination);
         using var ledger=new WorkLedger(destination);
         string runId=DateTime.UtcNow.ToString("yyyyMMdd-HHmmss")+"-"+Guid.NewGuid().ToString("N")[..8];
@@ -43,12 +46,34 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
         List<SourceItem> observed=[];
         var currentKeys=new HashSet<string>(StringComparer.Ordinal);
         copied=0;done=0;total=0;totalBytes=null;lastNotify=0;
-        timer.Restart();
+        var metrics=new ImportPerformance();report.Performance=metrics;
+        Inventory ReadInventory(bool final=false)
+        {
+            long started=Stopwatch.GetTimestamp();
+            try{return source.Inventory(cancel);}
+            finally
+            {
+                double elapsed=Stopwatch.GetElapsedTime(started).TotalMilliseconds;metrics.InventoryMilliseconds+=elapsed;
+                if(final)metrics.FinalInventoryMilliseconds+=elapsed;else metrics.InitialInventoryMilliseconds+=elapsed;
+            }
+        }
+        Stream OpenSource(SourceItem item)
+        {
+            long started=Stopwatch.GetTimestamp();metrics.MediaOpenAttempts++;
+            try{return new MeasuredSourceStream(source.OpenRead(item,cancel),metrics);}
+            finally{metrics.MediaOpenMilliseconds+=Stopwatch.GetElapsedTime(started).TotalMilliseconds;}
+        }
+        CopyResult HashLocal(string path,Action<long>? progress=null)
+        {
+            long started=Stopwatch.GetTimestamp();
+            try{return VerifiedCopy.HashFile(path,cancel,progress);}
+            finally{metrics.LocalVerificationMilliseconds+=Stopwatch.GetElapsedTime(started).TotalMilliseconds;}
+        }
         ledger.Migrate(catalog.Entries());
         try
         {
             Notify(folderSelection?"Inventario cartella":gallery!=null?"Catalogo galleria":"Inventario USB", "Lettura dell'elenco, prima di copiare",true);
-            var inventory=source.Inventory(cancel);
+            var inventory=ReadInventory();
             report.GalleryCoverage=gallery?.Coverage;
             if(gallery!=null)report.SourceDescription=gallery.SourceDescription;
             observed=inventory.Items;
@@ -88,7 +113,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                 var prior=entries[index];
                 if(externalIds.Contains(prior.Id))continue; // Foreign paths are read-only, never catalog mutations.
                 if(prior.State=="Missing"&&!string.IsNullOrEmpty(prior.Final)&&File.Exists(destination.Resolve(prior.Final))&&
-                    new CopyResult(prior.Length,prior.Hash!)==VerifiedCopy.HashFile(destination.Resolve(prior.Final),cancel))
+                    new CopyResult(prior.Length,prior.Hash!)==HashLocal(destination.Resolve(prior.Final)))
                 {prior=prior with{State="Complete"};entries[index]=prior;catalog.Save(prior);}
                 if(prior.State=="Missing" || prior.State=="Complete"&&!File.Exists(destination.Resolve(prior.Final)))
                 {
@@ -111,7 +136,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                 string oldRelative=old.State=="Quarantined"?old.Temp:old.Final;
                 string oldPath=destination.Resolve(oldRelative);
                 bool exists=File.Exists(oldPath);
-                if(exists&&VerifiedCopy.HashFile(oldPath,cancel,n=>Notify("Verifica file già presente",old.Source.Name,false,n))==content)return true;
+                if(exists&&HashLocal(oldPath,n=>Notify("Verifica file già presente",old.Source.Name,false,n))==content)return true;
                 var broken=old with{State=exists?"Damaged":"Missing"};
                 if(!externalIds.Contains(old.Id))catalog.Save(broken);
                 if(verifiedCopies.TryGetValue(content,out var verified))verified.Remove(old.Id);
@@ -215,7 +240,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                     CopyResult? fingerprint=null;
                     if(availableCount>0)
                     {
-                        using(var input=source.OpenRead(item,cancel))
+                        using(var input=OpenSource(item))
                         {
                             long? expected=Expected(input);
                             var replay=gallery!=null?comparison.Prepare(expected):null;
@@ -223,6 +248,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                                 n=>Notify("Confronto contenuto USB",item.Name,false,n),
                                 replay==null?null:()=>EnsureSpace(VerifiedCopy.ReserveBytes+VerifiedCopy.BufferSize),cancel);
                             comparison.Complete(fingerprint.Length);
+                            if(replay!=null)metrics.LocalReplayBytes+=fingerprint.Length;
                         }
                         FaultPoint?.Invoke("after-comparison");
 
@@ -245,7 +271,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                         }
                         if(match!=null)
                         {
-                            if(verifySourceTwice){using var second=source.OpenRead(item,cancel);VerifySourceReads(item,fingerprint,ReadSource(second,"Seconda lettura USB"));}
+                            if(verifySourceTwice){using var second=OpenSource(item);VerifySourceReads(item,fingerprint,ReadSource(second,"Seconda lettura USB"));}
                             ledger.ReadVerified(item,fingerprint);
                             if(match.State=="Quarantined")
                             {
@@ -267,7 +293,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                                         output.Flush(true);VerifiedCopy.Verify(fingerprint,localCopy);
                                     }
                                     FaultPoint?.Invoke("promotion-flush");
-                                    VerifiedCopy.Verify(fingerprint,VerifiedCopy.HashFile(promotedTemp,cancel));
+                                    VerifiedCopy.Verify(fingerprint,HashLocal(promotedTemp));
                                     bool additional=appleHints&&inspected.IsVideo&&(companions.ContainsKey(item.Id)||inspected.AdditionalResource);
                                     promoted=promoted with{State="Ready",Hash=fingerprint.Hash,Length=fingerprint.Length,Replaces=match.Id,
                                         Final=FinalName(item,inspected,promotedId,additional)};
@@ -306,7 +332,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                     catalog.Save(entry);FaultPoint?.Invoke("after-intent");
                     string temp=destination.Resolve(entry.Temp);
                     CopyResult received;
-                    using(var input=comparison.Replay()??source.OpenRead(item,cancel))
+                    using(var input=comparison.Replay()??OpenSource(item))
                     using(var output=new FileStream(temp,resuming?FileMode.Open:FileMode.CreateNew,resuming?FileAccess.ReadWrite:FileAccess.Write,FileShare.None,VerifiedCopy.BufferSize,FileOptions.SequentialScan))
                     {
                         long start=copied;
@@ -321,11 +347,11 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                         catch(PartialMismatchException){catalog.Save(entry with{State="Abandoned"});throw;}
                         output.Flush(true);FaultPoint?.Invoke("after-flush");
                     }
-                    VerifiedCopy.Verify(received,VerifiedCopy.HashFile(temp,cancel,n=>Notify("Verifica locale SHA-256",item.Name,false,n)));
+                    VerifiedCopy.Verify(received,HashLocal(temp,n=>Notify("Verifica locale SHA-256",item.Name,false,n)));
                     if(fingerprint!=null)VerifySourceReads(item,fingerprint,received);
                     if(verifySourceTwice)
                     {
-                        using var second=source.OpenRead(item,cancel);
+                        using var second=OpenSource(item);
                         VerifySourceReads(item,received,ReadSource(second,"Seconda lettura USB"));
                     }
                     ledger.ReadVerified(item,received);
@@ -371,7 +397,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                 }
             }
             Notify("Controllo finale", folderSelection?"Verifico che l’elenco della cartella non sia cambiato":gallery!=null?"Verifico di nuovo il catalogo e la selezione della galleria":"Verifico che l’elenco dei file USB non sia cambiato",true);
-            var finalInventory=source.Inventory(cancel);
+            var finalInventory=ReadInventory(true);
             currentKeys.UnionWith(finalInventory.Items.Where(NeedsTracking).Select(WorkLedger.Key));
             if(gallery!=null)report.GalleryObservationKeys.UnionWith(currentKeys);
             report.FinalInventoryChecked=finalInventory.EnumerationComplete&&finalInventory.Errors.Count==0&&
@@ -457,8 +483,18 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                 }
             }
             // If persistence fails (e.g. disk completely full), surface it instead of claiming success.
+            metrics.AppleTransport=(source as ISourceTransportDiagnostics)?.TransportMetrics;
+            metrics.TotalMilliseconds=timer.Elapsed.TotalMilliseconds;
+            long reportStarted=Stopwatch.GetTimestamp();
             catalog.SaveReport(runId,report);
-            string reports=destination.Resolve("Report Porto");ReportWriter.Write(reports,runId,report);
+            string reports=destination.Resolve("Report Porto");
+            ReportWriter.Write(reports,runId,report);
+            metrics.ReportMilliseconds=Stopwatch.GetElapsedTime(reportStarted).TotalMilliseconds;
+            metrics.TotalMilliseconds=timer.Elapsed.TotalMilliseconds;
+            metrics.ProcessCpuMilliseconds=(measuredProcess.TotalProcessorTime-cpuStart).TotalMilliseconds;
+            measuredProcess.Refresh();metrics.ProcessPeakWorkingSetBytes=measuredProcess.PeakWorkingSet64;
+            AtomicFile.WriteNew(Path.Combine(reports,$"performance-{runId}.json"),output=>
+                System.Text.Json.JsonSerializer.Serialize(output,metrics,ReportWriter.JsonOptions));
             ReportPath=Path.Combine(reports,$"report-{runId}.txt");
             Notify(report.Status,"Report salvato",true);
         }

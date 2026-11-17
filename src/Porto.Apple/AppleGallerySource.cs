@@ -4,7 +4,7 @@ using Porto.Core;
 
 namespace Porto.Apple;
 
-public sealed class AppleGallerySource : IGallerySource,IReadFailureRecovery
+public sealed class AppleGallerySource : IGallerySource,IReadFailureRecovery,ISourceTransportDiagnostics
 {
     private readonly AppleDevice device;
     private readonly string? albumId;
@@ -17,15 +17,16 @@ public sealed class AppleGallerySource : IGallerySource,IReadFailureRecovery
     private bool needsRecovery;
     private bool recoveryBlocked;
     public int SessionRestarts {get;private set;}
+    public SourceTransportMetrics TransportMetrics {get;}=new();
     public AppleGalleryCatalog? CurrentCatalog {get;private set;}
     public GalleryCoverage? Coverage {get;private set;}
     public bool AppleResourceHints=>false;
     public string SourceDescription {get;private set;}
-    public AppleGallerySource(AppleDevice device,string? albumId=null,ImportMedia media=ImportMedia.PhotosAndVideos,bool compatibleUsb=false):this(device,albumId,cancel=>AppleUsbTransport.Connect(device,cancel,compatibleUsb),media){}
-    internal AppleGallerySource(AppleDevice device,string? albumId,Func<CancellationToken,IAppleFileSystem> connect,ImportMedia media=ImportMedia.PhotosAndVideos)
+    public AppleGallerySource(AppleDevice device,string? albumId=null,ImportMedia media=ImportMedia.PhotosAndVideos,bool compatibleUsb=false):this(device,albumId,null,media,compatibleUsb){}
+    internal AppleGallerySource(AppleDevice device,string? albumId,Func<CancellationToken,IAppleFileSystem>? connect,ImportMedia media=ImportMedia.PhotosAndVideos,bool compatibleUsb=false)
     {
         if(string.IsNullOrWhiteSpace(device.Id)||device.Id.Length>128)throw new ArgumentException("Identificativo iPhone non valido.",nameof(device));
-        this.device=device;this.albumId=albumId;this.connect=connect;this.media=media;
+        this.device=device;this.albumId=albumId;this.connect=connect??(cancel=>AppleUsbTransport.Connect(device,cancel,compatibleUsb,TransportMetrics));this.media=media;
         sourceNamespace="apple:"+Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(device.Id)));
         SourceDescription=device.Name+" — Galleria Foto iPhone via USB";
     }

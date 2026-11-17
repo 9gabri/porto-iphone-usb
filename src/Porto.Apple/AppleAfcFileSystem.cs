@@ -1,15 +1,17 @@
 using System.Buffers.Binary;
 using System.Globalization;
+using System.Diagnostics;
 using System.Text;
 using Porto.Core;
 
 namespace Porto.Apple;
 
 // Only four wire operations exist here: stat, read-only open, read, close. No write-capable mode.
-internal sealed class AppleAfcFileSystem(Stream stream,Stream? session=null,IDisposable? credential=null) : IAppleFileSystem
+internal sealed class AppleAfcFileSystem(Stream stream,Stream? session=null,IDisposable? credential=null,SourceTransportMetrics? metrics=null) : IAppleFileSystem
 {
     private ulong packet;
     private ulong? activeHandle;
+    private string? activePath;
     private bool disposed;
     private bool poisoned;
     public bool IsUsable=>!disposed&&!poisoned;
@@ -40,7 +42,7 @@ internal sealed class AppleAfcFileSystem(Stream stream,Stream? session=null,IDis
         if(reply.Operation==1)throw StatusError(Status(reply));
         if(reply.Operation!=14||reply.Data.Length!=8)throw Poison();
         ulong handle=BinaryPrimitives.ReadUInt64LittleEndian(reply.Data);if(handle==0)throw Poison();
-        activeHandle=handle;return new Reader(this,handle,cancel);
+        activeHandle=handle;activePath=path;return new Reader(this,handle,cancel);
     }
     private byte[] Read(ulong handle,int count,CancellationToken cancel)
     {
@@ -51,7 +53,10 @@ internal sealed class AppleAfcFileSystem(Stream stream,Stream? session=null,IDis
         {
             ulong status=Status(reply);if(status is 0 or 14)return [];throw StatusError(status);
         }
-        if(reply.Operation!=2||reply.Data.Length>count)throw Poison();return reply.Data;
+        if(reply.Operation!=2||reply.Data.Length>count)throw Poison();
+        if(metrics!=null)
+        {if(activePath?.StartsWith("/PhotoData/",StringComparison.Ordinal)==true)metrics.CatalogBytes+=reply.Data.Length;else metrics.MediaBytes+=reply.Data.Length;}
+        return reply.Data;
     }
     private void Close(ulong handle,CancellationToken cancel)
     {
@@ -70,6 +75,14 @@ internal sealed class AppleAfcFileSystem(Stream stream,Stream? session=null,IDis
         Check();
         if(operation is not(10 or 13 or 15 or 20))throw new InvalidOperationException("Operazione AFC non autorizzata.");
         ulong sequence=++packet;
+        long started=Stopwatch.GetTimestamp();
+        if(metrics!=null)
+        {
+            metrics.Commands++;metrics.ReadBlockBytes=ReadLimit;
+            if(operation==15)metrics.ReadRequests++;
+            else if(operation==13)metrics.OpenRequests++;
+            else if(operation==10)metrics.StatRequests++;
+        }
         byte[] header=new byte[40];"CFA6LPAA"u8.CopyTo(header);
         BinaryPrimitives.WriteUInt64LittleEndian(header.AsSpan(8),(ulong)(40+request.Length));
         BinaryPrimitives.WriteUInt64LittleEndian(header.AsSpan(16),(ulong)(40+request.Length));
@@ -84,7 +97,8 @@ internal sealed class AppleAfcFileSystem(Stream stream,Stream? session=null,IDis
                 byte[] body=new byte[whole-40];AppleWire.Read(stream,body,token);return(kind,body);
             });
         }
-        catch{poisoned=true;Dispose();throw;}
+        catch{if(metrics!=null)metrics.FailedExchanges++;poisoned=true;Dispose();throw;}
+        finally{if(metrics!=null)metrics.CommandMilliseconds+=Stopwatch.GetElapsedTime(started).TotalMilliseconds;}
     }
     internal static void ValidatePath(string path)
     {

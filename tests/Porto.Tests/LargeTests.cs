@@ -8,6 +8,20 @@ internal static class LargeTests
 {
     public static void Add(List<(string,Action)> tests)
     {
+        tests.Add(("rc19 gallery comparison over 4 GiB reads source once with bounded replay",()=>{
+            using var d=new Destination(Root());byte[] old=Video(1919);
+            Fixtures.Check(new ImportEngine(FakeSource.One(old),d).Run(false,default).Count(Outcome.Imported)==1);
+            string previous=Directory.GetFiles(d.Videos).Single();
+            long length=(1L<<32)+4096;
+            Fixtures.Check(new LocalDiskSpace().Available(d.Root)>2*length+10L*1024*1024*1024,"Insufficient space for replay test");
+            using var source=new LargeGallery(length);var watch=Stopwatch.StartNew();
+            var report=new ImportEngine(source,d).Run(false,default);
+            Fixtures.Check(report.GallerySelectionCopiesVerified&&report.CurrentCount(Outcome.Imported)==1);
+            Fixtures.Check(source.Opens==1&&report.Performance?.MediaSourceBytes==length&&report.Performance.LocalReplayBytes==length);
+            Fixtures.Check(File.ReadAllBytes(previous).SequenceEqual(old)&&Directory.GetFiles(d.State,"comparison-*.tmp").Length==0);
+            Fixtures.Check(Directory.GetFiles(d.Videos).Count(p=>new FileInfo(p).Length==length)==1);
+            Console.WriteLine($"  LARGE replay: {length} bytes copied/verified, {watch.Elapsed.TotalSeconds:F2}s, working set {Environment.WorkingSet/(1024*1024)} MiB");
+        }));
         tests.Add(("stream beyond 4 GiB: 4 GiB + 17 bytes actually read and hashed without disk allocation",()=>{
             long length=(1L<<32)+17;var timer=Stopwatch.StartNew();using var stream=new VirtualStream(length);
             var result=VerifiedCopy.Copy(stream,Stream.Null,length,null,null,default);Fixtures.Check(result.Length==length);Console.WriteLine($"  LARGE stream: {result.Length} bytes, {timer.Elapsed.TotalSeconds:F2}s, working set {Environment.WorkingSet/(1024*1024)} MiB");
@@ -46,6 +60,15 @@ internal static class LargeTests
                 foreach(string file in Directory.GetFiles(d.Videos).Concat(Directory.GetFiles(d.State,"*.part")))File.Delete(file);
             }
         }));
+    }
+    private sealed class LargeGallery(long length):IGallerySource
+    {
+        public int Opens;
+        public bool AppleResourceHints=>false;public string SourceDescription=>"Synthetic large gallery";
+        public GalleryCoverage? Coverage=>new("Synthetic",0,1,0,0,0);
+        public Inventory Inventory(CancellationToken cancel)=>new([new("generated","p","large.mov",MediaKind.Video,length)],[],true);
+        public Stream OpenRead(SourceItem item,CancellationToken cancel){Opens++;return new LargeVideoStream(length);}
+        public void Dispose(){}
     }
     private sealed class LargeVideoSource(long length):IVideoSource
     {

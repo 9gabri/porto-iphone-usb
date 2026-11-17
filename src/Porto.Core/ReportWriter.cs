@@ -52,6 +52,9 @@ public static class ReportWriter
             .AppendLine($"Seconda lettura sorgente richiesta: {(report.SecondSourceRead?"sì":"no")}")
             .AppendLine("Integrità: SHA-256 dei byte ricevuti confrontato con rilettura del file salvato.");
         text.AppendLine("CONTEGGI DEL PASSAGGIO ATTUALE (lo storico è distinto, non cancellato)");
+        if(report.Performance is {} performance)
+            text.AppendLine($"Misure prestazioni: byte foto/video letti dalla sorgente {performance.MediaSourceBytes}; aperture tentate {performance.MediaOpenAttempts}; byte preparati localmente {performance.LocalReplayBytes}.")
+                .AppendLine("Tempi e contatori completi nel file performance dello stesso passaggio. Le misure non certificano la velocità fisica USB.");
         foreach(var category in Enum.GetValues<Outcome>())text.AppendLine($"{Label(category)}: {report.CurrentCount(category)}");
         text.AppendLine($"Osservazioni storiche ancora da verificare: {report.HistoricalCount}")
             .AppendLine("Lo storico può contenere osservazioni dello stesso file con ID USB cambiati. Senza prove dei byte non può essere cancellato né contato come nuovi file distinti.")

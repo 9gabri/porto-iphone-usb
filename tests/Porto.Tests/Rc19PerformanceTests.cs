@@ -10,6 +10,12 @@ internal static class Rc19PerformanceTests
             using var d=Seed();var prior=Preserved(d);using var source=Gallery.One(1902);
             var report=new ImportEngine(source,d).Run(false,default);
             Fixtures.Check(source.Inner.Reads==1&&report.GallerySelectionCopiesVerified&&report.CurrentCount(Outcome.Imported)==1);
+            var metrics=report.Performance??throw new Exception("Missing counters");
+            Fixtures.Check(metrics.MediaSourceBytes==Fixtures.Video(1902).Length&&metrics.MediaOpenAttempts==1);
+            Fixtures.Check(metrics.LocalReplayBytes==Fixtures.Video(1902).Length);
+            string performance=Directory.GetFiles(Path.Combine(d.Root,"Report Porto"),"performance-*.json").Order().Last();
+            using(var json=System.Text.Json.JsonDocument.Parse(File.ReadAllText(performance)))
+                Fixtures.Check(json.RootElement.GetProperty("TotalMilliseconds").GetDouble()>0&&json.RootElement.GetProperty("ReportMilliseconds").GetDouble()>0);
             AssertPreserved(prior);NoReplay(d);
         }));
         tests.Add(("rc19 comparison matching old copy preserves multiplicity and same names",()=>
@@ -55,6 +61,21 @@ internal static class Rc19PerformanceTests
             Fixtures.Check(!report.GallerySelectionCopiesVerified&&report.CurrentCount(Outcome.Error)>0);
             AssertPreserved(prior);Fixtures.Check(Directory.GetFiles(d.Videos).Length==1);NoReplay(d);
         }));
+        tests.Add(("rc19 comparison unknown length uses full original verification path",()=>
+        {
+            using var d=Seed();byte[] bytes=Fixtures.Video(1902);
+            using var source=new Gallery(new FakeSource([new("unknown-length","album","same.mov",MediaKind.Video)],new(){{"unknown-length",bytes}}));
+            var report=new ImportEngine(source,d).Run(false,default);
+            Fixtures.Check(report.GallerySelectionCopiesVerified&&source.Inner.Reads==2&&report.Performance?.LocalReplayBytes==0);NoReplay(d);
+        }));
+        tests.Add(("rc19 comparison disk full during preparation leaves old copies intact",()=>
+        {
+            using var d=Seed();using var source=Gallery.One(1902);var prior=Preserved(d);var space=new FakeSpace(1L<<40);
+            source.Inner.Reader=(_,_)=>new FillingStream(Fixtures.Video(1902),space);
+            var report=new ImportEngine(source,d,space).Run(false,default);
+            Fixtures.Check(!report.GallerySelectionCopiesVerified&&report.StoppedForCapacity);
+            AssertPreserved(prior);Fixtures.Check(Directory.GetFiles(d.Videos).Length==1);NoReplay(d);
+        }));
         foreach(string phase in new[]{"after-comparison","after-intent","after-flush","after-ready","after-rename"})
         tests.Add(($"rc19 comparison process death at {phase} recovers with old files unchanged",()=>
         {
@@ -83,6 +104,8 @@ internal static class Rc19PerformanceTests
     private static void AssertPreserved(Dictionary<string,byte[]> prior)
     {foreach(var (path,bytes) in prior)Fixtures.Check(File.ReadAllBytes(path).SequenceEqual(bytes));}
     private static void NoReplay(Destination d)=>Fixtures.Check(Directory.GetFiles(d.State,"comparison-*.tmp").Length==0);
+    private sealed class FillingStream(byte[] bytes,FakeSpace space):MemoryStream(bytes)
+    {public override int Read(byte[] buffer,int offset,int count){int n=base.Read(buffer,offset,count);space.Bytes=0;return n;}}
     private sealed class Gallery(FakeSource inner):IGallerySource
     {
         public FakeSource Inner=>inner;

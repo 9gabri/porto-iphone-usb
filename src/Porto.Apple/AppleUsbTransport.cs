@@ -6,6 +6,7 @@ using System.Security.Authentication;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using Porto.Core;
 
 namespace Porto.Apple;
 
@@ -52,8 +53,9 @@ internal static class AppleUsbTransport
         }
         return devices;
     }
-    internal static IAppleFileSystem Connect(AppleDevice device,CancellationToken cancel,bool compatibleUsb=false)
+    internal static IAppleFileSystem Connect(AppleDevice device,CancellationToken cancel,bool compatibleUsb=false,SourceTransportMetrics? metrics=null)
     {
+        if(metrics!=null)metrics.ConnectionAttempts++;
         if(!ValidSerial(device.Id))throw new IOException("Identificativo iPhone non valido.");
         IReadOnlyList<MuxDevice> devices;
         try{devices=ListDevices(cancel);}
@@ -77,7 +79,7 @@ internal static class AppleUsbTransport
                 if(serviceSsl is not bool)throw ApplePlist.Bad();
                 if(serviceSsl is true)afc=identity.Protect(afc,cancel);
             }
-            var result=new AppleAfcFileSystem(afc,lockdown,identity){ReadLimit=compatibleUsb?64*1024:256*1024};afc=null;lockdown=null;identity=null;return result;
+            var result=new AppleAfcFileSystem(afc,lockdown,identity,metrics){ReadLimit=compatibleUsb?64*1024:256*1024};afc=null;lockdown=null;identity=null;return result;
         }
         catch(AuthenticationException){throw new IOException("Il collegamento Apple non soddisfa le impostazioni TLS di Windows o il certificato abbinato. Nessuna protezione è stata ridotta.");}
         catch(SocketException){throw new IOException("Il collegamento USB Apple si è interrotto.");}
