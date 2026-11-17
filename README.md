@@ -1,8 +1,8 @@
 # Porto
 
-App locale in italiano per copiare foto e video dal telefono al PC, senza conversioni. **0.1.0-rc.17 candidata**, Windows 11 x64 con runtime incluso. Corregge il rifiuto dei cataloghi oltre 512 MiB, con gestione della memoria controllata; lettura album e copia da confermare sull'iPhone reale.
+App locale in italiano per copiare foto e video dal telefono al PC, senza conversioni. **0.1.0-rc.18 candidata**, Windows 11 x64 con runtime incluso. Consente di scegliere album con associazioni integre anche quando altri collegamenti del catalogo non sono risolti. Gli album coinvolti restano visibili ma bloccati; copia da confermare sul telefono reale.
 
-[Scarica Windows](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.17/Porto-0.1.0-rc.17-win-x64.zip) · [Checksum](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.17/SHA256SUMS.txt) · [Guida](docs/PHONES-AND-ALBUMS.md)
+[Scarica Windows](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.18/Porto-0.1.0-rc.18-win-x64.zip) · [Checksum](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.18/SHA256SUMS.txt) · [Guida](docs/PHONES-AND-ALBUMS.md)
 
 ## Scegli origine, contenuti e destinazione
 
@@ -14,9 +14,9 @@ Premi **Avvia importazione** per copiare in massa il tipo scelto. Non occorre se
 
 **Non è compatibilità universale:** tutti i modelli di telefono, tutte le app Galleria e qualsiasi raccolta non possono essere dichiarati supportati. In particolare raccolte intelligenti/condivise iPhone e album privati/cloud Android possono non essere accessibili. Porto segnala questi limiti; non sostituisce silenziosamente un album con l'intero telefono. [Capacità e confini](docs/GALLERY-IMPORT.md).
 
-## Cataloghi iPhone grandi rc.17
+## Associazioni album iPhone rc.18
 
-La diagnostica rc.16 ha confermato che il database Foto di 563.425.280 byte superava il limite di 512 MiB. La rc.17 accetta fino a 1 GiB complessivo di catalogo e WAL, confronta la seconda lettura a blocchi di 1 MiB e controlla RAM e capacità di allocazione prima delle allocazioni maggiori. Conserva il controllo byte per byte, l'integrità SQLite e la memoria nativa con margine di sicurezza. Non salva il catalogo sul PC. La correzione del limite non dimostra da sola compatibilità dello schema iOS o riuscita della copia: prima prova un album piccolo. [Analisi rc.17](docs/REVIEW-RC17.md).
+La prova rc.17 ha raggiunto la lettura delle associazioni album dopo acquisizione e integrità del catalogo. Una singola associazione irrisolta bloccava anche album indipendenti e integri. La rc.18 mantiene il conteggio delle anomalie e blocca gli album coinvolti, ma permette di scegliere quelli con collegamenti verificabili. La galleria completa resta bloccata in presenza di qualsiasi associazione irrisolta. Non interpreta tali collegamenti come contenuti eliminati e non amplia la selezione. L'album desiderato potrebbe essere ancora bloccato: la prossima prova deve confermarlo. Restano gestione cataloghi fino a 1 GiB e controlli di memoria della rc.17. [Analisi rc.18](docs/REVIEW-RC18.md).
 
 Se una copia USB è in corso, attendi la fine o una pausa confermata e chiudi Porto prima di aggiornare. Estrai la candidata in una cartella nuova, conservando tutti i file delle prove.
 
@@ -45,7 +45,7 @@ Le nuove foto sono in **Foto Porto**, i video in **Video Porto**. Le vecchie ris
 
 **Candidata per il collaudo, non versione certificata o definitiva.** Le verifiche sintetiche non dimostrano compatibilità hardware. Restano da confermare collegamento Apple reale, schema iOS, album e conteggi sul telefono, trasferimento e ripresa su iPhone/Android.
 
-[Test](docs/TESTS.md) · [Revisione rc.17](docs/REVIEW-RC17.md) · [Architettura](docs/ARCHITECTURE.md) · [Licenze](THIRD-PARTY-NOTICES.md) · [Verifica pubblicazione](docs/RELEASE-VERIFICATION.md).
+[Test](docs/TESTS.md) · [Revisione rc.18](docs/REVIEW-RC18.md) · [Architettura](docs/ARCHITECTURE.md) · [Licenze](THIRD-PARTY-NOTICES.md) · [Verifica pubblicazione](docs/RELEASE-VERIFICATION.md).
 
 SDK .NET 10, runtime incluso 10.0.14. `scripts/dev.ps1 test -Large`, `scripts/dev.ps1 build`, `scripts/dev.ps1 publish`. Test isolati; `--ui-smoke <percorso.png>` non cerca telefoni. Nessuna discovery hardware automatica all'avvio.
 

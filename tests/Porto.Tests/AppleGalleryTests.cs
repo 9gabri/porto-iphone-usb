@@ -33,7 +33,9 @@ internal static class AppleGalleryTests
         tests.Add(("apple catalog rejects unsupported schema and malformed membership",()=>
         {
             Fixtures.Throws<IOException>(()=>AppleCatalogDecoder.Decode(Database("ALTER TABLE ZASSET RENAME COLUMN ZKIND TO UNKNOWN"),default));
-            Fixtures.Throws<IOException>(()=>AppleCatalogDecoder.Decode(Database("INSERT INTO Z_26ASSETS VALUES(1,999)"),default));
+            var malformed=AppleCatalogDecoder.Decode(Database("INSERT INTO Z_26ASSETS VALUES(1,999)"),default);
+            Fixtures.Throws<IOException>(()=>malformed.Select("album-one"));
+            Fixtures.Throws<IOException>(()=>malformed.Select(null));
         }));
         tests.Add(("apple catalog rejects duplicate asset UUID and ambiguous album relationship",()=>
         {

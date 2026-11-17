@@ -96,9 +96,11 @@ public sealed class MainForm:Form
                 }
                 if(smokePath.Contains("apple-albums",StringComparison.Ordinal))
                 {
-                    using var picker=new AppleAlbumDialog([new("synthetic-1","Vacanze",45,40,5),new("synthetic-2","Famiglia",12,4,8)])
+                    bool associationErrors=smokePath.Contains("associations",StringComparison.Ordinal);
+                    using var picker=new AppleAlbumDialog([new("synthetic-1","Vacanze",45,40,5),new("synthetic-2","Famiglia",associationErrors?14:12,4,8,associationErrors?2:0)],associationErrors?3:0)
                         {StartPosition=FormStartPosition.Manual,Location=new(-20000,-20000)};
                     picker.Show(this);await Task.Delay(350);
+                    if(associationErrors)picker.VerifySelectionForSmoke();
                     using var capture=new Bitmap(picker.Width,picker.Height);picker.DrawToBitmap(capture,new(0,0,picker.Width,picker.Height));capture.Save(smokePath);
                     picker.Close();Close();return;
                 }
@@ -241,9 +243,10 @@ public sealed class MainForm:Form
         {
             var catalog=await Task.Run(()=>AppleGalleryDiscovery.ListAlbums(device,cancellation.Token));
             cancellation.Token.ThrowIfCancellationRequested();
-            using var dialog=new AppleAlbumDialog(catalog.Albums);
+            using var dialog=new AppleAlbumDialog(catalog.Albums,catalog.UnresolvedAssociationCount);
             if(dialog.ShowDialog(this)==DialogResult.OK){chosenAppleAlbum=dialog.SelectedAlbum;status.Text="Album scelto. Scegli l’archivio PC e avvia.";}
-            detail.Text=catalog.Albums.Count==0?"Nessun album compatibile esposto dal catalogo. La galleria visibile resta una scelta separata.":catalog.ScopeNote;
+            else status.Text="Selezione album annullata.";
+            detail.Text=catalog.Albums.Count==0&&catalog.UnresolvedAssociationCount==0?"Nessun album compatibile esposto dal catalogo. La galleria visibile resta una scelta separata.":catalog.ScopeNote;
         }
         catch(Exception ex)when(ex is IOException or UnauthorizedAccessException or OperationCanceledException)
         {status.Text="Catalogo Foto non disponibile.";detail.Text=ex.Message;}

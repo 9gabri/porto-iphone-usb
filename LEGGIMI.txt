@@ -1,6 +1,6 @@
-PORTO 0.1.0-rc.17 — CANDIDATA WINDOWS 11 x64
+PORTO 0.1.0-rc.18 — CANDIDATA WINDOWS 11 x64
 
-rc.17: corretto il limite che respingeva il catalogo Foto di circa 537 MiB. Supporto fino a 1 GiB con confronto della seconda lettura a blocchi e controllo della memoria disponibile. iPhone - libreria Foto via USB, Cerca dispositivi, Un album della libreria Foto, Scegli album: prova prima un album piccolo. Conserva qualsiasi errore completo. Catalogo, album e copie restano da confermare sul telefono reale. Nessuna modifica ai file delle prove o alle protezioni.
+rc.18: una associazione irrisolta non blocca più tutti gli album. Gli album coinvolti restano visibili e NON SELEZIONABILI; quelli con associazioni integre possono essere scelti. La galleria completa resta bloccata se esistono associazioni irrisolte. iPhone - libreria Foto via USB, Cerca dispositivi, Un album della libreria Foto, Scegli album: verifica se il tuo album è selezionabile e prova prima uno piccolo. Nessuna garanzia che il tuo album sia già risolto. Conserva i file delle prove e qualsiasi errore completo.
 
 1. Chiudi Porto ed estrai TUTTO lo ZIP in una nuova cartella. Conserva le versioni precedenti e apri il nuovo Porto.exe.
 2. Collega e sblocca il telefono. Android: Trasferimento file. iPhone: computer già autorizzato e collegamento Apple già disponibile.

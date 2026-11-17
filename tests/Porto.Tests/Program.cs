@@ -70,6 +70,7 @@ AppleCatalogDiagnosticsTests.Add(tests);
 AppleCatalogStreamingTests.Add(tests);
 AppleCatalogMemoryTests.Add(tests);
 AppleLargeCatalogTests.Add(tests);
+AppleAlbumAssociationTests.Add(tests);
 if(args.Contains("--large-apple"))AppleLargeCatalogTests.AddLarge(tests);
 GalleryImportTests.Add(tests);
 if(args.Contains("--large"))LargeTests.Add(tests);

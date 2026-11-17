@@ -65,11 +65,16 @@ internal static partial class AppleCatalogDecoder
             userAlbums.Add(key,(id,title));
         }
         var memberKeys=userAlbums.Keys.ToDictionary(key=>key,_=>new HashSet<long>());
+        var unresolvedByAlbum=userAlbums.Keys.ToDictionary(key=>key,_=>0);int unresolvedAssociations=0;
         foreach(var row in db.Query($"SELECT \"{albumColumn}\",\"{assetColumn}\" FROM \"{join.Name}\"",2_000_000))
         {
             long album=Number(row[0]),asset=Number(row[1]);
-            if(!knownAlbums.Contains(album)||!knownAssets.Contains(asset))throw new IOException("Il catalogo Foto contiene associazioni album non risolte; nessun album viene ampliato automaticamente.");
             if(memberKeys.TryGetValue(album,out var keys)&&!keys.Add(asset))throw BadSchema();
+            if(!knownAlbums.Contains(album)||!knownAssets.Contains(asset))
+            {
+                unresolvedAssociations++;
+                if(unresolvedByAlbum.ContainsKey(album))unresolvedByAlbum[album]++;
+            }
         }
         var albums=new List<AppleAlbum>();var members=new Dictionary<string,IReadOnlyList<AppleAsset>>(StringComparer.Ordinal);
         foreach(var (key,album) in userAlbums)
@@ -89,9 +94,9 @@ internal static partial class AppleCatalogDecoder
                 }
                 path.Reverse();displayName=string.Join(" / ",path);if(displayName.Length>4096)throw BadSchema();
             }
-            albums.Add(new(album.Id,displayName,selection.Count,selection.Count(a=>a.Kind==MediaKind.Image),selection.Count(a=>a.Kind==MediaKind.Video)));
+            albums.Add(new(album.Id,displayName,selection.Count+unresolvedByAlbum[key],selection.Count(a=>a.Kind==MediaKind.Image),selection.Count(a=>a.Kind==MediaKind.Video),unresolvedByAlbum[key]));
         }
-        return new(assets,albums.OrderBy(a=>a.Name,StringComparer.CurrentCulture).ToList(),members,hidden,trashed,hasVisibility);
+        return new(assets,albums.OrderBy(a=>a.Name,StringComparer.CurrentCulture).ToList(),members,hidden,trashed,hasVisibility,unresolvedAssociations);
     }
     private static void RequireTable(AppleMemorySqlite db,Dictionary<string,string> tables,string name,string[] required)
     {

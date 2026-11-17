@@ -150,3 +150,10 @@ prova con il telefono. Nessun totale artificiale basato sui componenti Live Phot
 - [x] Revisione indipendente e prova completa con catalogo sintetico di 566362112 byte più WAL 4227152 byte.
 - [x] Suite finale 528/528, prova grande Apple 3/3, pacchetto pubblico riscaricato: hash/CRC/contenuto/versione, dodici smoke e pagina verificati; sedici archivi precedenti invariati.
 - [ ] Conferma su iPhone: lista album, schema iOS, copia piccola e ripresa. Nessuna compatibilità definitiva dichiarata.
+
+## rc.18 — associazioni album
+- [x] Riprodotto il blocco globale su due cataloghi sintetici contro rc.17.
+- [x] Album integri isolati; album incerti visibili/bloccati, galleria completa ancora bloccata; conteggi preservati.
+- [x] Revisione indipendente, 109 test Apple, 12 importazione galleria e 9 dedicati (7 sovrapposti); UI verificata.
+- [ ] Pacchetto nuovo pubblico riscaricato e verificato.
+- [ ] Confermare se l'album desiderato è selezionabile sull'iPhone reale; quelli con associazioni irrisolte restano da risolvere.

@@ -4,7 +4,10 @@ namespace Porto.Apple;
 
 public sealed record AppleDevice(string Id,string Name);
 public sealed record AppleDiscoveryResult(IReadOnlyList<AppleDevice> Devices,string? UnavailableReason);
-public sealed record AppleAlbum(string Id,string Name,int AssetCount,int PhotoCount,int VideoCount);
+public sealed record AppleAlbum(string Id,string Name,int AssetCount,int PhotoCount,int VideoCount,int UnresolvedAssociations=0)
+{
+    public bool IsSelectable=>UnresolvedAssociations==0;
+}
 
 // The catalog is an observation of a private, undocumented on-device schema, never PhotoKit certification.
 public sealed class AppleGalleryCatalog
@@ -19,22 +22,31 @@ public sealed class AppleGalleryCatalog
     public bool VisibilityMetadataAvailable {get;}
     public int HiddenAssetCount {get;}
     public int TrashedAssetCount {get;}
+    public int UnresolvedAssociationCount {get;}
     public bool AtomicSnapshotVerified=>false;
     public string ScopeNote=>"Catalogo Foto osservato; album personali riconosciuti, raccolte intelligenti e condivise non supportate. Esclusi Nascosti ed Eliminati di recente. Solo originali locali; Live Photo: sola immagine. La lettura ripetuta non certifica uno snapshot atomico della libreria."+
         (!VisibilityMetadataAvailable?" Indicatore di visibilità non disponibile: la selezione comprende le righe del catalogo non nascoste e non eliminate, senza certificare la corrispondenza al rullino.":
-        VisibilityUnresolvedAssetCount>0?$" Nel catalogo {VisibilityUnresolvedAssetCount} elementi hanno visibilità non verificata: restano conteggiati e non vengono copiati se selezionati.":"");
+        VisibilityUnresolvedAssetCount>0?$" Nel catalogo {VisibilityUnresolvedAssetCount} elementi hanno visibilità non verificata: restano conteggiati e non vengono copiati se selezionati.":"")+
+        (UnresolvedAssociationCount>0?$" Associazioni album non risolte: {UnresolvedAssociationCount}. La galleria completa e gli album coinvolti restano bloccati; sono selezionabili soltanto gli album con associazioni integre.":"");
     internal IReadOnlyList<AppleAsset> Assets {get;}
     private readonly IReadOnlyDictionary<string,IReadOnlyList<AppleAsset>> members;
     internal AppleGalleryCatalog(List<AppleAsset> assets,List<AppleAlbum> albums,
-        Dictionary<string,IReadOnlyList<AppleAsset>> members,int hidden,int trashed,bool visibilityMetadataAvailable)
+        Dictionary<string,IReadOnlyList<AppleAsset>> members,int hidden,int trashed,bool visibilityMetadataAvailable,int unresolvedAssociationCount=0)
     {
         Assets=assets.AsReadOnly();Albums=albums.AsReadOnly();this.members=members;
         HiddenAssetCount=hidden;TrashedAssetCount=trashed;
         VisibilityMetadataAvailable=visibilityMetadataAvailable;
+        UnresolvedAssociationCount=unresolvedAssociationCount;
     }
     internal IReadOnlyList<AppleAsset> Select(string? albumId)
     {
-        if(albumId==null)return Assets;
+        if(albumId==null)
+        {
+            if(UnresolvedAssociationCount>0)throw new IOException($"[APPLE-ALBUM-ASSOCIATIONS] Galleria completa non verificabile: {UnresolvedAssociationCount} associazioni album non risolte. Scegli un album con associazioni integre.");
+            return Assets;
+        }
+        var album=Albums.SingleOrDefault(a=>a.Id==albumId);
+        if(album is {IsSelectable:false})throw new IOException($"[APPLE-ALBUM-ASSOCIATIONS] Album selezionato non verificabile: {album.UnresolvedAssociations} associazioni non risolte. Nessun contenuto di questo album è stato aperto.");
         if(!members.TryGetValue(albumId,out var selected))throw new IOException("L'album Foto selezionato non è più disponibile: selezionalo nuovamente.");
         return selected;
     }
