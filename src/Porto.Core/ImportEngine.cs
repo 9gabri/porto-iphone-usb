@@ -198,6 +198,7 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                 string sizeNote="";
                 try
                 {
+                    using var comparison=new ComparisonBuffer(destination,space);
                     bool verifySourceTwice=deep;
                     long? Expected(Stream input)
                     {
@@ -214,8 +215,16 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                     CopyResult? fingerprint=null;
                     if(availableCount>0)
                     {
-                        using var input=source.OpenRead(item,cancel);
-                        fingerprint=ReadSource(input,"Confronto contenuto USB");
+                        using(var input=source.OpenRead(item,cancel))
+                        {
+                            long? expected=Expected(input);
+                            var replay=gallery!=null?comparison.Prepare(expected):null;
+                            fingerprint=VerifiedCopy.Copy(input,replay??Stream.Null,expected,
+                                n=>Notify("Confronto contenuto USB",item.Name,false,n),
+                                replay==null?null:()=>EnsureSpace(VerifiedCopy.ReserveBytes+VerifiedCopy.BufferSize),cancel);
+                            comparison.Complete(fingerprint.Length);
+                        }
+                        FaultPoint?.Invoke("after-comparison");
 
                         ledger.Remember(item,fingerprint);
                         var verified=VerifyGroup(fingerprint);
@@ -297,15 +306,16 @@ public sealed class ImportEngine(IVideoSource source,Destination destination,IDi
                     catalog.Save(entry);FaultPoint?.Invoke("after-intent");
                     string temp=destination.Resolve(entry.Temp);
                     CopyResult received;
-                    using(var input=source.OpenRead(item,cancel))
+                    using(var input=comparison.Replay()??source.OpenRead(item,cancel))
                     using(var output=new FileStream(temp,resuming?FileMode.Open:FileMode.CreateNew,resuming?FileAccess.ReadWrite:FileAccess.Write,FileShare.None,VerifiedCopy.BufferSize,FileOptions.SequentialScan))
                     {
                         long start=copied;
                         try
                         {
-                            received=resuming?VerifiedCopy.Resume(input,output,Expected(input),n=>{copied=start+n;Notify("Ripresa verificata",item.Name,false);},
+                            long? expected=comparison.Replay()!=null?fingerprint!.Length:Expected(input);
+                            received=resuming?VerifiedCopy.Resume(input,output,expected,n=>{copied=start+n;Notify("Ripresa verificata",item.Name,false);},
                                 ()=>EnsureSpace(VerifiedCopy.ReserveBytes+VerifiedCopy.BufferSize),cancel)
-                                :VerifiedCopy.Copy(input,output,Expected(input),n=>{copied=start+n;Notify("Copia",item.Name,false);},
+                                :VerifiedCopy.Copy(input,output,expected,n=>{copied=start+n;Notify("Copia",item.Name,false);},
                                 ()=>EnsureSpace(VerifiedCopy.ReserveBytes+VerifiedCopy.BufferSize),cancel);
                         }
                         catch(PartialMismatchException){catalog.Save(entry with{State="Abandoned"});throw;}
