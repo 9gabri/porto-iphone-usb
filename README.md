@@ -1,8 +1,12 @@
 # Porto
 
-App locale in italiano per copiare foto e video dal telefono al PC, senza conversioni. **0.1.0-rc.20 candidata**, Windows 11 x64 con runtime incluso. Richieste Apple da 512 KiB per ridurre le attese, con i controlli sui file conservati. Prestazioni e compatibilità della nuova versione da confermare sul telefono reale.
+App locale in italiano per copiare foto e video dal telefono al PC, senza conversioni. **0.1.0-rc.21 candidata**, Windows 11 x64 con runtime incluso. Gestisce cataloghi Foto più grandi del precedente limite di 1 GiB, controllando prima anche la RAM necessaria alle verifiche. Prestazioni e compatibilità della nuova versione da confermare sul telefono reale.
 
-[Scarica Windows](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.20/Porto-0.1.0-rc.20-win-x64.zip) · [Checksum](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.20/SHA256SUMS.txt) · [Guida](docs/PHONES-AND-ALBUMS.md)
+[Scarica Windows](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.21/Porto-0.1.0-rc.21-win-x64.zip) · [Checksum](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.21/SHA256SUMS.txt) · [Guida](docs/PHONES-AND-ALBUMS.md)
+
+## Cataloghi grandi rc.21
+
+Corretto il blocco DB-LIMIT osservato con database da 1.416.859.648 byte e WAL da 7.337.752 byte. Il limite DB+WAL è ora 2047 MiB (circa 2 GiB), con spazio per padding e calcoli. Prima dell'acquisizione deve esserci RAM e capacità di allocazione per cattura, copia di verifica e margine: nel caso segnalato circa 3,4 GB liberi. I controlli vengono ripetuti prima delle allocazioni successive. Non salva il catalogo del telefono su disco, non legge una versione parziale e non disattiva verifiche. [Riproduzione e prova completa sintetica](docs/REVIEW-RC21.md).
 
 ## Prestazioni iPhone rc.20
 
@@ -24,7 +28,7 @@ Premi **Avvia importazione** per copiare in massa il tipo scelto. Non occorre se
 
 ## Associazioni album iPhone rc.18
 
-La prova rc.17 ha raggiunto la lettura delle associazioni album dopo acquisizione e integrità del catalogo. Una singola associazione irrisolta bloccava anche album indipendenti e integri. La rc.18 mantiene il conteggio delle anomalie e blocca gli album coinvolti, ma permette di scegliere quelli con collegamenti verificabili. La galleria completa resta bloccata in presenza di qualsiasi associazione irrisolta. Non interpreta tali collegamenti come contenuti eliminati e non amplia la selezione. L'album desiderato potrebbe essere ancora bloccato: la prossima prova deve confermarlo. Restano gestione cataloghi fino a 1 GiB e controlli di memoria della rc.17. [Analisi rc.18](docs/REVIEW-RC18.md).
+La prova rc.17 ha raggiunto la lettura delle associazioni album dopo acquisizione e integrità del catalogo. Una singola associazione irrisolta bloccava anche album indipendenti e integri. La rc.18 mantiene il conteggio delle anomalie e blocca gli album coinvolti, ma permette di scegliere quelli con collegamenti verificabili. La galleria completa resta bloccata in presenza di qualsiasi associazione irrisolta. Non interpreta tali collegamenti come contenuti eliminati e non amplia la selezione. L'album desiderato potrebbe essere ancora bloccato: la prossima prova deve confermarlo. La rc.21 aggiorna il limite e il budget di memoria senza cambiare queste regole. [Analisi rc.18](docs/REVIEW-RC18.md).
 
 Se una copia USB è in corso, attendi la fine o una pausa confermata e chiudi Porto prima di aggiornare. Estrai la candidata in una cartella nuova, conservando tutti i file delle prove.
 
@@ -45,7 +49,7 @@ Le nuove foto sono in **Foto Porto**, i video in **Video Porto**. Le vecchie ris
 ## Limiti e privacy
 
 - Video MOV/MP4/M4V; foto JPEG, PNG statico e HEIF/HEIC HEVC nei profili riconosciuti. Altri formati restano segnalati, non dichiarati verificati. Verifica strutturale e dei byte, non decodifica completa.
-- Il catalogo iPhone usa uno schema privato, non un'API PhotoKit ufficiale per Windows. Letture ripetute, WAL e integrità controllati; nessuno snapshot atomico della libreria certificato. Limite dei dati catalogo+WAL acquisiti: 1 GiB; le verifiche richiedono ulteriori copie in memoria. Solo album personali riconosciuti; Nascosti ed Eliminati di recente esclusi con conteggi visibili.
+- Il catalogo iPhone usa uno schema privato, non un'API PhotoKit ufficiale per Windows. Letture ripetute, WAL e integrità controllati; nessuno snapshot atomico della libreria certificato. Limite dei dati catalogo+WAL acquisiti: 2047 MiB; le verifiche richiedono ulteriori copie in memoria e RAM libera sufficiente. Solo album personali riconosciuti; Nascosti ed Eliminati di recente esclusi con conteggi visibili.
 - Originali soltanto su iCloud/Google Foto non vengono scaricati. Gli elementi individuati ma non disponibili restano nel report. Nessun totale prestabilito promesso.
 - Windows 11 x64, archivio locale NTFS, percorso massimo 120 caratteri; niente rete, exFAT, Windows ARM, link/junction. Origine locale separata dalla destinazione.
 - Nessuna scrittura sul telefono, conversione, upload, telemetria, acquisto o Apple ID. Nessuna installazione o avvio di servizi Windows, driver o riduzione delle protezioni. Abbinamento Apple già autorizzato riutilizzato senza creazione di nuove credenziali; chiavi e database Foto non salvati come file. I report e lo stato locale contengono metadati degli elementi selezionati necessari alla ripresa.
@@ -53,7 +57,7 @@ Le nuove foto sono in **Foto Porto**, i video in **Video Porto**. Le vecchie ris
 
 **Candidata per il collaudo, non versione certificata o definitiva.** Le verifiche sintetiche non dimostrano compatibilità hardware. Restano da confermare collegamento Apple reale, schema iOS, album e conteggi sul telefono, trasferimento e ripresa su iPhone/Android.
 
-[Test](docs/TESTS.md) · [Revisione rc.20](docs/REVIEW-RC20.md) · [Architettura](docs/ARCHITECTURE.md) · [Licenze](THIRD-PARTY-NOTICES.md) · [Verifica pubblicazione](docs/RELEASE-VERIFICATION.md).
+[Test](docs/TESTS.md) · [Revisione rc.21](docs/REVIEW-RC21.md) · [Architettura](docs/ARCHITECTURE.md) · [Licenze](THIRD-PARTY-NOTICES.md) · [Verifica pubblicazione](docs/RELEASE-VERIFICATION.md).
 
 SDK .NET 10, runtime incluso 10.0.14. `scripts/dev.ps1 test -Large`, `scripts/dev.ps1 build`, `scripts/dev.ps1 publish`. Test isolati; `--ui-smoke <percorso.png>` non cerca telefoni. Nessuna discovery hardware automatica all'avvio.
 

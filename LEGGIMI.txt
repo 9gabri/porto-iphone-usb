@@ -1,4 +1,6 @@
-PORTO 0.1.0-rc.20 — CANDIDATA WINDOWS 11 x64
+PORTO 0.1.0-rc.21 — CANDIDATA WINDOWS 11 x64
+
+rc.21: catalogo Foto fino a 2047 MiB (circa 2 GiB), con controllo preventivo della memoria anche per la verifica. Corretto il limite che bloccava il database da circa 1,42 GB mostrato nella prova. Per quel caso servono circa 3,4 GB di RAM libera, non soltanto installata. Restano confronto completo, integrità SQLite/WAL, cancellazione e limiti temporali. Nessun database del telefono salvato su disco. Dettagli in REVIEW-RC21.md.
 
 rc.20: richieste Apple da 512 KiB, per ridurre le attese rispetto ai 256 KiB di rc.19. Controlli di autenticazione, integrità, catalogo e ripresa conservati. Il beneficio dipende dall'iPhone: non è una promessa di 29 GB entro un'ora. Lascia USB iPhone compatibile non selezionato nella prima prova; se compaiono errori, conserva il report e riprova con compatibilità 64 KiB e lo stesso archivio. Dettagli e benchmark sintetici in REVIEW-RC20.md.
 
@@ -21,7 +23,7 @@ rc.18: una associazione irrisolta non blocca più tutti gli album. Gli album coi
 
 Nessun file precedente cancellato o sovrascritto. Le copie identiche verificate sono riutilizzate al loro posto; due elementi distinti con byte uguali mantengono due copie. Le copie precedenti non riutilizzate non sono automaticamente Live Photo.
 
-In modalità catalogo iPhone: Live Photo = sola immagine; Solo video esclude le componenti animate. Nascosti, Eliminati di recente e raccolte intelligenti/condivise non sono inclusi. Originali soltanto in iCloud non vengono scaricati. Un catalogo incompatibile o oltre 1 GiB blocca la lettura, senza fallback alla lista generica dei file.
+In modalità catalogo iPhone: Live Photo = sola immagine; Solo video esclude le componenti animate. Nascosti, Eliminati di recente e raccolte intelligenti/condivise non sono inclusi. Originali soltanto in iCloud non vengono scaricati. Un catalogo incompatibile, oltre 2047 MiB o con memoria disponibile insufficiente blocca la lettura, senza fallback alla lista generica dei file.
 
 USB generico: cartelle e raccolte esposte non equivalgono a tutti gli album delle app Galleria. Non è supporto universale a qualsiasi cellulare o raccolta. Per distinguere i video iPhone dalle Live Photo usa la modalità catalogo Foto.
 

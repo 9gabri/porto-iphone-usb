@@ -1,5 +1,12 @@
 # Novità
 
+## 0.1.0-rc.21
+
+- Catalogo iPhone: limite DB+WAL da 1 GiB a 2047 MiB, sotto i limiti degli array e della copia nativa con padding.
+- Budget iniziale di RAM e capacità di allocazione include anche la successiva copia di verifica. Crescita del WAL e copia SQLite mantengono controlli dedicati; nessun uso illimitato della memoria.
+- Riprodotto il DB-LIMIT con le dimensioni riportate. Verificato un catalogo sintetico valido da 1.426.288.640 byte con WAL da 7.337.752 byte e letture consecutive complete. Non è una prova sull'iPhone reale.
+- Nessuna modifica al telefono, ai file delle prove, ai controlli d'integrità, all'autenticazione o al motore di copia. Nessuna promessa di un'ora o compatibilità universale.
+
 ## 0.1.0-rc.20
 
 - Richieste Apple AFC fino a 512 KiB, mantenendo l'opzione esplicita di compatibilità a 64 KiB e tutti i controlli del protocollo.

@@ -1,6 +1,6 @@
-# Telefoni, foto, video e album — rc.18
+# Telefoni, foto, video e album — rc.21
 
-La rc.18 distingue gli album con associazioni integre da quelli non verificabili. Nel selettore gli album coinvolti restano visibili con il numero di associazioni irrisolte e non possono essere scelti. La galleria completa resta bloccata finché esistono queste anomalie. Gli altri album possono essere provati, senza estendere la selezione. La causa sul telefono non è ancora nota; l'album desiderato potrebbe restare bloccato. Conservati limite 1 GiB e controlli di memoria della rc.17. Prima di aggiornare chiudi Porto ed estrai la candidata in una cartella nuova, conservando tutti i file precedenti.
+La rc.18 distingue gli album con associazioni integre da quelli non verificabili. Nel selettore gli album coinvolti restano visibili con il numero di associazioni irrisolte e non possono essere scelti. La galleria completa resta bloccata finché esistono queste anomalie. Gli altri album possono essere provati, senza estendere la selezione. La causa sul telefono non è ancora nota; l'album desiderato potrebbe restare bloccato. La rc.21 porta il limite a 2047 MiB, con controlli preventivi sulla RAM libera necessaria a cattura e verifica. Prima di aggiornare chiudi Porto ed estrai la candidata in una cartella nuova, conservando tutti i file precedenti.
 
 Porto copia dal telefono al PC, senza cancellare o spostare gli originali. La nuova modalità iPhone legge il catalogo della libreria Foto; non richiede un'esportazione preliminare. È una candidata da collaudare: compatibilità reale non ancora confermata.
 
@@ -22,7 +22,7 @@ Porto copia dal telefono al PC, senza cancellare o spostare gli originali. La nu
 
 Le Live Photo sono trattate come immagini: con Solo video le componenti animate non vengono copiate. Con Solo foto o Foto e video viene copiata la sola immagine originale della Live Photo, non l'effetto animato. Le copie precedenti, anche eventuali clip Live, restano al loro posto.
 
-Sono supportati gli album personali riconosciuti nel catalogo, non tutte le raccolte intelligenti/condivise. Nascosti ed Eliminati di recente sono esclusi con conteggi visibili. Gli originali presenti solo su iCloud non sono scaricati da Porto. Un catalogo non accessibile, oltre 1 GiB o con schema non riconosciuto blocca questa modalità; non viene sostituito con i file USB generici. La lettura del catalogo può richiedere tempo, ma non esplora tutte le cartelle del telefono.
+Sono supportati gli album personali riconosciuti nel catalogo, non tutte le raccolte intelligenti/condivise. Nascosti ed Eliminati di recente sono esclusi con conteggi visibili. Gli originali presenti solo su iCloud non sono scaricati da Porto. Un catalogo non accessibile, oltre 2047 MiB, con RAM libera insufficiente o con schema non riconosciuto blocca questa modalità; non viene sostituito con i file USB generici. La lettura del catalogo può richiedere tempo, ma non esplora tutte le cartelle del telefono.
 
 ## Prima prova iPhone rc.18
 

@@ -164,7 +164,7 @@ internal static class AppleCatalogCapture
         var walInfo=files.Stat(Database+"-wal",cancel);var journalInfo=files.Stat(Database+"-journal",cancel);
         ValidateInactiveJournal(files,journalInfo,cancel);
         ValidateMetadata(info,walInfo);
-        AppleCatalogMemory.EnsureAvailable(info.Length+(walInfo?.Length??0));
+        AppleCatalogMemory.EnsureAvailable(AppleCatalogMemory.CaptureAllocation(info.Length+(walInfo?.Length??0)));
         byte[]? data=null,wal=null;
         try
         {
@@ -195,7 +195,7 @@ internal static class AppleCatalogCapture
             _=>"La somma di database e WAL supera il limite di memoria."
         };
         // Only fixed roles and numeric metadata: no paths, contents, device IDs or library names.
-        throw new IOException(FormattableString.Invariant($"[APPLE-CATALOG-{reason}] {detail} DB: {info.Length} byte; WAL: {(wal==null?"assente":wal.Length.ToString(System.Globalization.CultureInfo.InvariantCulture)+" byte")}. Limite: {AppleSqliteImage.MaximumBytes} byte (1 GiB)."));
+        throw new IOException(FormattableString.Invariant($"[APPLE-CATALOG-{reason}] {detail} DB: {info.Length} byte; WAL: {(wal==null?"assente":wal.Length.ToString(System.Globalization.CultureInfo.InvariantCulture)+" byte")}. Limite: {AppleSqliteImage.MaximumBytes} byte ({AppleSqliteImage.MaximumDescription})."));
     }
     private static string NonFileDescription(AppleNonFileKind kind)=>kind switch
     {AppleNonFileKind.Directory=>"cartella",AppleNonFileKind.SymbolicLink=>"collegamento",_=>"tipo non regolare non riconosciuto"};

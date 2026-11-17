@@ -1,3 +1,16 @@
+# Verifiche 0.1.0-rc.21
+
+17 novembre 2026; build Release senza avvisi/errori, .NET 10.0.14. Solo nuovi dati sintetici, nessun telefono, catalogo personale o file delle prove consultato o modificato.
+
+- Riproduzione prima della modifica: **0/2**, fallimento atteso con APPLE-CATALOG-DB-LIMIT e le dimensioni esatte della schermata (DB 1.416.859.648 byte, WAL 7.337.752 byte). Non è un fallimento residuo della candidata.
+- Regressioni mirate dopo la correzione: **4/4**, comprese RAM/commit al confine e rifiuto degli input dimensionali non validi. Questi quattro casi sono inclusi nella suite completa.
+- Suite ordinaria finale: **559/559 passati** in una sola esecuzione, comprese fixture NTFS hard link/junction, crash dei processi figli, TLS, catalogo/WAL, errori, copie precedenti, molteplicità e ripresa. Nessun caso ignorato.
+- Prova estesa rc.21: **1/1 passata**, ripetuta con due catture consecutive complete nello stesso processo. SQLite sintetico valido 1.426.288.640 byte, WAL 7.337.752 byte; 2.867.252.784 byte letti per cattura, quattro aperture e controllo integrità/album/hash. Prima esecuzione 3.767 ms; prima cattura della ripetizione 3.276 ms, poi seconda cattura verificata. Picco circa 2,91 GB, non una misura USB. Fixture conservata; dettagli in REVIEW-RC21.md.
+- Packaging: **4/4 passati**. Il pacchetto prevede due smoke senza dispositivi e dieci stati UI sintetici, incluso il messaggio di limite lungo aggiornato. Esiti del pacchetto riscaricato registrati dopo il tag in RELEASE-VERIFICATION.md.
+
+Log in test-results.txt, storico precedente conservato in test-results-rc20.txt. Benchmark del trasporto e prove estese sui media non ripetuti: trasporto e motore di copia non cambiano. Le prove sintetiche non certificano lo schema del telefono reale, la sua disponibilità degli originali o i tempi di trasferimento. Revisori delegati non disponibili per quota, nessun fallback a pagamento.
+
+---
 # Verifiche 0.1.0-rc.20
 
 17 novembre 2026; build Release, .NET 10.0.14. Solo fixture sintetiche e nuove directory. Nessun telefono, record di abbinamento o file personale delle prove letto o modificato.

@@ -36,7 +36,7 @@ foreach($mode in @('--interop-smoke','--worker-smoke')){
     if(!$p.WaitForExit(15000)){Stop-Process -Id $p.Id;throw "$mode timeout"}
     if($p.ExitCode -ne 0){throw "$mode failed"}
 }
-foreach($imageName in @('package-ui.png','package-ui-compact-retry.png','package-ui-compact-paused.png','package-ui-compact-incomplete.png','package-ui-compact-folder-result.png','package-ui-compact-media.png','package-ui-folder-picker.png','package-ui-compact-apple-gallery.png','package-ui-apple-albums.png')){
+foreach($imageName in @('package-ui.png','package-ui-compact-retry.png','package-ui-compact-paused.png','package-ui-compact-incomplete.png','package-ui-compact-folder-result.png','package-ui-compact-media.png','package-ui-folder-picker.png','package-ui-compact-apple-gallery.png','package-ui-apple-albums.png','package-ui-compact-catalog-error.png')){
     $image=Join-Path $stage $imageName
     $p=Start-Process -FilePath $exe -ArgumentList @('--ui-smoke',('"'+$image+'"')) -WindowStyle Hidden -PassThru
     if(!$p.WaitForExit(15000)){Stop-Process -Id $p.Id;throw 'UI timeout'}

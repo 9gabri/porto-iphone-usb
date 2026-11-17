@@ -95,7 +95,9 @@ internal sealed class AppleMemorySqlite : IDisposable
 
 internal static class AppleSqliteImage
 {
-    internal const int MaximumBytes=1024*1024*1024;
+    // Stay below the signed array/native-copy limits, including padding and WAL frame arithmetic.
+    internal const int MaximumBytes=2047*1024*1024;
+    internal const string MaximumDescription="2047 MiB (circa 2 GiB)";
     internal static int ValidateDatabase(ReadOnlySpan<byte> data)
     {
         if(data.Length<512||data.Length>MaximumBytes||!data[..16].SequenceEqual("SQLite format 3\0"u8))throw Bad();
@@ -129,7 +131,7 @@ internal static class AppleSqliteImage
         }
         if(lastCommit==0)return database;
         int length=checked((int)finalPages*page);
-        if(length!=database.Length)AppleCatalogMemory.EnsureAvailable(length);
+        if(length!=database.Length)AppleCatalogMemory.EnsureAvailable(AppleCatalogMemory.CaptureAllocation(length));
         byte[] result=length==database.Length?database:new byte[length];
         try
         {
@@ -148,5 +150,5 @@ internal static class AppleSqliteImage
     {
         unchecked {for(int i=0;i<data.Length;i+=8){first+=(big?BinaryPrimitives.ReadUInt32BigEndian(data[i..]):BinaryPrimitives.ReadUInt32LittleEndian(data[i..]))+second;second+=(big?BinaryPrimitives.ReadUInt32BigEndian(data[(i+4)..]):BinaryPrimitives.ReadUInt32LittleEndian(data[(i+4)..]))+first;}}
     }
-    private static IOException Bad()=>new("Database o journal Foto troncato, incoerente o oltre il limite di 1 GiB. Nessuna lettura parziale viene presentata come completa.");
+    private static IOException Bad()=>new($"Database o journal Foto troncato, incoerente o oltre il limite di {MaximumDescription}. Nessuna lettura parziale viene presentata come completa.");
 }
