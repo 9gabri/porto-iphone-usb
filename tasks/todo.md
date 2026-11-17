@@ -155,5 +155,5 @@ prova con il telefono. Nessun totale artificiale basato sui componenti Live Phot
 - [x] Riprodotto il blocco globale su due cataloghi sintetici contro rc.17.
 - [x] Album integri isolati; album incerti visibili/bloccati, galleria completa ancora bloccata; conteggi preservati.
 - [x] Revisione indipendente, 109 test Apple, 12 importazione galleria e 9 dedicati (7 sovrapposti); UI verificata.
-- [ ] Pacchetto nuovo pubblico riscaricato e verificato.
+- [x] Pacchetto pubblico riscaricato: hash/CRC, versione/contenuto, tredici smoke e pagina verificati; diciassette archivi precedenti invariati.
 - [ ] Confermare se l'album desiderato è selezionabile sull'iPhone reale; quelli con associazioni irrisolte restano da risolvere.
