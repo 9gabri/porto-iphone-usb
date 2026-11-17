@@ -148,5 +148,5 @@ prova con il telefono. Nessun totale artificiale basato sui componenti Live Phot
 - [x] Diagnosi reale: DB 563425280 byte, WAL 4227152 byte; limite riprodotto contro rc.16.
 - [x] Confronto completo a blocchi di 1 MiB, limite 1 GiB, controlli memoria e pulizia WAL.
 - [x] Revisione indipendente e prova completa con catalogo sintetico di 566362112 byte più WAL 4227152 byte.
-- [ ] Suite finale, pacchetto pubblico riscaricato e verificato.
+- [x] Suite finale 528/528, prova grande Apple 3/3, pacchetto pubblico riscaricato: hash/CRC/contenuto/versione, dodici smoke e pagina verificati; sedici archivi precedenti invariati.
 - [ ] Conferma su iPhone: lista album, schema iOS, copia piccola e ripresa. Nessuna compatibilità definitiva dichiarata.
