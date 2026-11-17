@@ -8,6 +8,11 @@ internal static partial class AppleCatalogDecoder
 {
     internal static AppleGalleryCatalog Decode(byte[] image,CancellationToken cancel)
     {
+        using var buffer=AppleCatalogBuffer.Copy(image);
+        return Decode(buffer,cancel);
+    }
+    internal static AppleGalleryCatalog Decode(AppleCatalogBuffer image,CancellationToken cancel)
+    {
         cancel.ThrowIfCancellationRequested();
         using var db=new AppleMemorySqlite(image,cancel);
         var schema=db.Query("SELECT name,type,sql FROM sqlite_schema",10000);

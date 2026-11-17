@@ -1,5 +1,12 @@
 # Novità
 
+## 0.1.0-rc.22
+
+- Eliminata la seconda copia completa del catalogo durante la verifica SQLite: acquisizione, WAL e lettura sola condividono un buffer RAM con rilascio deterministico e azzeramento.
+- Riprodotto il blocco con i valori della schermata: 3.371.982.864 byte richiesti contro 2.641.379.328 disponibili. Con la nuova gestione servono inizialmente 1.954.426.904 byte, mantenendo il margine di 512 MiB e il controllo della capacità di allocazione.
+- Conservati padding protettivo, integrità SQLite/WAL, confronto integrale di due letture, timeout, cancellazione, contatori e ripresa. Crescita WAL ancora verificata separatamente.
+- Verifiche sintetiche su catalogo oltre 1,42 GB e letture consecutive. Nessuna promessa su schema iOS, intera libreria o durata reale del trasferimento. Nessuna modifica ai file delle prove.
+
 ## 0.1.0-rc.21
 
 - Catalogo iPhone: limite DB+WAL da 1 GiB a 2047 MiB, sotto i limiti degli array e della copia nativa con padding.

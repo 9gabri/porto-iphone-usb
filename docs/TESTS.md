@@ -1,3 +1,16 @@
+# Verifiche 0.1.0-rc.22
+
+18 novembre 2026. Build Release senza avvisi/errori. Solo cartelle sintetiche nuove, nessun telefono o file personale consultato/modificato.
+
+- Riproduzione iniziale: 0/1, fallimento atteso con gli esatti valori APPLE-CATALOG-MEMORY della schermata. Dopo la modifica sei nuove regressioni passate, comprese nella suite.
+- Suite finale con eseguibile Porto.Tests.exe: **565/565 passati**, inclusi processi figli, NTFS, interruzioni, TLS, cataloghi, WAL, album, molteplicità e ripresa.
+- Il primo avvio della suite mediante dotnet DLL è stato interrotto: alcuni test richiedono il proprio eseguibile per avviare i figli e non funzionano tramite dotnet. Non è contato come verifica riuscita. Ripetizione completa corretta senza casi ignorati.
+- Catalogo grande finale: **1/1 passato**, database sintetico valido 1.426.288.640 byte, WAL 7.337.752 byte, due catture consecutive. Prima cattura 3.001 ms, 9.544.200 byte gestiti allocati; picco finale 1.491.603.456 byte. Memoria privata prima/dopo le due catture 19.062.784/43.200.512 byte. Quattro aperture e 2.867.252.784 byte letti per cattura. Hash sorgenti invariati. Misure locali, non USB; non stima di un'ora.
+- Packaging: **4/4 passati**. Confezionamento con due prove senza dispositivi e dieci schermate sintetiche; esiti pubblici annotati dopo il tag in RELEASE-VERIFICATION.md.
+
+Prima prova estesa e spiegazione in REVIEW-RC22.md. Storico test-results-rc21.txt preservato. Revisione locale, revisori delegati indisponibili per quota; nessun fallback a pagamento. Trasporto e motore media non modificati: benchmark USB simulato e scrittura video oltre 4 GiB non ripetuti in questo ciclo. Schema iOS, memoria effettiva e album reale restano da confermare.
+
+---
 # Verifiche 0.1.0-rc.21
 
 17 novembre 2026; build Release senza avvisi/errori, .NET 10.0.14. Solo nuovi dati sintetici, nessun telefono, catalogo personale o file delle prove consultato o modificato.

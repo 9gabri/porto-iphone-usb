@@ -1,4 +1,6 @@
-PORTO 0.1.0-rc.21 — CANDIDATA WINDOWS 11 x64
+PORTO 0.1.0-rc.22 — CANDIDATA WINDOWS 11 x64
+
+rc.22: acquisizione e verifica del catalogo condividono una sola immagine in RAM, azzerata e liberata subito al termine. Nel caso segnalato il requisito iniziale passa da circa 3,37 a 1,95 GB liberi. Il margine, la rilettura integrale, l'integrità SQLite/WAL e il limite di 2047 MiB restano. Un WAL che ridimensiona il database richiede memoria aggiuntiva, controllata prima di allocarla. Nessun database del telefono su disco. La nuova candidata richiede una prova reale; dettagli in REVIEW-RC22.md. I paragrafi seguenti descrivono le versioni precedenti.
 
 rc.21: catalogo Foto fino a 2047 MiB (circa 2 GiB), con controllo preventivo della memoria anche per la verifica. Corretto il limite che bloccava il database da circa 1,42 GB mostrato nella prova. Per quel caso servono circa 3,4 GB di RAM libera, non soltanto installata. Restano confronto completo, integrità SQLite/WAL, cancellazione e limiti temporali. Nessun database del telefono salvato su disco. Dettagli in REVIEW-RC21.md.
 

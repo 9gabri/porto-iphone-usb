@@ -123,3 +123,7 @@ Confrontate le fonti primarie BouncyCastle AbstractTlsPeer, SignatureAndHashAlgo
 ## rc.15 — rifiuto del nome emittente vuoto
 
 Confrontati il parser X.509 BouncyCastle del tag release-2.7.0 e i generatori di certificati di abbinamento libimobiledevice/pymobiledevice3. Fonti e riproduzione in [REVIEW-RC15.md](REVIEW-RC15.md). Nessun codice dei client Apple copiato, nessuna nuova dipendenza e nessun certificato personale usato nei test.
+
+## rc.22 — buffer condiviso del catalogo
+
+[SQLite deserialize](https://www.sqlite.org/c3ref/deserialize.html) e [flag di deserializzazione](https://www.sqlite.org/c3ref/c_deserialize_freeonclose.html), consultati 17–18 novembre 2026. Conservati 32 byte di padding per input malformati, durata del buffer fino alla chiusura e flag READONLY senza FREEONCLOSE/RESIZEABLE. Dettagli implementativi e limiti in REVIEW-RC22.md.

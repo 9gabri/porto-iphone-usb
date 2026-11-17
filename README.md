@@ -1,8 +1,12 @@
 # Porto
 
-App locale in italiano per copiare foto e video dal telefono al PC, senza conversioni. **0.1.0-rc.21 candidata**, Windows 11 x64 con runtime incluso. Gestisce cataloghi Foto più grandi del precedente limite di 1 GiB, controllando prima anche la RAM necessaria alle verifiche. Prestazioni e compatibilità della nuova versione da confermare sul telefono reale.
+App locale in italiano per copiare foto e video dal telefono al PC, senza conversioni. **0.1.0-rc.22 candidata**, Windows 11 x64 con runtime incluso. Riduce la memoria richiesta dal catalogo Foto mantenendo le verifiche. Prestazioni e compatibilità della nuova versione da confermare sul telefono reale.
 
-[Scarica Windows](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.21/Porto-0.1.0-rc.21-win-x64.zip) · [Checksum](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.21/SHA256SUMS.txt) · [Guida](docs/PHONES-AND-ALBUMS.md)
+[Scarica Windows](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.22/Porto-0.1.0-rc.22-win-x64.zip) · [Checksum](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.22/SHA256SUMS.txt) · [Guida](docs/PHONES-AND-ALBUMS.md)
+
+## Memoria catalogo rc.22
+
+Acquisizione e SQLite usano la stessa immagine in RAM, azzerata e liberata al termine. Eliminata la seconda copia completa; conservati confronto USB integrale, WAL, controllo integrità, lettura sola e margine di 512 MiB. Con le dimensioni dell'ultima schermata la soglia iniziale scende da 3,37 a 1,95 GB liberi. Il WAL può richiedere ulteriore memoria se cambia la dimensione del database. La disponibilità è misurata, non prenotata; restano possibili errori di memoria o catalogo. [Verifiche rc.22](docs/REVIEW-RC22.md).
 
 ## Cataloghi grandi rc.21
 
@@ -49,7 +53,7 @@ Le nuove foto sono in **Foto Porto**, i video in **Video Porto**. Le vecchie ris
 ## Limiti e privacy
 
 - Video MOV/MP4/M4V; foto JPEG, PNG statico e HEIF/HEIC HEVC nei profili riconosciuti. Altri formati restano segnalati, non dichiarati verificati. Verifica strutturale e dei byte, non decodifica completa.
-- Il catalogo iPhone usa uno schema privato, non un'API PhotoKit ufficiale per Windows. Letture ripetute, WAL e integrità controllati; nessuno snapshot atomico della libreria certificato. Limite dei dati catalogo+WAL acquisiti: 2047 MiB; le verifiche richiedono ulteriori copie in memoria e RAM libera sufficiente. Solo album personali riconosciuti; Nascosti ed Eliminati di recente esclusi con conteggi visibili.
+- Il catalogo iPhone usa uno schema privato, non un'API PhotoKit ufficiale per Windows. Letture ripetute, WAL e integrità controllati; nessuno snapshot atomico della libreria certificato. Limite dei dati catalogo+WAL acquisiti: 2047 MiB; RAM e capacità di allocazione devono essere sufficienti per l'immagine, eventuale ridimensionamento WAL e margine. Solo album personali riconosciuti; Nascosti ed Eliminati di recente esclusi con conteggi visibili.
 - Originali soltanto su iCloud/Google Foto non vengono scaricati. Gli elementi individuati ma non disponibili restano nel report. Nessun totale prestabilito promesso.
 - Windows 11 x64, archivio locale NTFS, percorso massimo 120 caratteri; niente rete, exFAT, Windows ARM, link/junction. Origine locale separata dalla destinazione.
 - Nessuna scrittura sul telefono, conversione, upload, telemetria, acquisto o Apple ID. Nessuna installazione o avvio di servizi Windows, driver o riduzione delle protezioni. Abbinamento Apple già autorizzato riutilizzato senza creazione di nuove credenziali; chiavi e database Foto non salvati come file. I report e lo stato locale contengono metadati degli elementi selezionati necessari alla ripresa.

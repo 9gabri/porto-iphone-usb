@@ -72,6 +72,7 @@ AppleCatalogStreamingTests.Add(tests);
 AppleCatalogMemoryTests.Add(tests);
 AppleLargeCatalogTests.Add(tests);
 Rc21CatalogTests.Add(tests);
+Rc22MemoryTests.Add(tests);
 AppleAlbumAssociationTests.Add(tests);
 if(args.Contains("--large-apple"))AppleLargeCatalogTests.AddLarge(tests);
 if(args.Contains("--large-apple"))Rc21LargeCatalogTests.AddLarge(tests);

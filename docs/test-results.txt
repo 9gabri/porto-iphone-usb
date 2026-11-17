@@ -1,20 +1,29 @@
-=== red.txt ===
-FAIL rc21 catalog accepts reported 1.42 GB database and WAL metadata: System.IO.IOException: [APPLE-CATALOG-DB-LIMIT] Il database Foto supera il limite di memoria. DB: 1416859648 byte; WAL: 7337752 byte. Limite: 1073741824 byte (1 GiB).
-   at Porto.Apple.AppleCatalogCapture.ValidateMetadata(AppleFileInfo info, AppleFileInfo wal) in /src/src/Porto.Apple/AppleGallerySource.cs:line 198
-   at Rc21CatalogTests.<>c.<Add>b__2_0() in /src/tests/Porto.Tests/Rc21CatalogTests.cs:line 10
-   at Program.<Main>$(String[] args) in /src/tests/Porto.Tests/Program.cs:line 86
-FAIL rc21 catalog accepts reported 1.42 GB database without WAL: System.IO.IOException: [APPLE-CATALOG-DB-LIMIT] Il database Foto supera il limite di memoria. DB: 1416859648 byte; WAL: assente. Limite: 1073741824 byte (1 GiB).
-   at Porto.Apple.AppleCatalogCapture.ValidateMetadata(AppleFileInfo info, AppleFileInfo wal) in /src/src/Porto.Apple/AppleGallerySource.cs:line 198
-   at Rc21CatalogTests.<>c.<Add>b__2_1() in /src/tests/Porto.Tests/Rc21CatalogTests.cs:line 12
-   at Program.<Main>$(String[] args) in /src/tests/Porto.Tests/Program.cs:line 86
-0/2 passed
-=== green.txt ===
-PASS rc21 catalog accepts reported 1.42 GB database and WAL metadata
-PASS rc21 catalog accepts reported 1.42 GB database without WAL
-PASS rc21 memory preflight budgets capture and native verification at reported size
-PASS rc21 catalog maximum leaves array native padding and frame arithmetic headroom
-4/4 passed
-=== full-final.txt ===
+--- red.txt
+FAIL rc22 reported free RAM supports catalog without a second full copy: System.IO.IOException: [APPLE-CATALOG-MEMORY] Memoria disponibile insufficiente per leggere il catalogo. Richiesti con margine: 3371982864 byte; RAM disponibile: 2641379328 byte; capacità di allocazione: 3821715456 byte. Chiudi le altre applicazioni e riprova.
+   at Porto.Apple.AppleCatalogMemory.ValidateAvailable(Int64 allocation, UInt64 physical, UInt64 commit) in /src/src/Porto.Apple/AppleCatalogMemory.cs:line 27
+   at Rc22MemoryTests.<>c.<Add>b__0_0() in /src/tests/Porto.Tests/Rc22MemoryTests.cs:line 12
+   at Program.<Main>$(String[] args) in /src/tests/Porto.Tests/Program.cs:line 88
+0/1 passed
+--- build-release.txt
+  Porto.Core -> C:\Users\gabri\Desktop\App-trasferimento video\artifacts\rc22-release-tests\Porto.Core.dll
+  Porto.Usb -> C:\Users\gabri\Desktop\App-trasferimento video\artifacts\rc22-release-tests\Porto.Usb.dll
+  Porto.Apple -> C:\Users\gabri\Desktop\App-trasferimento video\artifacts\rc22-release-tests\Porto.Apple.dll
+  Porto.Tests -> C:\Users\gabri\Desktop\App-trasferimento video\artifacts\rc22-release-tests\Porto.Tests.dll
+
+Compilazione completata.
+    Avvisi: 0
+    Errori: 0
+
+Tempo trascorso 00:00:09.40
+--- focused-final.txt
+PASS rc22 reported free RAM supports catalog without a second full copy
+PASS rc22 shared SQLite image remains readonly and unchanged after disposal
+PASS rc22 SQLite keeps borrowed RAM alive until connection closes
+PASS rc22 cancelled SQLite construction leaves owned capture valid
+PASS rc22 native capture disposal is idempotent and rejects subsequent access
+PASS rc22 malformed SQLite failure releases borrow and restores WAL header
+6/6 passed
+--- full-apphost.txt
 PASS copy and independently reread SHA256
 PASS truncation rejected
 PASS unexpected extra bytes rejected
@@ -538,8 +547,14 @@ PASS apple large catalog accepts reported database and WAL sizes without allocat
 PASS apple large catalog accepts reported database with no WAL
 PASS rc21 catalog accepts reported 1.42 GB database and WAL metadata
 PASS rc21 catalog accepts reported 1.42 GB database without WAL
-PASS rc21 memory preflight budgets capture and native verification at reported size
+PASS rc21 reported size retains memory guard with shared verification image
 PASS rc21 catalog maximum leaves array native padding and frame arithmetic headroom
+PASS rc22 reported free RAM supports catalog without a second full copy
+PASS rc22 shared SQLite image remains readonly and unchanged after disposal
+PASS rc22 SQLite keeps borrowed RAM alive until connection closes
+PASS rc22 cancelled SQLite construction leaves owned capture valid
+PASS rc22 native capture disposal is idempotent and rejects subsequent access
+PASS rc22 malformed SQLite failure releases borrow and restores WAL header
 PASS apple album association isolates a broken album without broadening a healthy selection
 PASS apple album association reports unknown album links without treating them as deleted
 PASS apple album association missing assets remain explicit and cannot masquerade as an empty album
@@ -574,19 +589,22 @@ PASS rc19 comparison process death at after-intent recovers with old files uncha
 PASS rc19 comparison process death at after-flush recovers with old files unchanged
 PASS rc19 comparison process death at after-ready recovers with old files unchanged
 PASS rc19 comparison process death at after-rename recovers with old files unchanged
-559/559 passed
-=== large-final.txt ===
+565/565 passed
+--- large.txt
 MEASURE synthetic fixture ready DB=1426288640; WAL=7337752; no device accessed
-MEASURE rc21 full catalog DB=1426288640; WAL=7337752; sourceReads=4; bytes=2867252784; elapsed_ms=3767; managed_allocated=1434785400; peak_working_set=2907529216
-PASS rc21 large catalog full capture above 1.42 GB with reported WAL length
-1/1 passed
-=== sequential-before.txt ===
-MEASURE synthetic fixture ready DB=1426288640; WAL=7337752; no device accessed
-MEASURE rc21 full catalog DB=1426288640; WAL=7337752; sourceReads=4; bytes=2867252784; elapsed_ms=3276; managed_allocated=1434786664; peak_working_set=2907385856
+MEASURE rc21 full catalog DB=1426288640; WAL=7337752; sourceReads=4; bytes=2867252784; elapsed_ms=1455; managed_allocated=9538008; peak_working_set=1481371648
 MEASURE sequential second full capture verified
+MEASURE rc22 two captures private_before=18456576; private_after=37015552; peak_working_set=1491365888
 PASS rc21 large catalog full capture above 1.42 GB with reported WAL length
 1/1 passed
-=== package-tests.txt ===
+--- large-final.txt
+MEASURE synthetic fixture ready DB=1426288640; WAL=7337752; no device accessed
+MEASURE rc21 full catalog DB=1426288640; WAL=7337752; sourceReads=4; bytes=2867252784; elapsed_ms=3001; managed_allocated=9544200; peak_working_set=1481613312
+MEASURE sequential second full capture verified
+MEASURE rc22 two captures private_before=19062784; private_after=43200512; peak_working_set=1491603456
+PASS rc21 large catalog full capture above 1.42 GB with reported WAL length
+1/1 passed
+--- package-tests.txt
 PASS package staging interrupted
 PASS package staging invalid
 PASS package staging existing

@@ -42,9 +42,10 @@ internal static class Rc21LargeCatalogTests
             Console.WriteLine($"MEASURE synthetic fixture ready DB={length}; WAL={wal.Length}; no device accessed");
             var original=VerifiedCopy.HashFile(path,default);byte[] walHash=SHA256.HashData(wal);
             using var files=new Files(path,length,wal);
+            using var process=Process.GetCurrentProcess();process.Refresh();long privateBefore=process.PrivateMemorySize64;
             long allocatedBefore=GC.GetTotalAllocatedBytes(true);var timer=Stopwatch.StartNew();
             var result=AppleCatalogCapture.Read(files,default);timer.Stop();
-            using var process=Process.GetCurrentProcess();process.Refresh();
+            process.Refresh();
             Console.WriteLine($"MEASURE rc21 full catalog DB={length}; WAL={wal.Length}; sourceReads={files.Opens}; bytes={files.Bytes}; elapsed_ms={timer.ElapsedMilliseconds}; managed_allocated={GC.GetTotalAllocatedBytes(true)-allocatedBefore}; peak_working_set={process.PeakWorkingSet64}");
             Fixtures.Check(result.VisiblePhotoCount==2&&result.VisibleVideoCount==1&&result.HiddenAssetCount==1&&result.TrashedAssetCount==1);
             Fixtures.Check(result.Albums.Count==1&&result.Select("album-one").Count==2);
@@ -56,6 +57,9 @@ internal static class Rc21LargeCatalogTests
             var repeated=AppleCatalogCapture.Read(again,default);
             Fixtures.Check(repeated.VisibleVideoCount==result.VisibleVideoCount&&again.Opens==4&&again.Bytes==2*(length+wal.Length));
             Console.WriteLine("MEASURE sequential second full capture verified");
+            process.Refresh();long privateAfter=process.PrivateMemorySize64;
+            Console.WriteLine($"MEASURE rc22 two captures private_before={privateBefore}; private_after={privateAfter}; peak_working_set={process.PeakWorkingSet64}");
+            Fixtures.Check(privateAfter-privateBefore<256L*1024*1024,"Completed captures retained catalog-sized memory");
             CryptographicOperations.ZeroMemory(wal);
         }));
     }

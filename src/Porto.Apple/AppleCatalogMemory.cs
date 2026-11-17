@@ -5,13 +5,13 @@ namespace Porto.Apple;
 internal static class AppleCatalogMemory
 {
     internal const long ReserveBytes=512L*1024*1024;
-    // Budget captured bytes and the native SQLite verification copy before reading USB.
+    // Capture and readonly SQLite share one RAM image; include its overread padding.
     // WAL growth is checked again when its committed size becomes known.
     internal static long CaptureAllocation(long bytes)
     {
         if(bytes<=0||bytes>AppleSqliteImage.MaximumBytes)
             throw new IOException("[APPLE-CATALOG-MEMORY] Dimensione del catalogo non valida.");
-        return checked(2*bytes+32);
+        return checked(bytes+AppleCatalogBuffer.Padding);
     }
     internal static void EnsureAvailable(long allocation)
     {

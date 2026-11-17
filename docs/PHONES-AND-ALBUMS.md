@@ -62,3 +62,7 @@ Non è stata effettuata una nuova prova con telefoni reali durante questo svilup
 ## Recuperare foto rifiutate dalla rc.11
 
 La rc.12 accetta JPEG la cui immagine principale è completa ma seguita da dati aggiuntivi. Conserva l’intero file e indica nel report quanti byte aggiuntivi non sono stati interpretati. Usa la stessa origine e la stessa cartella Archivio PC, mantenendo .porto e report. Le copie sane sono riutilizzate; i temporanei corrispondenti vengono recuperati in nuove copie, senza modificare i vecchi .part. La coda non viene convertita o separata in un video. Il controllo resta strutturale e non certifica la decodifica dei pixel o delle funzioni aggiuntive.
+
+## Memoria richiesta nella rc.22
+
+Il catalogo viene ancora letto anche scegliendo un piccolo album. Acquisizione e verifica condividono la stessa immagine in RAM, poi azzerata e liberata. Per il catalogo da circa 1,42 GB della prova, la soglia iniziale è circa 1,95 GB liberi, non installati; un WAL che cambia la dimensione del database può richiedere di più. Mantieni i file della prova e usa la stessa destinazione per riprendere: i conteggi finali, non il solo avvio, confermano il risultato. Nessuna promessa di compatibilità universale.

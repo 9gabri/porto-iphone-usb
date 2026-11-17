@@ -7,26 +7,28 @@ namespace Porto.Apple;
 internal sealed class AppleMemorySqlite : IDisposable
 {
     private nint db,buffer;
-    private int bufferLength;
+    private AppleCatalogBuffer? image;
+    private bool imageReference;
+    private byte writeVersion,readVersion;
     private readonly CancellationToken cancel;
     private readonly long deadline=Environment.TickCount64+30000;
     private readonly Native.Progress progress;
-    internal AppleMemorySqlite(byte[] image,CancellationToken cancel)
+    internal AppleMemorySqlite(AppleCatalogBuffer image,CancellationToken cancel)
     {
         this.cancel=cancel;progress=()=>cancel.IsCancellationRequested||Environment.TickCount64>deadline?1:0;
-        AppleSqliteImage.ValidateDatabase(image);
+        AppleSqliteImage.ValidateDatabase(image.Data);
         try
         {
             Check(Native.sqlite3_open_v2(":memory:",out db,6,0));
             Native.sqlite3_progress_handler(db,1000,progress,0);
             Native.sqlite3_limit(db,0,4*1024*1024);
             Query("PRAGMA temp_store=MEMORY",1);Query("PRAGMA trusted_schema=OFF",1);Query("PRAGMA query_only=ON",1);
-            bufferLength=checked(image.Length+32);AppleCatalogMemory.EnsureAvailable(bufferLength);buffer=Marshal.AllocHGlobal(bufferLength);
-            Marshal.Copy(image,0,buffer,image.Length);
-            for(int i=image.Length;i<bufferLength;i++)Marshal.WriteByte(buffer,i,0);
+            AppleCatalogMemory.EnsureAvailable(0);
+            this.image=image;image.DangerousAddRef(ref imageReference);buffer=image.DangerousGetHandle();
+            writeVersion=Marshal.ReadByte(buffer,18);readVersion=Marshal.ReadByte(buffer,19);
             // WAL has already been validated and applied to this RAM copy; deserialize cannot open WAL.
             Marshal.WriteByte(buffer,18,1);Marshal.WriteByte(buffer,19,1);
-            Check(Native.sqlite3_deserialize(db,"main",buffer,image.Length,bufferLength,4));
+            Check(Native.sqlite3_deserialize(db,"main",buffer,image.Length,image.Capacity,4));
             var check=Query("PRAGMA integrity_check",100);
             if(check.Count!=1||check[0].Length!=1||check[0][0]!="ok")throw new IOException("Il catalogo Foto non supera il controllo di integrità.");
         }
@@ -35,6 +37,7 @@ internal sealed class AppleMemorySqlite : IDisposable
     }
     internal List<string?[]> Query(string sql,int maxRows)
     {
+        ObjectDisposedException.ThrowIf(db==0,this);
         cancel.ThrowIfCancellationRequested();
         if(Environment.TickCount64>deadline)throw new IOException("Controllo del catalogo Foto oltre il limite di tempo.");
         nint statement=0;
@@ -69,10 +72,18 @@ internal sealed class AppleMemorySqlite : IDisposable
         cancel.ThrowIfCancellationRequested();
         if(code!=0)throw new IOException(code==9?"Controllo del catalogo Foto interrotto per limite di tempo.":$"Catalogo Foto non leggibile (SQLite {code}).");
     }
-    public unsafe void Dispose()
+    public void Dispose()
     {
-        if(db!=0){Native.sqlite3_close(db);db=0;}
-        if(buffer!=0){new Span<byte>((void*)buffer,bufferLength).Clear();Marshal.FreeHGlobal(buffer);buffer=0;}
+        if(db!=0)
+        {
+            // Never release memory still owned by a live SQLite connection.
+            if(Native.sqlite3_close(db)!=0)throw new IOException("Chiusura del catalogo Foto non riuscita.");
+            db=0;
+        }
+        // All statements are finalized in Query. Close SQLite before restoring/releasing its image.
+        if(buffer!=0){Marshal.WriteByte(buffer,18,writeVersion);Marshal.WriteByte(buffer,19,readVersion);buffer=0;}
+        if(imageReference){imageReference=false;image!.DangerousRelease();}
+        image=null;
         GC.KeepAlive(progress);
     }
     private static class Native
@@ -108,7 +119,13 @@ internal static class AppleSqliteImage
     // Independent implementation of SQLite's published WAL wire format, not a remote SQLite engine.
     internal static byte[] ApplyWal(byte[] database,byte[]? wal,CancellationToken cancel)
     {
-        int page=ValidateDatabase(database);
+        using var buffer=AppleCatalogBuffer.Copy(database);
+        using var result=ApplyWal(buffer,wal,cancel);
+        return result.Data.ToArray();
+    }
+    internal static AppleCatalogBuffer ApplyWal(AppleCatalogBuffer database,byte[]? wal,CancellationToken cancel)
+    {
+        int page=ValidateDatabase(database.Data);
         if(wal==null||wal.Length==0)return database;
         if(wal.Length<32||wal.Length>MaximumBytes)throw Bad();
         uint magic=Big(wal,0);if(magic is not(0x377f0682 or 0x377f0683)||Big(wal,4)!=3007000||Big(wal,8)!=page)throw Bad();
@@ -132,18 +149,18 @@ internal static class AppleSqliteImage
         if(lastCommit==0)return database;
         int length=checked((int)finalPages*page);
         if(length!=database.Length)AppleCatalogMemory.EnsureAvailable(AppleCatalogMemory.CaptureAllocation(length));
-        byte[] result=length==database.Length?database:new byte[length];
+        var result=length==database.Length?database:new AppleCatalogBuffer(length);
         try
         {
-            if(!ReferenceEquals(result,database))database.AsSpan(0,Math.Min(database.Length,length)).CopyTo(result);
+            if(!ReferenceEquals(result,database))database.Data[..Math.Min(database.Length,length)].CopyTo(result.Data);
             for(int i=0;i<lastCommit;i++)
             {
                 cancel.ThrowIfCancellationRequested();var frame=frames[i];
-                if(frame.Page<=finalPages)wal.AsSpan(frame.Offset,page).CopyTo(result.AsSpan(checked(((int)frame.Page-1)*page),page));
+                if(frame.Page<=finalPages)wal.AsSpan(frame.Offset,page).CopyTo(result.Data.Slice(checked(((int)frame.Page-1)*page),page));
             }
-            ValidateDatabase(result);return result;
+            ValidateDatabase(result.Data);return result;
         }
-        catch {if(!ReferenceEquals(result,database))System.Security.Cryptography.CryptographicOperations.ZeroMemory(result);throw;}
+        catch {if(!ReferenceEquals(result,database))result.Dispose();throw;}
     }
     private static uint Big(byte[] data,int offset)=>BinaryPrimitives.ReadUInt32BigEndian(data.AsSpan(offset));
     private static void Checksum(ReadOnlySpan<byte> data,bool big,ref uint first,ref uint second)

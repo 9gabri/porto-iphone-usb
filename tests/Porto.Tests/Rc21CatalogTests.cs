@@ -10,11 +10,11 @@ internal static class Rc21CatalogTests
             AppleCatalogCapture.ValidateMetadata(new(ReportedDatabase,"synthetic",true),new(ReportedWal,"synthetic",true))));
         tests.Add(("rc21 catalog accepts reported 1.42 GB database without WAL",()=>
             AppleCatalogCapture.ValidateMetadata(new(ReportedDatabase,"synthetic",true),null)));
-        tests.Add(("rc21 memory preflight budgets capture and native verification at reported size",()=>
+        tests.Add(("rc21 reported size retains memory guard with shared verification image",()=>
         {
             long allocation=AppleCatalogMemory.CaptureAllocation(ReportedDatabase+ReportedWal);
-            Fixtures.Check(allocation==2_848_394_832);
-            const ulong required=3_385_265_744;
+            Fixtures.Check(allocation==1_424_197_432);
+            const ulong required=1_961_068_344;
             AppleCatalogMemory.ValidateAvailable(allocation,required,required);
             Fixtures.Throws<IOException>(()=>AppleCatalogMemory.ValidateAvailable(allocation,required-1,ulong.MaxValue));
             Fixtures.Throws<IOException>(()=>AppleCatalogMemory.ValidateAvailable(allocation,ulong.MaxValue,required-1));

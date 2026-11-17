@@ -142,7 +142,7 @@ internal static class AppleCatalogCapture
     internal static AppleGalleryCatalog Read(IAppleFileSystem files,CancellationToken cancel)
     {
         using var deadline=CancellationTokenSource.CreateLinkedTokenSource(cancel);deadline.CancelAfter(TimeSpan.FromMinutes(10));
-        byte[]? db=null,wal=null,merged=null;
+        AppleCatalogBuffer? db=null,merged=null;byte[]? wal=null;
         try
         {
             AppleFileInfo firstInfo;AppleFileInfo? firstWalInfo,firstJournal;
@@ -155,27 +155,27 @@ internal static class AppleCatalogCapture
         catch(OutOfMemoryException){throw new IOException("[APPLE-CATALOG-MEMORY] Memoria insufficiente durante la lettura del catalogo. Chiudi le altre applicazioni e riprova.");}
         finally
         {
-            foreach(var buffer in new[]{db,wal,merged})if(buffer!=null)CryptographicOperations.ZeroMemory(buffer);
+            merged?.Dispose();db?.Dispose();if(wal!=null)CryptographicOperations.ZeroMemory(wal);
         }
     }
-    private static (byte[] Database,byte[]? Wal,AppleFileInfo Info,AppleFileInfo? WalInfo,AppleFileInfo? Journal) Capture(IAppleFileSystem files,CancellationToken cancel)
+    private static (AppleCatalogBuffer Database,byte[]? Wal,AppleFileInfo Info,AppleFileInfo? WalInfo,AppleFileInfo? Journal) Capture(IAppleFileSystem files,CancellationToken cancel)
     {
         var info=files.Stat(Database,cancel)??throw new IOException("L'iPhone non espone il catalogo Foto tramite il servizio USB Apple. Nessun elenco di file viene sostituito agli album.");
         var walInfo=files.Stat(Database+"-wal",cancel);var journalInfo=files.Stat(Database+"-journal",cancel);
         ValidateInactiveJournal(files,journalInfo,cancel);
         ValidateMetadata(info,walInfo);
         AppleCatalogMemory.EnsureAvailable(AppleCatalogMemory.CaptureAllocation(info.Length+(walInfo?.Length??0)));
-        byte[]? data=null,wal=null;
+        AppleCatalogBuffer? data=null;byte[]? wal=null;
         try
         {
-            data=Read(files,Database,info.Length,cancel);
+            data=ReadDatabase(files,info.Length,cancel);
             if(walInfo!=null)wal=Read(files,Database+"-wal",walInfo.Length,cancel);
             ValidateInactiveJournal(files,journalInfo,cancel);
             if(info!=files.Stat(Database,cancel)||walInfo!=files.Stat(Database+"-wal",cancel)||journalInfo!=files.Stat(Database+"-journal",cancel))
                 throw new IOException("Il catalogo Foto è cambiato durante l'acquisizione.");
             return(data,wal,info,walInfo,journalInfo);
         }
-        catch{if(data!=null)CryptographicOperations.ZeroMemory(data);if(wal!=null)CryptographicOperations.ZeroMemory(wal);throw;}
+        catch{data?.Dispose();if(wal!=null)CryptographicOperations.ZeroMemory(wal);throw;}
     }
     internal static void ValidateMetadata(AppleFileInfo info,AppleFileInfo? wal)
     {
@@ -221,6 +221,28 @@ internal static class AppleCatalogCapture
         finally{CryptographicOperations.ZeroMemory(header);}
     }
     private static IOException JournalUnavailable()=>new("Catalogo Foto con journal attivo o non verificabile: lettura arrestata, riprova quando la libreria è stabile.");
+    private static AppleCatalogBuffer ReadDatabase(IAppleFileSystem files,long length,CancellationToken cancel)
+    {
+        cancel.ThrowIfCancellationRequested();
+        var result=new AppleCatalogBuffer(checked((int)length));
+        byte[]? scratch=null;
+        try
+        {
+            scratch=new byte[1024*1024];
+            using var input=files.OpenRead(Database,cancel);int offset=0;
+            while(offset<result.Length)
+            {
+                cancel.ThrowIfCancellationRequested();
+                int read=input.Read(scratch,0,Math.Min(scratch.Length,result.Length-offset));
+                if(read==0)throw new IOException("Catalogo Foto troncato durante la lettura.");
+                scratch.AsSpan(0,read).CopyTo(result.Data.Slice(offset,read));offset+=read;
+            }
+            if(input.ReadByte()!=-1)throw new IOException("Il catalogo Foto è cresciuto durante la lettura.");
+            return result;
+        }
+        catch{result.Dispose();throw;}
+        finally{if(scratch!=null)CryptographicOperations.ZeroMemory(scratch);}
+    }
     private static byte[] Read(IAppleFileSystem files,string path,long length,CancellationToken cancel)
     {
         byte[] result=new byte[checked((int)length)];
@@ -236,7 +258,7 @@ internal static class AppleCatalogCapture
         }
         catch{CryptographicOperations.ZeroMemory(result);throw;}
     }
-    private static void VerifyCapture(IAppleFileSystem files,byte[] database,byte[]? wal,AppleFileInfo info,AppleFileInfo? walInfo,AppleFileInfo? journalInfo,CancellationToken cancel)
+    private static void VerifyCapture(IAppleFileSystem files,AppleCatalogBuffer database,byte[]? wal,AppleFileInfo info,AppleFileInfo? walInfo,AppleFileInfo? journalInfo,CancellationToken cancel)
     {
         void CheckMetadata()
         {
@@ -250,21 +272,21 @@ internal static class AppleCatalogCapture
         byte[] scratch=new byte[1024*1024];
         try
         {
-            Compare(Database,database);
+            Compare(Database,database.Data);
             if(wal!=null)Compare(Database+"-wal",wal);
             ValidateInactiveJournal(files,journalInfo,cancel);
             CheckMetadata();
         }
         finally{CryptographicOperations.ZeroMemory(scratch);}
 
-        void Compare(string path,byte[] expected)
+        void Compare(string path,ReadOnlySpan<byte> expected)
         {
             using var input=files.OpenRead(path,cancel);int offset=0;
             while(offset<expected.Length)
             {
                 cancel.ThrowIfCancellationRequested();
                 int read=input.Read(scratch,0,Math.Min(scratch.Length,expected.Length-offset));
-                if(read==0||!scratch.AsSpan(0,read).SequenceEqual(expected.AsSpan(offset,read)))throw ChangedDuringVerification();
+                if(read==0||!scratch.AsSpan(0,read).SequenceEqual(expected.Slice(offset,read)))throw ChangedDuringVerification();
                 offset+=read;
             }
             cancel.ThrowIfCancellationRequested();
