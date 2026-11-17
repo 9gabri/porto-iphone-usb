@@ -1,6 +1,6 @@
-PORTO 0.1.0-rc.16 — CANDIDATA WINDOWS 11 x64
+PORTO 0.1.0-rc.17 — CANDIDATA WINDOWS 11 x64
 
-rc.16 DIAGNOSTICA: la prova rc.15 ha superato TLS ma si è fermata sui metadati del catalogo Foto. Questa versione distingue la causa e mostra dimensioni numeriche, senza aumentare il limite di memoria. Non è una correzione del blocco catalogo. Per la diagnosi usa iPhone - libreria Foto via USB, Cerca dispositivi, Un album della libreria Foto, Scegli album; conserva il messaggio completo. Non avviare una grande importazione per questa prova. Nessuna modifica ai file delle prove o alle protezioni.
+rc.17: corretto il limite che respingeva il catalogo Foto di circa 537 MiB. Supporto fino a 1 GiB con confronto della seconda lettura a blocchi e controllo della memoria disponibile. iPhone - libreria Foto via USB, Cerca dispositivi, Un album della libreria Foto, Scegli album: prova prima un album piccolo. Conserva qualsiasi errore completo. Catalogo, album e copie restano da confermare sul telefono reale. Nessuna modifica ai file delle prove o alle protezioni.
 
 1. Chiudi Porto ed estrai TUTTO lo ZIP in una nuova cartella. Conserva le versioni precedenti e apri il nuovo Porto.exe.
 2. Collega e sblocca il telefono. Android: Trasferimento file. iPhone: computer già autorizzato e collegamento Apple già disponibile.
@@ -15,7 +15,7 @@ rc.16 DIAGNOSTICA: la prova rc.15 ha superato TLS ma si è fermata sui metadati 
 
 Nessun file precedente cancellato o sovrascritto. Le copie identiche verificate sono riutilizzate al loro posto; due elementi distinti con byte uguali mantengono due copie. Le copie precedenti non riutilizzate non sono automaticamente Live Photo.
 
-In modalità catalogo iPhone: Live Photo = sola immagine; Solo video esclude le componenti animate. Nascosti, Eliminati di recente e raccolte intelligenti/condivise non sono inclusi. Originali soltanto in iCloud non vengono scaricati. Un catalogo incompatibile o oltre 512 MiB blocca la lettura, senza fallback alla lista generica dei file.
+In modalità catalogo iPhone: Live Photo = sola immagine; Solo video esclude le componenti animate. Nascosti, Eliminati di recente e raccolte intelligenti/condivise non sono inclusi. Originali soltanto in iCloud non vengono scaricati. Un catalogo incompatibile o oltre 1 GiB blocca la lettura, senza fallback alla lista generica dei file.
 
 USB generico: cartelle e raccolte esposte non equivalgono a tutti gli album delle app Galleria. Non è supporto universale a qualsiasi cellulare o raccolta. Per distinguere i video iPhone dalle Live Photo usa la modalità catalogo Foto.
 

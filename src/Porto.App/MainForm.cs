@@ -166,7 +166,7 @@ public sealed class MainForm:Form
                 if(smokePath.Contains("catalog-error",StringComparison.Ordinal))
                 {
                     status.Text="Catalogo Foto non disponibile.";
-                    detail.Text="[APPLE-CATALOG-TOTAL-LIMIT] La somma di database e WAL supera il limite di memoria. DB: 536870900 byte; WAL: 65536 byte. Limite: 536870912 byte (512 MiB).";
+                    detail.Text="[APPLE-CATALOG-TOTAL-LIMIT] La somma di database e WAL supera il limite di memoria. DB: 1073741812 byte; WAL: 65536 byte. Limite: 1073741824 byte (1 GiB).";
                     scroll.ScrollControlIntoView(detail);
                 }
                 await Task.Delay(350);if(Width<700||Height<550)throw new InvalidOperationException("UI smoke dimensions invalid");

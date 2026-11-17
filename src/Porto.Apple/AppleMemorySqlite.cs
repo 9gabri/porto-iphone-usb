@@ -21,7 +21,7 @@ internal sealed class AppleMemorySqlite : IDisposable
             Native.sqlite3_progress_handler(db,1000,progress,0);
             Native.sqlite3_limit(db,0,4*1024*1024);
             Query("PRAGMA temp_store=MEMORY",1);Query("PRAGMA trusted_schema=OFF",1);Query("PRAGMA query_only=ON",1);
-            bufferLength=checked(image.Length+32);buffer=Marshal.AllocHGlobal(bufferLength);
+            bufferLength=checked(image.Length+32);AppleCatalogMemory.EnsureAvailable(bufferLength);buffer=Marshal.AllocHGlobal(bufferLength);
             Marshal.Copy(image,0,buffer,image.Length);
             for(int i=image.Length;i<bufferLength;i++)Marshal.WriteByte(buffer,i,0);
             // WAL has already been validated and applied to this RAM copy; deserialize cannot open WAL.
@@ -95,7 +95,7 @@ internal sealed class AppleMemorySqlite : IDisposable
 
 internal static class AppleSqliteImage
 {
-    internal const int MaximumBytes=512*1024*1024;
+    internal const int MaximumBytes=1024*1024*1024;
     internal static int ValidateDatabase(ReadOnlySpan<byte> data)
     {
         if(data.Length<512||data.Length>MaximumBytes||!data[..16].SequenceEqual("SQLite format 3\0"u8))throw Bad();
@@ -129,19 +129,24 @@ internal static class AppleSqliteImage
         }
         if(lastCommit==0)return database;
         int length=checked((int)finalPages*page);
+        if(length!=database.Length)AppleCatalogMemory.EnsureAvailable(length);
         byte[] result=length==database.Length?database:new byte[length];
-        if(!ReferenceEquals(result,database))database.AsSpan(0,Math.Min(database.Length,length)).CopyTo(result);
-        for(int i=0;i<lastCommit;i++)
+        try
         {
-            cancel.ThrowIfCancellationRequested();var frame=frames[i];
-            if(frame.Page<=finalPages)wal.AsSpan(frame.Offset,page).CopyTo(result.AsSpan(checked(((int)frame.Page-1)*page),page));
+            if(!ReferenceEquals(result,database))database.AsSpan(0,Math.Min(database.Length,length)).CopyTo(result);
+            for(int i=0;i<lastCommit;i++)
+            {
+                cancel.ThrowIfCancellationRequested();var frame=frames[i];
+                if(frame.Page<=finalPages)wal.AsSpan(frame.Offset,page).CopyTo(result.AsSpan(checked(((int)frame.Page-1)*page),page));
+            }
+            ValidateDatabase(result);return result;
         }
-        ValidateDatabase(result);return result;
+        catch {if(!ReferenceEquals(result,database))System.Security.Cryptography.CryptographicOperations.ZeroMemory(result);throw;}
     }
     private static uint Big(byte[] data,int offset)=>BinaryPrimitives.ReadUInt32BigEndian(data.AsSpan(offset));
     private static void Checksum(ReadOnlySpan<byte> data,bool big,ref uint first,ref uint second)
     {
         unchecked {for(int i=0;i<data.Length;i+=8){first+=(big?BinaryPrimitives.ReadUInt32BigEndian(data[i..]):BinaryPrimitives.ReadUInt32LittleEndian(data[i..]))+second;second+=(big?BinaryPrimitives.ReadUInt32BigEndian(data[(i+4)..]):BinaryPrimitives.ReadUInt32LittleEndian(data[(i+4)..]))+first;}}
     }
-    private static IOException Bad()=>new("Database o journal Foto troncato, incoerente o oltre il limite di 512 MiB. Nessuna lettura parziale viene presentata come completa.");
+    private static IOException Bad()=>new("Database o journal Foto troncato, incoerente o oltre il limite di 1 GiB. Nessuna lettura parziale viene presentata come completa.");
 }

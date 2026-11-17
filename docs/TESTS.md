@@ -1,21 +1,28 @@
-# Verifiche della candidata diagnostica 0.1.0-rc.16
+# Verifiche 0.1.0-rc.17
 
-Questa versione identifica il blocco del catalogo, non lo dichiara risolto. Nessun telefono, catalogo o media reale usato nei test; nessuna modifica ai file delle prove.
+Solo dati sintetici: nessun telefono, catalogo personale o file delle prove aperto o modificato. Il problema identificato nella foto rc.16 è il limite di dimensione, non ancora la compatibilità dello schema iOS.
 
-## Riproduzione
+## Riproduzione e correzione
 
-Otto casi di metadati non validi contro il binario pubblico rc.15: 0/8 test diagnostici superati. Sette condizioni usavano il messaggio indistinto; il caso difensivo WAL negativo raggiungeva un'apertura non prevista (il trasporto reale già respinge lunghezze negative). Non sono otto difetti nuovi di trasferimento.
+- Contro la DLL pubblica immutabile rc.16: entrambe le prove con DB 563425280 byte (con WAL 4227152 byte oppure assente) rifiutate con APPLE-CATALOG-DB-LIMIT, 0/2 accettate.
+- Sempre contro rc.16: test del buffer di confronto fallito, 0/1, perché la seconda lettura allocava l'intero catalogo.
+- Con la correzione: 9/9 test dedicati di confronto a blocchi, incluse letture corte, differenze, troncamenti/crescita, WAL apparso/scomparso/modificato, metadati mutati dopo EOF, journal attivo e cancellazione; controllo buffer massimo 1 MiB e azzeramento.
+- Tre test del controllo memoria: soglia esatta, RAM o capacità di allocazione insufficienti, input negativi/enormi e lettura della disponibilità Windows. Nessun limite o controllo di integrità viene disabilitato.
 
-Dopo la modifica: 11/11 casi dedicati, inclusi limiti esatti, somma delle dimensioni, WAL assente/vuoto, long.MaxValue, nessuna apertura dopo rifiuto e classificazione AFC sintetica di file/cartella/collegamento/tipo sconosciuto. Nessun valore arbitrario del dispositivo nei messaggi.
+## Prova grande effettiva
 
-## Verifica finale pertinente
+Comando sul build finale: `Porto.Tests.exe --large-apple "--filter=apple large catalog"`, 3/3 passati. Include le due dimensioni riportate e una acquisizione completa con DB SQLite valido di **566362112 byte**, oltre quello della cliente, e WAL valido di **4227152 byte**. I dati sono generati in una cartella temporanea isolata e rimossi dal fixture; non sono cataloghi del telefono.
 
-Build dei test senza avvisi/errori. Eseguiti tramite apphost Porto.Tests.exe: filtro apple 88/88, filtro gallery import 12/12 (100 casi distinti). I casi comprendono autenticazione, protocollo AFC, catalogo SQLite/WAL, acquisizione e importazione galleria. Log in test-results.txt. La suite generale 503/503 della rc.15 e le prove estese precedenti non sono state ripetute in questo ciclo diagnostico.
+Verificati due passaggi integrali su DB e WAL, integrità SQLite, conteggi e appartenenza all'album, sorgenti sintetiche invariate mediante SHA-256. Allocazioni managed durante la cattura: **571731568 byte**, inferiori alla soglia DB+128 MiB che rileverebbe una seconda copia completa. Picco working set del processo di test: **1746190336 byte**, comprendente anche la sorgente sintetica in RAM. Cattura/decodifica in memoria: 786 ms; questo valore NON misura la velocità USB reale. La verifica strutturale mantiene i limiti SQLite esistenti.
 
-Build finale app senza avvisi/errori; due smoke UI locali, inclusa la schermata compatta con il messaggio numerico completo, controllata visivamente. Un primo build del nuovo scenario UI sintetico aveva un nome di variabile errato: corretto prima del build finale, nessun errore ignorato. I comandi normali dell'app non eseguono lo scenario sintetico.
+## Build e controlli finali
 
-Il confezionamento e il download pubblico verificano interop, worker, nove stati UI, versione e integrità senza enumerare telefoni. Resoconto successivo al tag in RELEASE-VERIFICATION.md. Nessun test rimosso o limite di memoria aumentato.
+Build dei test e dell'app senza avvisi/errori. Due smoke UI locali, inclusa la schermata compatta con diagnostica numerica completa controllata visivamente. Suite ordinaria finale **528/528 superata**, eseguita tramite apphost Porto.Tests.exe sul build finale. Log `test-results.txt`; verifiche del pacchetto pubblicato in `RELEASE-VERIFICATION.md`, registrate dopo il tag.
 
-## Limite residuo
+La prova grande Apple è stata eseguita in questo ciclo; le precedenti prove estese con file video oltre 4 GB e inventari di grandi dimensioni non sono state ripetute. La suite ordinaria continua a includere copia/ripresa, errori, arresti di processo, conservazione dei file estranei, cataloghi, USB e TLS.
 
-L'esecuzione rc.15 dell'utente ha raggiunto i metadati del catalogo dopo TLS; non conosciamo ancora quale dei controlli abbia rifiutato il catalogo. La rc.16 serve a mostrare codice, dimensioni e tipo. Non dimostra apertura degli album o importazione riuscita. Non è pronta per dichiarare completato il caso iPhone. Analisi in REVIEW-RC16.md.
+## Limiti della verifica
+
+Un controllo della disponibilità RAM/commit è una misura momentanea, non una prenotazione. Porto mantiene un margine di 512 MiB e gestisce anche errori di allocazione. Non è stato aumentato il limite del parser senza accompagnarlo a confronto a blocchi e controlli sulle allocazioni. Il buffer nativo conserva 32 byte aggiuntivi secondo SQLite.
+
+Sull'iPhone reale restano da confermare lettura coerente del catalogo, schema iOS, album, originali locali, copia e ripresa. Le prove sintetiche non attestano riuscita della prossima importazione o assenza universale di bug. Dettagli e revisione indipendente in `REVIEW-RC17.md`.

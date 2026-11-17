@@ -142,4 +142,11 @@ prova con il telefono. Nessun totale artificiale basato sui componenti Live Phot
 - [x] Messaggi distinti, dimensioni numeriche e tipo non regolare, senza aumentare limiti o seguire link.
 - [x] 11 nuovi casi, verifica finale pertinente 88/88 Apple e 12/12 galleria; build e schermata diagnostica verificate.
 - [x] Pacchetto diagnostico pubblico riscaricato e verificato: hash, CRC, contenuto/versione, dodici smoke, pagina e anteprima; quindici archivi precedenti invariati.
-- [ ] Ottenere codice/dimensioni dalla prova reale e risolvere il blocco individuato. Importazione album non ancora pronta.
+- [x] Ottenuti codice/dimensioni dalla prova reale: DB-LIMIT. Correzione del limite sviluppata in rc.17; prova album reale ancora pendente.
+
+## rc.17 — catalogo oltre 512 MiB
+- [x] Diagnosi reale: DB 563425280 byte, WAL 4227152 byte; limite riprodotto contro rc.16.
+- [x] Confronto completo a blocchi di 1 MiB, limite 1 GiB, controlli memoria e pulizia WAL.
+- [x] Revisione indipendente e prova completa con catalogo sintetico di 566362112 byte più WAL 4227152 byte.
+- [ ] Suite finale, pacchetto pubblico riscaricato e verificato.
+- [ ] Conferma su iPhone: lista album, schema iOS, copia piccola e ripresa. Nessuna compatibilità definitiva dichiarata.

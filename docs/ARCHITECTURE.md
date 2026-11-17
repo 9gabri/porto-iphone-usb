@@ -193,3 +193,9 @@ ApplePairingCrypto mantiene BouncyCastle 2.7.0 e il parser generale come primo p
 ## rc.16 — distinzione del blocco catalogo
 
 ValidateMetadata separa rifiuti per tipo, dimensione nulla/non valida, limite per database/WAL e somma. Le somme vengono effettuate solo dopo aver limitato entrambi gli operandi. AppleFileInfo conserva una categoria fissa per i tipi non regolari già restituiti da AFC, senza usare LinkTarget o seguire collegamenti. La diagnostica contiene solo ruoli fissi, categorie e dimensioni numeriche; nessun metadato arbitrario viene mostrato. Limite di 512 MiB e acquisizione in RAM invariati. Non è una soluzione per cataloghi più grandi.
+
+## rc.17 — cataloghi grandi con confronto a blocchi
+
+Il limite DB+WAL passa a 1 GiB. Capture conserva una sola acquisizione e VerifyCapture confronta la seconda lettura integralmente con scratch da 1 MiB azzerato in finally. Presenza/metadati DB, WAL e journal sono controllati prima e dopo, inclusa l'uguaglianza fra le acquisizioni. Il termine complessivo è dieci minuti, con cancellazione e timeout per singola lettura invariati. SQLite conserva il limite separato di trenta secondi.
+
+AppleCatalogMemory usa GlobalMemoryStatusEx prima di acquisire DB+WAL, allocare un eventuale risultato WAL di dimensione diversa e copiare in memoria nativa. Richiede sia RAM sia capacità di allocazione per il nuovo buffer più 512 MiB di margine; non è una prenotazione. Gli errori OutOfMemory sono convertiti in errore leggibile e i buffer vengono puliti. La deserializzazione conserva 32 byte aggiuntivi e la modalità readonly. Il buffer WAL nuovo viene azzerato anche se una successiva validazione o cancellazione impedisce di restituirlo. Nessun catalogo personale viene salvato su disco.

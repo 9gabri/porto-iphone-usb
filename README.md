@@ -1,8 +1,8 @@
 # Porto
 
-App locale in italiano per copiare foto e video dal telefono al PC, senza conversioni. **0.1.0-rc.16 diagnostica**, Windows 11 x64 con runtime incluso. La lettura degli album sul caso iPhone corrente resta bloccata.
+App locale in italiano per copiare foto e video dal telefono al PC, senza conversioni. **0.1.0-rc.17 candidata**, Windows 11 x64 con runtime incluso. Corregge il rifiuto dei cataloghi oltre 512 MiB, con gestione della memoria controllata; lettura album e copia da confermare sull'iPhone reale.
 
-[Scarica Windows](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.16/Porto-0.1.0-rc.16-win-x64.zip) · [Checksum](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.16/SHA256SUMS.txt) · [Guida](docs/PHONES-AND-ALBUMS.md)
+[Scarica Windows](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.17/Porto-0.1.0-rc.17-win-x64.zip) · [Checksum](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.17/SHA256SUMS.txt) · [Guida](docs/PHONES-AND-ALBUMS.md)
 
 ## Scegli origine, contenuti e destinazione
 
@@ -14,9 +14,9 @@ Premi **Avvia importazione** per copiare in massa il tipo scelto. Non occorre se
 
 **Non è compatibilità universale:** tutti i modelli di telefono, tutte le app Galleria e qualsiasi raccolta non possono essere dichiarati supportati. In particolare raccolte intelligenti/condivise iPhone e album privati/cloud Android possono non essere accessibili. Porto segnala questi limiti; non sostituisce silenziosamente un album con l'intero telefono. [Capacità e confini](docs/GALLERY-IMPORT.md).
 
-## Diagnosi del catalogo iPhone rc.16
+## Cataloghi iPhone grandi rc.17
 
-La rc.15 ha superato il precedente blocco TLS ed è arrivata ai metadati del catalogo Foto. Il nuovo messaggio aggregava tipo di file, dimensione nulla e superamento del limite di 512 MiB. La rc.16 distingue le cause con un codice e le dimensioni numeriche di database e WAL. Non aumenta il limite, non segue collegamenti e non salva il catalogo sul PC. Serve a ottenere l'informazione mancante per la correzione; non è presentata come pronta per completare l'importazione dal caso iPhone corrente. [Analisi rc.16](docs/REVIEW-RC16.md).
+La diagnostica rc.16 ha confermato che il database Foto di 563.425.280 byte superava il limite di 512 MiB. La rc.17 accetta fino a 1 GiB complessivo di catalogo e WAL, confronta la seconda lettura a blocchi di 1 MiB e controlla RAM e capacità di allocazione prima delle allocazioni maggiori. Conserva il controllo byte per byte, l'integrità SQLite e la memoria nativa con margine di sicurezza. Non salva il catalogo sul PC. La correzione del limite non dimostra da sola compatibilità dello schema iOS o riuscita della copia: prima prova un album piccolo. [Analisi rc.17](docs/REVIEW-RC17.md).
 
 Se una copia USB è in corso, attendi la fine o una pausa confermata e chiudi Porto prima di aggiornare. Estrai la candidata in una cartella nuova, conservando tutti i file delle prove.
 
@@ -37,7 +37,7 @@ Le nuove foto sono in **Foto Porto**, i video in **Video Porto**. Le vecchie ris
 ## Limiti e privacy
 
 - Video MOV/MP4/M4V; foto JPEG, PNG statico e HEIF/HEIC HEVC nei profili riconosciuti. Altri formati restano segnalati, non dichiarati verificati. Verifica strutturale e dei byte, non decodifica completa.
-- Il catalogo iPhone usa uno schema privato, non un'API PhotoKit ufficiale per Windows. Letture ripetute, WAL e integrità controllati; nessuno snapshot atomico della libreria certificato. Limite dei dati catalogo+WAL acquisiti: 512 MiB; le verifiche richiedono ulteriori copie in memoria. Solo album personali riconosciuti; Nascosti ed Eliminati di recente esclusi con conteggi visibili.
+- Il catalogo iPhone usa uno schema privato, non un'API PhotoKit ufficiale per Windows. Letture ripetute, WAL e integrità controllati; nessuno snapshot atomico della libreria certificato. Limite dei dati catalogo+WAL acquisiti: 1 GiB; le verifiche richiedono ulteriori copie in memoria. Solo album personali riconosciuti; Nascosti ed Eliminati di recente esclusi con conteggi visibili.
 - Originali soltanto su iCloud/Google Foto non vengono scaricati. Gli elementi individuati ma non disponibili restano nel report. Nessun totale prestabilito promesso.
 - Windows 11 x64, archivio locale NTFS, percorso massimo 120 caratteri; niente rete, exFAT, Windows ARM, link/junction. Origine locale separata dalla destinazione.
 - Nessuna scrittura sul telefono, conversione, upload, telemetria, acquisto o Apple ID. Nessuna installazione o avvio di servizi Windows, driver o riduzione delle protezioni. Abbinamento Apple già autorizzato riutilizzato senza creazione di nuove credenziali; chiavi e database Foto non salvati come file. I report e lo stato locale contengono metadati degli elementi selezionati necessari alla ripresa.
@@ -45,7 +45,7 @@ Le nuove foto sono in **Foto Porto**, i video in **Video Porto**. Le vecchie ris
 
 **Candidata per il collaudo, non versione certificata o definitiva.** Le verifiche sintetiche non dimostrano compatibilità hardware. Restano da confermare collegamento Apple reale, schema iOS, album e conteggi sul telefono, trasferimento e ripresa su iPhone/Android.
 
-[Test](docs/TESTS.md) · [Revisione rc.16](docs/REVIEW-RC16.md) · [Architettura](docs/ARCHITECTURE.md) · [Licenze](THIRD-PARTY-NOTICES.md) · [Verifica pubblicazione](docs/RELEASE-VERIFICATION.md).
+[Test](docs/TESTS.md) · [Revisione rc.17](docs/REVIEW-RC17.md) · [Architettura](docs/ARCHITECTURE.md) · [Licenze](THIRD-PARTY-NOTICES.md) · [Verifica pubblicazione](docs/RELEASE-VERIFICATION.md).
 
 SDK .NET 10, runtime incluso 10.0.14. `scripts/dev.ps1 test -Large`, `scripts/dev.ps1 build`, `scripts/dev.ps1 publish`. Test isolati; `--ui-smoke <percorso.png>` non cerca telefoni. Nessuna discovery hardware automatica all'avvio.
 

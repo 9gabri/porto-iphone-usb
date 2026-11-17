@@ -140,30 +140,30 @@ internal static class AppleCatalogCapture
     private const string Database="/PhotoData/Photos.sqlite";
     internal static AppleGalleryCatalog Read(IAppleFileSystem files,CancellationToken cancel)
     {
-        using var deadline=CancellationTokenSource.CreateLinkedTokenSource(cancel);deadline.CancelAfter(TimeSpan.FromMinutes(3));
-        byte[]? db=null,wal=null,secondDb=null,secondWal=null,merged=null;
+        using var deadline=CancellationTokenSource.CreateLinkedTokenSource(cancel);deadline.CancelAfter(TimeSpan.FromMinutes(10));
+        byte[]? db=null,wal=null,merged=null;
         try
         {
-            AppleFileInfo? firstJournal,secondJournal;
-            (db,wal,firstJournal)=Capture(files,deadline.Token);(secondDb,secondWal,secondJournal)=Capture(files,deadline.Token);
-            if(!db.AsSpan().SequenceEqual(secondDb)||!Same(wal,secondWal)||firstJournal!=secondJournal)throw new IOException("Il catalogo Foto è cambiato durante la lettura. Ripeti senza modificare la libreria.");
-            CryptographicOperations.ZeroMemory(secondDb);secondDb=null;
-            if(secondWal!=null){CryptographicOperations.ZeroMemory(secondWal);secondWal=null;}
+            AppleFileInfo firstInfo;AppleFileInfo? firstWalInfo,firstJournal;
+            (db,wal,firstInfo,firstWalInfo,firstJournal)=Capture(files,deadline.Token);
+            VerifyCapture(files,db,wal,firstInfo,firstWalInfo,firstJournal,deadline.Token);
             merged=AppleSqliteImage.ApplyWal(db,wal,deadline.Token);
             return AppleCatalogDecoder.Decode(merged,deadline.Token);
         }
-        catch(OperationCanceledException) when(!cancel.IsCancellationRequested){throw new IOException("Lettura del catalogo Foto oltre il limite di tre minuti.");}
+        catch(OperationCanceledException) when(!cancel.IsCancellationRequested){throw new IOException("Lettura del catalogo Foto oltre il limite di dieci minuti.");}
+        catch(OutOfMemoryException){throw new IOException("[APPLE-CATALOG-MEMORY] Memoria insufficiente durante la lettura del catalogo. Chiudi le altre applicazioni e riprova.");}
         finally
         {
-            foreach(var buffer in new[]{db,wal,secondDb,secondWal,merged})if(buffer!=null)CryptographicOperations.ZeroMemory(buffer);
+            foreach(var buffer in new[]{db,wal,merged})if(buffer!=null)CryptographicOperations.ZeroMemory(buffer);
         }
     }
-    private static (byte[] Database,byte[]? Wal,AppleFileInfo? Journal) Capture(IAppleFileSystem files,CancellationToken cancel)
+    private static (byte[] Database,byte[]? Wal,AppleFileInfo Info,AppleFileInfo? WalInfo,AppleFileInfo? Journal) Capture(IAppleFileSystem files,CancellationToken cancel)
     {
         var info=files.Stat(Database,cancel)??throw new IOException("L'iPhone non espone il catalogo Foto tramite il servizio USB Apple. Nessun elenco di file viene sostituito agli album.");
         var walInfo=files.Stat(Database+"-wal",cancel);var journalInfo=files.Stat(Database+"-journal",cancel);
         ValidateInactiveJournal(files,journalInfo,cancel);
         ValidateMetadata(info,walInfo);
+        AppleCatalogMemory.EnsureAvailable(info.Length+(walInfo?.Length??0));
         byte[]? data=null,wal=null;
         try
         {
@@ -172,7 +172,7 @@ internal static class AppleCatalogCapture
             ValidateInactiveJournal(files,journalInfo,cancel);
             if(info!=files.Stat(Database,cancel)||walInfo!=files.Stat(Database+"-wal",cancel)||journalInfo!=files.Stat(Database+"-journal",cancel))
                 throw new IOException("Il catalogo Foto è cambiato durante l'acquisizione.");
-            return(data,wal,journalInfo);
+            return(data,wal,info,walInfo,journalInfo);
         }
         catch{if(data!=null)CryptographicOperations.ZeroMemory(data);if(wal!=null)CryptographicOperations.ZeroMemory(wal);throw;}
     }
@@ -194,7 +194,7 @@ internal static class AppleCatalogCapture
             _=>"La somma di database e WAL supera il limite di memoria."
         };
         // Only fixed roles and numeric metadata: no paths, contents, device IDs or library names.
-        throw new IOException(FormattableString.Invariant($"[APPLE-CATALOG-{reason}] {detail} DB: {info.Length} byte; WAL: {(wal==null?"assente":wal.Length.ToString(System.Globalization.CultureInfo.InvariantCulture)+" byte")}. Limite: 536870912 byte (512 MiB)."));
+        throw new IOException(FormattableString.Invariant($"[APPLE-CATALOG-{reason}] {detail} DB: {info.Length} byte; WAL: {(wal==null?"assente":wal.Length.ToString(System.Globalization.CultureInfo.InvariantCulture)+" byte")}. Limite: {AppleSqliteImage.MaximumBytes} byte (1 GiB)."));
     }
     private static string NonFileDescription(AppleNonFileKind kind)=>kind switch
     {AppleNonFileKind.Directory=>"cartella",AppleNonFileKind.SymbolicLink=>"collegamento",_=>"tipo non regolare non riconosciuto"};
@@ -235,5 +235,40 @@ internal static class AppleCatalogCapture
         }
         catch{CryptographicOperations.ZeroMemory(result);throw;}
     }
-    private static bool Same(byte[]? first,byte[]? second)=>first==null?second==null:second!=null&&first.AsSpan().SequenceEqual(second);
+    private static void VerifyCapture(IAppleFileSystem files,byte[] database,byte[]? wal,AppleFileInfo info,AppleFileInfo? walInfo,AppleFileInfo? journalInfo,CancellationToken cancel)
+    {
+        void CheckMetadata()
+        {
+            cancel.ThrowIfCancellationRequested();
+            if(info!=files.Stat(Database,cancel)||walInfo!=files.Stat(Database+"-wal",cancel)||journalInfo!=files.Stat(Database+"-journal",cancel))
+                throw ChangedDuringVerification();
+        }
+        CheckMetadata();
+        ValidateInactiveJournal(files,journalInfo,cancel);
+        // Re-read every byte exactly, retaining only a bounded comparison buffer rather than a second catalog.
+        byte[] scratch=new byte[1024*1024];
+        try
+        {
+            Compare(Database,database);
+            if(wal!=null)Compare(Database+"-wal",wal);
+            ValidateInactiveJournal(files,journalInfo,cancel);
+            CheckMetadata();
+        }
+        finally{CryptographicOperations.ZeroMemory(scratch);}
+
+        void Compare(string path,byte[] expected)
+        {
+            using var input=files.OpenRead(path,cancel);int offset=0;
+            while(offset<expected.Length)
+            {
+                cancel.ThrowIfCancellationRequested();
+                int read=input.Read(scratch,0,Math.Min(scratch.Length,expected.Length-offset));
+                if(read==0||!scratch.AsSpan(0,read).SequenceEqual(expected.AsSpan(offset,read)))throw ChangedDuringVerification();
+                offset+=read;
+            }
+            cancel.ThrowIfCancellationRequested();
+            if(input.ReadByte()!=-1)throw ChangedDuringVerification();
+        }
+    }
+    private static IOException ChangedDuringVerification()=>new("Il catalogo Foto è cambiato durante la lettura. Ripeti senza modificare la libreria.");
 }

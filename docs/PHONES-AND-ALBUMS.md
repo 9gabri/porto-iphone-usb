@@ -1,6 +1,6 @@
-# Telefoni, foto, video e album — rc.16
+# Telefoni, foto, video e album — rc.17
 
-La prova reale rc.15 ha superato TLS e si è fermata sui metadati del catalogo. La rc.16 è diagnostica: conserva il limite di 512 MiB e indica quale condizione blocca la lettura, con dimensioni numeriche e tipo di file. Non risolve ancora il blocco catalogo. Dopo Cerca dispositivi e Scegli album, conserva l'intero messaggio APPLE-CATALOG; non avviare una grande importazione per la diagnosi. Non cambiare le protezioni di Windows e non ripristinare l'iPhone. Prima di aggiornare chiudi Porto ed estrai la candidata in una cartella nuova, conservando tutti i file precedenti.
+La prova rc.16 ha identificato un database di circa 537 MiB, oltre il precedente limite. La rc.17 accetta catalogo e WAL fino a 1 GiB complessivo, con confronto a blocchi e controllo della memoria disponibile. Resta da confermare l'apertura degli album e il trasferimento sul telefono reale: prova prima un album piccolo. Se compare APPLE-CATALOG-MEMORY, chiudi le altre applicazioni e riprova; non modificare il file di paging o le protezioni di Windows. Prima di aggiornare chiudi Porto ed estrai la candidata in una cartella nuova, conservando tutti i file precedenti.
 
 Porto copia dal telefono al PC, senza cancellare o spostare gli originali. La nuova modalità iPhone legge il catalogo della libreria Foto; non richiede un'esportazione preliminare. È una candidata da collaudare: compatibilità reale non ancora confermata.
 
@@ -22,11 +22,11 @@ Porto copia dal telefono al PC, senza cancellare o spostare gli originali. La nu
 
 Le Live Photo sono trattate come immagini: con Solo video le componenti animate non vengono copiate. Con Solo foto o Foto e video viene copiata la sola immagine originale della Live Photo, non l'effetto animato. Le copie precedenti, anche eventuali clip Live, restano al loro posto.
 
-Sono supportati gli album personali riconosciuti nel catalogo, non tutte le raccolte intelligenti/condivise. Nascosti ed Eliminati di recente sono esclusi con conteggi visibili. Gli originali presenti solo su iCloud non sono scaricati da Porto. Un catalogo non accessibile, oltre 512 MiB o con schema non riconosciuto blocca questa modalità; non viene sostituito con i file USB generici. La lettura del catalogo può richiedere tempo, ma non esplora tutte le cartelle del telefono.
+Sono supportati gli album personali riconosciuti nel catalogo, non tutte le raccolte intelligenti/condivise. Nascosti ed Eliminati di recente sono esclusi con conteggi visibili. Gli originali presenti solo su iCloud non sono scaricati da Porto. Un catalogo non accessibile, oltre 1 GiB o con schema non riconosciuto blocca questa modalità; non viene sostituito con i file USB generici. La lettura del catalogo può richiedere tempo, ma non esplora tutte le cartelle del telefono.
 
-## Prima prova iPhone rc.16
+## Prima prova iPhone rc.17
 
-1. Apri la rc.16 sul PC Windows della cliente. Collega e sblocca il suo iPhone con un cavo dati; il computer deve essere già autorizzato e il collegamento Apple disponibile. Porto non installa componenti né crea l'abbinamento.
+1. Apri la rc.17 sul PC Windows della cliente. Collega e sblocca il suo iPhone con un cavo dati; il computer deve essere già autorizzato e il collegamento Apple disponibile. Porto non installa componenti né crea l'abbinamento.
 2. Seleziona **Importa da → iPhone · libreria Foto via USB → Cerca dispositivi**. La comparsa del telefono prova soltanto la ricerca del dispositivo, non ancora l'accesso alla libreria.
 3. Seleziona **Un album della libreria Foto → Scegli album**. Questa operazione verifica anche la sessione Apple e la lettura del catalogo senza copiare foto o video. Se compare un errore, conserva il messaggio: non passare alla modalità USB generica per dichiarare risolto il problema delle Live Photo.
 4. Se disponibile, scegli un piccolo album personale esistente con video originali locali. Seleziona **Solo video** e una nuova cartella NTFS di prova. Le componenti animate delle Live Photo non devono essere importate come video. Se non c'è un album piccolo adatto, l'elenco degli album resta comunque una verifica preliminare; il trasferimento della selezione richiesta va ancora collaudato.
