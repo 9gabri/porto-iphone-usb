@@ -1,3 +1,20 @@
+# Verifiche 0.1.0-rc.20
+
+17 novembre 2026; build Release, .NET 10.0.14. Solo fixture sintetiche e nuove directory. Nessun telefono, record di abbinamento o file personale delle prove letto o modificato.
+
+- Suite ordinaria finale: **555/555 passati** in una sola esecuzione, incluse le fixture NTFS hard link/junction e gli arresti reali dei processi figli. Nessun test ignorato. Build senza avvisi/errori.
+- AFC: letture complete a 64/256/512 KiB, due blocchi pieni più coda, EOF, hash, numero richieste e rifiuto di risposte oltre la lunghezza richiesta. Il precedente caso a 256 KiB resta esplicito; aggiunto il caso per il default 512 KiB. TLS, catalogo, selezione, quantità, resume e copie precedenti restano nella suite completa.
+- Benchmark AFC finale: warmup e tre ripetizioni per variante; tutti i controlli di hash/byte/richieste passati, più dodici guasti sintetici (sei per ciascuna delle due dimensioni principali). Ripetuto dopo la prima misura; intervalli delle varianti con latenza simulata separati in entrambe le esecuzioni. Dettagli, latenze effettive e limiti in REVIEW-RC20.md. Non misura USB o importazione completa.
+- Catalogo grande: **1/1 passato**, SQLite valido 566.362.112 byte e WAL 4.227.152 byte, cattura/rilettura/integrità/hash. Cattura sintetica da RAM 706 ms, allocazioni gestite 571.731.952 byte, picco processo 1.744.584.704 byte. Non è un tempo USB.
+- Flusso oltre 4 GiB: **1/1 passato**, 4.294.967.313 byte realmente letti e sottoposti a hash verso Stream.Null, 2,35 s, working set 29 MiB. Non misura il salvataggio sul disco né il trasporto AFC.
+- Ripetizione del test di copia/replay NTFS oltre 4 GiB: **non completata in questo ciclo**. Un tentativo non ha prodotto l'esito finale dopo l'interruzione della sessione; il secondo è stato fermato esplicitamente, identificando il solo processo sintetico, perché la scrittura locale procedeva molto lentamente (circa 344 MiB dopo 215 s). Nessun esito positivo attribuito. Dati di prova conservati; temporanei DeleteOnClose gestiti normalmente. Core è identico alla rc.19, dove la prova completa era passata; quel risultato precedente non viene contato come ripetizione rc.20. La causa della lentezza locale non è stata determinata.
+- Packaging: **4/4 passati** (interruzione, invalido, esistente, successo). Pacchetto e download pubblico sono controllati dopo il tag con avvio autonomo e UI sintetica senza dispositivi; esiti in RELEASE-VERIFICATION.md.
+
+I dodici nuovi test del prototipo Core scartato e le sedici regressioni filtrate erano passati, ma non appartengono al prodotto consegnato e non incrementano il totale finale. Nuove revisioni delegate non disponibili per quota; nessun fallback a pagamento. Test e revisione locale non equivalgono a collaudo hardware o certificazione.
+
+Log finali in test-results.txt; il precedente log è conservato in test-results-rc19.txt. Risultati numerici in performance-rc20/. Di seguito resta la storia dei cicli precedenti.
+
+---
 # Verifiche 0.1.0-rc.19
 
 Solo dati sintetici e nuove cartelle isolate; nessun telefono o file personale delle prove consultato. Versione candidata: tempi e compatibilità del trasporto da 256 KiB da confermare sul dispositivo reale.

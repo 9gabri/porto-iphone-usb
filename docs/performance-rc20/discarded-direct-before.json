@@ -1,0 +1,88 @@
+{
+  "variant": "before",
+  "synthetic": true,
+  "realUsb": false,
+  "delayMs": 0,
+  "warmupExcluded": true,
+  "coreSha": "9AFFA358547334F0F41DED834BD74268AEC43EE4B5FE279ABC940816B862A914",
+  "rows": [
+    {
+      "trial": 1,
+      "milliseconds": 3678.13,
+      "Bytes": 536870912,
+      "Opens": 1,
+      "length": 536870912,
+      "cpuMs": 3828.125,
+      "Performance": {
+        "TotalMilliseconds": 3648.3719,
+        "InventoryMilliseconds": 0.0073,
+        "InitialInventoryMilliseconds": 0.0056,
+        "FinalInventoryMilliseconds": 0.0017,
+        "MediaOpenMilliseconds": 0.0107,
+        "MediaReadMilliseconds": 37.76899999999997,
+        "LocalVerificationMilliseconds": 521.5525,
+        "ReportMilliseconds": 80.4203,
+        "MediaSourceBytes": 536870912,
+        "MediaReadCalls": 513,
+        "MediaOpenAttempts": 1,
+        "LocalReplayBytes": 536870912,
+        "ProcessCpuMilliseconds": 2859.375,
+        "ProcessPeakWorkingSetBytes": 61591552,
+        "AppleTransport": null,
+        "TimingScope": "Per passaggio, dall\u0027ingresso Run fino alla scrittura del report principale; scelta album precedente, chiusura finale e scrittura di questo file esclusi. Tempi di lettura e verifica inclusi nel totale, non sommabili. CPU/memoria riguardano il processo. Byte AFC sono payload, non traffico USB fisico. Il riepilogo nel report principale precede le misure finali di questo file."
+      }
+    },
+    {
+      "trial": 2,
+      "milliseconds": 17245.7596,
+      "Bytes": 536870912,
+      "Opens": 1,
+      "length": 536870912,
+      "cpuMs": 3781.25,
+      "Performance": {
+        "TotalMilliseconds": 17219.3591,
+        "InventoryMilliseconds": 0.0112,
+        "InitialInventoryMilliseconds": 0.0034,
+        "FinalInventoryMilliseconds": 0.0078,
+        "MediaOpenMilliseconds": 0.0095,
+        "MediaReadMilliseconds": 35.97249999999998,
+        "LocalVerificationMilliseconds": 594.592,
+        "ReportMilliseconds": 80.3001,
+        "MediaSourceBytes": 536870912,
+        "MediaReadCalls": 513,
+        "MediaOpenAttempts": 1,
+        "LocalReplayBytes": 536870912,
+        "ProcessCpuMilliseconds": 2890.625,
+        "ProcessPeakWorkingSetBytes": 62431232,
+        "AppleTransport": null,
+        "TimingScope": "Per passaggio, dall\u0027ingresso Run fino alla scrittura del report principale; scelta album precedente, chiusura finale e scrittura di questo file esclusi. Tempi di lettura e verifica inclusi nel totale, non sommabili. CPU/memoria riguardano il processo. Byte AFC sono payload, non traffico USB fisico. Il riepilogo nel report principale precede le misure finali di questo file."
+      }
+    },
+    {
+      "trial": 3,
+      "milliseconds": 9025.1674,
+      "Bytes": 536870912,
+      "Opens": 1,
+      "length": 536870912,
+      "cpuMs": 3937.5,
+      "Performance": {
+        "TotalMilliseconds": 8997.8266,
+        "InventoryMilliseconds": 0.0296,
+        "InitialInventoryMilliseconds": 0.0273,
+        "FinalInventoryMilliseconds": 0.0023,
+        "MediaOpenMilliseconds": 0.0136,
+        "MediaReadMilliseconds": 36.19110000000003,
+        "LocalVerificationMilliseconds": 557.3259999999999,
+        "ReportMilliseconds": 84.2278,
+        "MediaSourceBytes": 536870912,
+        "MediaReadCalls": 513,
+        "MediaOpenAttempts": 1,
+        "LocalReplayBytes": 536870912,
+        "ProcessCpuMilliseconds": 2937.5,
+        "ProcessPeakWorkingSetBytes": 64303104,
+        "AppleTransport": null,
+        "TimingScope": "Per passaggio, dall\u0027ingresso Run fino alla scrittura del report principale; scelta album precedente, chiusura finale e scrittura di questo file esclusi. Tempi di lettura e verifica inclusi nel totale, non sommabili. CPU/memoria riguardano il processo. Byte AFC sono payload, non traffico USB fisico. Il riepilogo nel report principale precede le misure finali di questo file."
+      }
+    }
+  ]
+}

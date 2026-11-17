@@ -1,4 +1,6 @@
-PORTO 0.1.0-rc.19 — CANDIDATA WINDOWS 11 x64
+PORTO 0.1.0-rc.20 — CANDIDATA WINDOWS 11 x64
+
+rc.20: richieste Apple da 512 KiB, per ridurre le attese rispetto ai 256 KiB di rc.19. Controlli di autenticazione, integrità, catalogo e ripresa conservati. Il beneficio dipende dall'iPhone: non è una promessa di 29 GB entro un'ora. Lascia USB iPhone compatibile non selezionato nella prima prova; se compaiono errori, conserva il report e riprova con compatibilità 64 KiB e lo stesso archivio. Dettagli e benchmark sintetici in REVIEW-RC20.md.
 
 rc.19: ridotte le riletture complete dei nuovi file durante il confronto con copie precedenti in modalità iPhone. Richieste Apple da 256 KiB; opzione USB iPhone compatibile (64 KiB) per dispositivi che dessero errori. Rilettura locale SHA-256, controlli della selezione e ripresa conservati. Per la prima prova lascia la compatibilità non selezionata. Nuovi contatori locali performance-*.json in Report Porto; nessun invio. Tempi reali da misurare: nessuna promessa di 800 video in un'ora.
 

@@ -79,7 +79,7 @@ internal static class AppleUsbTransport
                 if(serviceSsl is not bool)throw ApplePlist.Bad();
                 if(serviceSsl is true)afc=identity.Protect(afc,cancel);
             }
-            var result=new AppleAfcFileSystem(afc,lockdown,identity,metrics){ReadLimit=compatibleUsb?64*1024:256*1024};afc=null;lockdown=null;identity=null;return result;
+            var result=new AppleAfcFileSystem(afc,lockdown,identity,metrics){ReadLimit=compatibleUsb?64*1024:512*1024};afc=null;lockdown=null;identity=null;return result;
         }
         catch(AuthenticationException){throw new IOException("Il collegamento Apple non soddisfa le impostazioni TLS di Windows o il certificato abbinato. Nessuna protezione è stata ridotta.");}
         catch(SocketException){throw new IOException("Il collegamento USB Apple si è interrotto.");}

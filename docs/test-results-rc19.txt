@@ -1,0 +1,633 @@
+=== full-tests-first.txt ===
+PASS copy and independently reread SHA256
+PASS truncation rejected
+PASS unexpected extra bytes rejected
+PASS corruption rejected
+PASS pause interrupts before write
+PASS real SQLite roundtrip, copy, changed IDs and verified resume
+PASS source duplicate multiplicity is preserved across ID changes
+PASS source filename collisions do not overwrite
+PASS missing completed file gets recopied
+PASS corrupt completed copy is preserved and reported
+PASS truncation reports error and no final filename
+PASS deep source corruption prevents publication
+PASS disk full before transfer pauses without reading
+PASS disk fills during copy and stops safely
+PASS read disconnect then reconnect
+PASS malicious names and catalog path escape rejected
+PASS concurrent importer is excluded
+PASS raw marker bytes do not exclude valid video and filename hints preserve extra copy
+PASS paired video is copied separately, photo remains unread and excluded
+PASS MOV MP4 M4V containers accepted; extension alone rejected
+PASS incomplete inventory and offline missing never claim full library
+PASS process termination and recovery at after-intent
+PASS process termination and recovery at after-flush
+PASS process termination and recovery at after-verification
+PASS process termination and recovery at after-ready
+PASS process termination and recovery at after-rename
+PASS process termination and recovery at after-complete
+PASS crash at after-flush followed by empty source retains conservative pending work
+PASS crash at after-complete followed by empty source retains conservative pending work
+PASS crash Ready collision preserves foreign file and recovers
+PASS crash Ready temporary corruption can be recopied
+PASS COM ABI and class registration, no device enumeration
+PASS unresponsive worker times out and is terminated
+PASS paused worker cancels pending read and is terminated
+PASS partial IPC payload timeout terminates worker
+PASS ambiguous verified files are reused without duplicate temporary copies
+PASS repeated and unbounded failing enumeration is stopped
+PASS missing copies remain visible across empty inventories
+PASS Ready without either file is reported missing immediately
+PASS crash during repair at after-ready keeps missing resolution atomic
+PASS crash during repair at after-rename keeps missing resolution atomic
+PASS crash during repair at after-complete keeps missing resolution atomic
+PASS failed replacement attempt does not duplicate missing debt (corrupt=False)
+PASS failed replacement attempt does not duplicate missing debt (corrupt=True)
+PASS discovery retries S_FALSE instead of silently losing Apple device
+PASS discovery distinguishes Windows empty, non Apple and incomplete metadata
+PASS fresh equal-sized videos use one source read each
+PASS isolated damaged source does not block healthy subsequent videos
+PASS one session retries transient error and completes without duplicate outputs
+PASS unreached inventory items persist when next inventory is empty
+PASS legacy Copying and quarantine cannot disappear under empty inventory
+PASS final inventory changes trigger another automatic pass
+PASS retry budget and user pause are bounded
+PASS resume compares all prefix bytes across short source reads
+PASS diverging or longer partial is unchanged and never accepted
+PASS pause during prefix verification does not append
+PASS repeated interruptions reuse one owned partial without deleting anything
+PASS resume capacity estimate counts only remaining suffix
+PASS offline size does not prevent accessible video copy
+PASS three unreadable videos do not starve following healthy items
+PASS claiming a prior copy cannot erase another current duplicate obligation
+PASS ledger reverse return retains a co-observed duplicate
+PASS ledger alias chain cannot erase duplicate multiplicity
+PASS ledger previously equivalent aliases can later coexist
+PASS ledger final inventory preserves simultaneous duplicate debt
+PASS ledger verified duplicate counts survive several ordinary ID changes
+PASS ledger corruption repair preserves old payload and clears future failure
+PASS ledger changed bytes under identical metadata remain explicitly ambiguous
+PASS ledger current unprocessed item cannot be settled by its historical fingerprint
+PASS ledger disagreement on a requested second source read remains persistent
+PASS ledger rechecks the actual local copy after an earlier group verification
+PASS ledger a multi-copy deficit retries until the historical count is restored
+PASS ledger legacy pending debt without inventory provenance cannot disappear
+PASS ledger multiplicity recovery at after-ready reuses each copy once
+PASS ledger multiplicity recovery at after-rename reuses each copy once
+PASS ledger multiplicity recovery at after-complete reuses each copy once
+PASS final ledger historical corruption stays visible without its source
+PASS final ledger unknown initial observation survives a later absent item
+PASS final ledger unknown final observation survives a later absent item
+PASS final ledger reclassified metadata cannot settle an unread unknown observation
+PASS blocked stdin write respects timeout and disposes promptly
+PASS blocked stdin write respects pause and disposes promptly
+PASS failed WPD session requires a new inventory before any further object read
+PASS remote per-file errors do not starve healthy videos in a full import session
+PASS remote stream disposal preserves the primary copy error
+PASS remote stream disposal preserves the primary cancellation
+PASS repeated zero inventory progress is throttled and each inventory starts immediately
+PASS final USB native session HRESULT 8007048F is preserved and invalidates the session
+PASS final USB native session HRESULT 802A0002 is preserved and invalidates the session
+PASS final USB native session HRESULT 802A0006 is preserved and invalidates the session
+PASS final USB native session HRESULT 80070015 is preserved and invalidates the session
+PASS final USB native session HRESULT 80042003 is preserved and invalidates the session
+PASS final USB native session HRESULT 80042009 is preserved and invalidates the session
+PASS final USB native session HRESULT 80010108 is preserved and invalidates the session
+PASS final USB native session HRESULT 80010006 is preserved and invalidates the session
+PASS final USB native session HRESULT 80010007 is preserved and invalidates the session
+PASS final USB native session HRESULT 80010012 is preserved and invalidates the session
+PASS final USB native session HRESULT 800401FD is preserved and invalidates the session
+PASS final USB per-file HRESULT 80070002 does not terminate a healthy session
+PASS final USB per-file HRESULT 80070005 does not terminate a healthy session
+PASS final USB per-file HRESULT 8007138E does not terminate a healthy session
+PASS final USB per-file HRESULT 80004005 does not terminate a healthy session
+PASS final USB missing WPD registration reports the Windows component instead of phone trust
+PASS final USB optional name property does not hide a lost native session
+PASS final USB optional kind property does not hide a lost native session
+PASS final USB optional length property does not hide a lost native session
+PASS final USB native disconnect escapes folder inventory recovery
+PASS final USB native disconnect escapes metadata inventory recovery
+PASS final USB eof during Read reports session loss before blaming the next healthy file
+PASS final USB native-session during Read reports session loss before blaming the next healthy file
+PASS final USB hanging first open does not starve later healthy videos across bounded attempts
+PASS final USB hanging first read does not starve later healthy videos across bounded attempts
+PASS final USB tied metadata first failures rotate past the failed original occurrence
+PASS final USB tied metadata middle failures rotate past the failed original occurrence
+PASS final USB tied metadata siblings failures rotate past the failed original occurrence
+PASS final USB tied metadata mixed-singleton failures rotate past the failed original occurrence
+PASS final USB tied metadata mixed-pairs failures rotate past the failed original occurrence
+FAIL state hard links are rejected without changing unrelated files: System.IO.IOException: Synthetic hard link failed
+ ---> System.UnauthorizedAccessException: Accesso negato. (0x80070005 (E_ACCESSDENIED))
+   --- End of inner exception stack trace ---
+   at AdversarialStorageTests.HardLink(String link, String existing) in /src/tests/Porto.Tests/AdversarialStorageTests.cs:line 237
+   at AdversarialStorageTests.<>c.<Add>b__0_0() in /src/tests/Porto.Tests/AdversarialStorageTests.cs:line 21
+   at Program.<Main>$(String[] args) in /src/tests/Porto.Tests/Program.cs:line 85
+FAIL a resumed hard-linked partial never appends to the unrelated file: System.IO.IOException: Synthetic hard link failed
+ ---> System.UnauthorizedAccessException: Accesso negato. (0x80070005 (E_ACCESSDENIED))
+   --- End of inner exception stack trace ---
+   at AdversarialStorageTests.HardLink(String link, String existing) in /src/tests/Porto.Tests/AdversarialStorageTests.cs:line 237
+   at AdversarialStorageTests.<>c.<Add>b__0_1() in /src/tests/Porto.Tests/AdversarialStorageTests.cs:line 34
+   at Program.<Main>$(String[] args) in /src/tests/Porto.Tests/Program.cs:line 85
+PASS foreign SQLite database is rejected before any mutation
+PASS foreign journal alongside a Porto catalog is preserved and rejected
+PASS unattributable journal is preserved: empty
+PASS unattributable journal is preserved: single zero
+PASS unattributable journal is preserved: zero prefix and foreign payload
+PASS unattributable journal is preserved: zero sector
+PASS generated columns cannot hide foreign work schema from ownership checks
+PASS incomplete or foreign journal structure is preserved: hot header without a record
+PASS incomplete or foreign journal structure is preserved: hot header with one record byte
+PASS incomplete or foreign journal structure is preserved: non-hot header with foreign padding
+PASS recognized legacy SQLite schemas migrate without losing records
+PASS unrecognized catalog ownership or schema is rejected: PRAGMA application_id=1234
+PASS unrecognized catalog ownership or schema is rejected: PRAGMA user_version=99
+PASS unrecognized catalog ownership or schema is rejected: CREATE TABLE unexpected(value TEXT)
+PASS unrecognized catalog ownership or schema is rejected: CREATE TRIGGER unexpected AFTER INSERT ON runs BEGIN DELETE FROM files; END
+PASS legacy hot rollback journal recovers after ownership validation
+PASS complete native non-hot journal remains recoverable
+PASS super-journal footer cannot touch an external file: journal
+PASS super-journal footer cannot touch an external file: journal-nonhot
+PASS failed atomic report writes expose no partial final file
+PASS process termination during report write leaves only a temporary file
+PASS report JSON and text are published complete
+PASS handler depth cannot impersonate the moov trak mdia hierarchy
+PASS final storage Ready cannot relocate an unrelated file in the destination
+PASS final storage Ready final path must be an immediate generated video name: unrelated-output.mov
+PASS final storage Ready final path must be an immediate generated video name: Video Porto\unowned-name.mov
+PASS final storage Ready final path must be an immediate generated video name: Video Porto\nested\V_clip_11111111111111111111111111111111.mov
+PASS final storage Copying traversal ID cannot append to an unrelated prefix
+PASS final storage Complete cannot adopt an unrelated in-root file
+PASS final storage invalid catalog source is rejected deliberately: null
+PASS final storage invalid catalog source is rejected deliberately: {
+PASS final storage invalid catalog source is rejected deliberately: {}
+PASS final storage invalid catalog source is rejected deliberately: {"Id":"1","ParentId":"dcim","Name":"clip.mov"}
+PASS final storage invalid catalog source is rejected deliberately: {"Id":"1","ParentId":"dcim","Name":"clip.mov","Kind":99}
+PASS final storage invalid catalog source is rejected deliberately: {"Id":"1","ParentId":"dcim","Name":"clip.mov","Kind":0,"Unknown":true}
+PASS final storage invalid catalog source is rejected deliberately: {"Id":"1","Id":"2","ParentId":"dcim","Name":"clip.mov","Kind":0}
+PASS final storage validates every row before recovering an earlier valid row
+FAIL final storage preflights every physical path before recovery: journal=False: System.Exception: Could not create the synthetic second-row hard link.
+   at Fixtures.Check(Boolean condition, String message) in /src/tests/Porto.Tests/Fixtures.cs:line 24
+   at FinalStorageTests.<>c__DisplayClass0_2.<Add>b__13() in /src/tests/Porto.Tests/FinalStorageTests.cs:line 137
+   at Program.<Main>$(String[] args) in /src/tests/Porto.Tests/Program.cs:line 85
+FAIL final storage preflights every physical path before recovery: journal=True: System.Exception: Could not create the synthetic second-row hard link.
+   at Fixtures.Check(Boolean condition, String message) in /src/tests/Porto.Tests/Fixtures.cs:line 24
+   at FinalStorageTests.<>c__DisplayClass0_2.<Add>b__13() in /src/tests/Porto.Tests/FinalStorageTests.cs:line 137
+   at Program.<Main>$(String[] args) in /src/tests/Porto.Tests/Program.cs:line 85
+PASS final storage replacement cycles are rejected before any recovery writes
+PASS final storage acyclic replacement history remains recoverable
+PASS final storage NUL suffixes cannot be hidden by SQLite string marshaling
+PASS final storage two catalog IDs cannot adopt the same final path
+PASS final storage foreign index semantics are rejected without mutation: unique
+PASS final storage foreign index semantics are rejected without mutation: partial
+PASS final storage foreign index semantics are rejected without mutation: collation
+PASS final storage foreign index semantics are rejected without mutation: descending
+PASS final storage an added CHECK constraint is not an owned legacy schema
+PASS final storage actual generated legacy paths and schema remain readable: replacement=False
+PASS final storage actual generated legacy paths and schema remain readable: replacement=True
+PASS final storage collision recovery keeps a fresh generated UUID suffix readable
+PASS final storage verified source rename preserves the original published filename
+PASS final storage journal validation leaves no redundant database snapshots: foreign=False
+PASS final storage journal validation leaves no redundant database snapshots: foreign=True
+PASS final preferences normal settings remain optional and readable
+FAIL final preferences a hard link cannot overwrite an unrelated file: System.Exception: Could not create the synthetic NTFS hard link.
+   at Fixtures.Check(Boolean condition, String message) in /src/tests/Porto.Tests/Fixtures.cs:line 24
+   at FinalPreferenceTests.LinkedPreference() in /src/tests/Porto.Tests/FinalPreferenceTests.cs:line 35
+   at FinalPreferenceTests.<>c.<Add>b__0_1() in /src/tests/Porto.Tests/FinalPreferenceTests.cs:line 18
+   at Program.<Main>$(String[] args) in /src/tests/Porto.Tests/Program.cs:line 85
+FAIL final preferences linked settings are ignored on load: System.Exception: Could not create the synthetic NTFS hard link.
+   at Fixtures.Check(Boolean condition, String message) in /src/tests/Porto.Tests/Fixtures.cs:line 24
+   at FinalPreferenceTests.LinkedPreference() in /src/tests/Porto.Tests/FinalPreferenceTests.cs:line 35
+   at FinalPreferenceTests.<>c.<Add>b__0_2() in /src/tests/Porto.Tests/FinalPreferenceTests.cs:line 25
+   at Program.<Main>$(String[] args) in /src/tests/Porto.Tests/Program.cs:line 85
+PASS encoded synthetic media is copied byte for byte: synthetic-h264.mov
+PASS encoded synthetic media is copied byte for byte: synthetic-h264.m4v
+PASS encoded synthetic media is copied byte for byte: synthetic-hevc.mp4
+PASS responsive long worker operation renews per-frame deadline
+PASS malformed null frame invalidates worker
+PASS malformed kind frame invalidates worker
+PASS malformed progress frame invalidates worker
+PASS malformed json frame invalidates worker
+PASS native discovery ABI propagates 00000000 and releases allocated strings
+PASS native discovery ABI propagates 00000001 and releases allocated strings
+PASS native discovery ABI propagates 80004005 and releases allocated strings
+PASS native inventory emits progress between metadata calls and ends on S_FALSE
+PASS rc5 resource size overrides stale object -31 only with two matching reads
+PASS rc5 resource size overrides stale object 31 only with two matching reads
+PASS rc5 resource rejects truncated without publication
+PASS rc5 resource rejects extra without publication
+PASS rc5 resource rejects second-size without publication
+PASS rc5 resource rejects second-content without publication
+PASS rc5 resource rejects missing-size without publication
+PASS rc5 resource repeated stale inventory -31 reuses one verified copy
+PASS rc5 resource repeated stale inventory 31 reuses one verified copy
+PASS rc5 resource reuses verified copy with two current reads when object size changes
+PASS rc5 resource resumes a synthetic partial without overwriting its prefix
+PASS rc5 protocol resource length crosses process boundary and preserves payload: zero
+PASS rc5 protocol resource length crosses process boundary and preserves payload: large
+PASS rc5 protocol resource length crosses process boundary and preserves payload: unknown
+PASS rc5 protocol resource length crosses process boundary and preserves payload: legacy
+PASS rc5 protocol malformed resource length invalidates worker: negative
+PASS rc5 protocol malformed resource length invalidates worker: string
+PASS rc5 protocol malformed resource length invalidates worker: missing
+PASS rc5 protocol malformed resource length invalidates worker: false
+PASS rc5 protocol malformed resource length invalidates worker: overflow
+PASS rc5 native resource length 0 uses the exact resource property and read-only stream
+PASS rc5 native resource length 12345 uses the exact resource property and read-only stream
+PASS rc5 native resource length 4294967313 uses the exact resource property and read-only stream
+PASS rc5 native missing resource attributes 80070032 fall back without inventing a length
+PASS rc5 native missing resource attributes 80070490 fall back without inventing a length
+PASS rc5 native missing resource size property remains unknown
+PASS rc5 native lost session from resource attributes propagates and releases an allocated result
+PASS rc5 native lost session reading resource length propagates and releases attributes
+PASS rc5 native GetStream failure releases an allocated stream
+PASS rc5 native final S_FALSE bytes are retained and EOF is not requested from the driver again
+PASS rc5 native optimal buffer below 4096 is respected
+PASS rc5 native short successful read does not imply EOF
+PASS rc5 native zero-byte read does not call the driver or consume EOF
+PASS rc5 native terminal S_FALSE passes engine copy and independent second read
+PASS rc5 inventory classifies sidecars without hiding contrary video metadata: IMG_0001.AAE
+PASS rc5 inventory classifies sidecars without hiding contrary video metadata: IMG_0002.aae
+PASS rc5 inventory classifies sidecars without hiding contrary video metadata: opaque.bin
+PASS rc5 inventory classifies sidecars without hiding contrary video metadata: contradiction.AAE
+PASS rc5 inventory classifies sidecars without hiding contrary video metadata: format-video.AAE
+PASS multidevice native known nonmedia preserves contrary extensions: sound.mp3
+PASS multidevice native known nonmedia preserves contrary extensions: document.pdf
+PASS multidevice native known nonmedia preserves contrary extensions: readme.txt
+PASS multidevice native known nonmedia preserves contrary extensions: clip.mkv
+PASS multidevice native known nonmedia preserves contrary extensions: movie.mov
+PASS rc5 inventory mixed resources separate transfer candidates and do not retry sidecars
+PASS rc5 inventory sidecar classification does not erase legacy unknown obligations
+PASS rc6 protocol preserves that cleanup failure belongs to the previous read
+PASS rc6 cleanup blocked inside next open remains bounded by timeout
+PASS rc6 cleanup blocked inside next open remains bounded by cancellation
+PASS rc6 stale stream cannot consume a later resource after open
+PASS rc6 stale stream cannot consume a later resource after failed-open
+PASS rc6 stale stream cannot consume a later resource after inventory
+PASS rc6 stale stream cannot consume a later resource after connect
+PASS rc8 copied additional resource report explains photo pairing and edited-name evidence: True/False
+PASS rc8 copied additional resource report explains photo pairing and edited-name evidence: False/True
+PASS rc8 copied additional resource report explains photo pairing and edited-name evidence: True/True
+PASS rc6 native incomplete A is cancelled before B receives its own bytes
+PASS rc6 native clean S_FALSE tail is released without Cancel
+PASS rc6 native failed cleanup preserves read error and blocks subsequent Open and Inventory
+PASS rc6 native failed GetStream cancels and releases an allocated result
+PASS rc6 native failed GetStream cleanup retains original HRESULT and invalidates session
+PASS rc6 native failed GetStream without pointer still cancels its unfinished operation
+PASS rc6 native opening B closes A and stale A cannot consume or cancel B
+PASS rc6 native source closes active stream before releasing resources and disposal is idempotent
+PASS rc6 recovery prioritizes untouched healthy files after delayed cleanup failure; remap=False
+PASS rc6 recovery prioritizes untouched healthy files after delayed cleanup failure; remap=True
+PASS rc7 isolated recovery after open failure preserves later healthy files in one pass
+PASS rc7 isolated recovery after oversize failure preserves later healthy files in one pass
+PASS rc7 isolated recovery after short failure preserves later healthy files in one pass
+PASS rc7 isolated recovery after hash failure preserves later healthy files in one pass
+PASS rc7 isolated recovery after many failure preserves later healthy files in one pass
+PASS rc7 isolated recovery after reorder failure preserves later healthy files in one pass
+PASS rc7 replacement inventory remap keeps the unopened next video pending
+PASS rc7 replacement inventory metadata keeps the unopened next video pending
+PASS rc7 replacement inventory incomplete keeps the unopened next video pending
+PASS rc7 replacement inventory duplicate keeps the unopened next video pending
+PASS rc7 final inventory after last failed video observes the new inventory
+PASS rc7 clean reads retain one worker and exact verified copies
+PASS rc7 cancellation interrupts replacement inventory without blaming the next file
+PASS rc7 replacement factory failure preserves the original error and next pending item
+PASS rc7 late old-stream disposal cannot affect a recovered worker
+PASS rc7 recovery never opens a caller observation absent from the baseline
+PASS rc8 media arbitrary free text is not metadata: com.apple.quicktime.still-image-time
+PASS rc8 media arbitrary free text is not metadata: com.apple.quicktime.content.identifier
+PASS rc8 media structured still-image-time is only an additional-resource hint
+PASS rc8 media local timed key ID is not an atom semantic: 66726565
+PASS rc8 media local timed key ID is not an atom semantic: 6D6F6F76
+PASS rc8 media local timed key ID is not an atom semantic: 00000002
+PASS rc8 media no extra classification for content identifier
+PASS rc8 media no extra classification for wrong namespace
+PASS rc8 media no extra classification for unrelated key prefix
+PASS rc8 media no extra classification for audio track
+PASS rc8 media no extra classification for video track
+PASS rc8 media no extra classification for unused local key
+PASS rc8 media static content identifier alone stays eligible
+PASS rc8 media nested free payload cannot impersonate a metadata track
+PASS rc8 media misplaced key declaration is not timed metadata
+PASS rc8 media handler order does not change structured hint
+PASS rc8 media documented sample description zero padding stays valid
+PASS rc8 media inspection leaves synthetic bytes unchanged
+PASS rc8 media name and photo evidence is a copy hint, never a pre-read rejection
+PASS rc8 media malformed and truncated metadata never publishes as verified video
+PASS rc8 media large free payload does not provide metadata evidence
+PASS rc8 media cancellation remains observable
+PASS rc8 six hang-open failures recover before later healthy videos in one pass
+PASS rc8 six hang-read failures recover before later healthy videos in one pass
+PASS rc8 six disconnect failures recover before later healthy videos in one pass
+PASS rc8 six failures with remapped IDs and tied metadata reach every healthy video
+PASS rc8 continuation defers earlier healthy reads without skipping them; tied=False
+PASS rc8 continuation defers earlier healthy reads without skipping them; tied=True
+PASS rc8 metadata churn cannot expand the first inventory recovery budget; complete=False
+PASS rc8 metadata churn cannot expand the first inventory recovery budget; complete=True
+PASS rc8 cancellation stops before the next recovery continuation
+PASS rc8 disconnected replacement inventories stop within ordinary retry budget
+PASS rc8 changed final inventories alone cannot grant recovery continuation
+PASS rc8 coverage reuses prior videos and reads every new video hint without reading photos
+PASS rc8 coverage current edited hint does not inflate the primary count on hash reuse
+PASS rc8 coverage old verified quarantine is published with original part intact; additional=False
+PASS rc8 coverage old verified quarantine is published with original part intact; additional=True
+PASS rc8 coverage promotion survives process termination at promotion-intent; additional=False
+PASS rc8 coverage promotion survives process termination at promotion-intent; additional=True
+PASS rc8 coverage promotion survives process termination at promotion-flush; additional=False
+PASS rc8 coverage promotion survives process termination at promotion-flush; additional=True
+PASS rc8 coverage promotion survives process termination at promotion-ready; additional=False
+PASS rc8 coverage promotion survives process termination at promotion-ready; additional=True
+PASS rc8 coverage promotion survives process termination at promotion-rename; additional=False
+PASS rc8 coverage promotion survives process termination at promotion-rename; additional=True
+PASS rc8 coverage promotion survives process termination at promotion-complete; additional=False
+PASS rc8 coverage promotion survives process termination at promotion-complete; additional=True
+PASS rc8 coverage additional promotion collision preserves foreign file and folder
+PASS rc8 coverage promotion preserves identical-resource multiplicity
+PASS rc8 coverage invalid quarantine stays explicit and cannot be promoted
+PASS rc8 coverage new final-inventory work stays current while unread old IDs remain historical
+PASS rc8 coverage a missing prior copy stays historical with an empty current inventory
+PASS rc8 coverage previously published video failing the new parser stays ambiguous and unchanged
+PASS folder source inventories nested videos and transparently excludes other files
+PASS folder source reads original bytes without modifying source and denies writing
+PASS folder source IDs survive enumeration and normalized root spelling
+PASS folder source final inventory detects changed sizes and modification timestamps
+PASS folder source refuses unobserved forged and stale source items
+PASS folder source detects replacement even with identical length and timestamp
+PASS folder source rejects every ancestor overlap before destination writes
+PASS folder source cancellation never becomes a partial success
+PASS folder source reports a lost root as incomplete instead of silently empty
+PASS folder source reports unreadable files and keeps readable siblings
+FAIL folder source refuses hard links during inventory and revalidates before reading: System.Exception: Could not create synthetic hard link.
+   at Fixtures.Check(Boolean condition, String message) in /src/tests/Porto.Tests/Fixtures.cs:line 24
+   at FolderSourceTests.<>c.<Add>b__0_10() in /src/tests/Porto.Tests/FolderSourceTests.cs:line 129
+   at Program.<Main>$(String[] args) in /src/tests/Porto.Tests/Program.cs:line 85
+FAIL folder source refuses junction roots and never traverses linked subfolders: System.Exception: Synthetic junction creation failed: Accesso negato.
+
+   at Fixtures.Check(Boolean condition, String message) in /src/tests/Porto.Tests/Fixtures.cs:line 24
+   at FolderSourceTests.Junction(String link, String target) in /src/tests/Porto.Tests/FolderSourceTests.cs:line 170
+   at FolderSourceTests.<>c.<Add>b__0_11() in /src/tests/Porto.Tests/FolderSourceTests.cs:line 139
+   at Program.<Main>$(String[] args) in /src/tests/Porto.Tests/Program.cs:line 85
+PASS folder source rejects nonexistent network and device roots without creating them
+PASS folder source disposal revokes inventory and read access
+PASS folder import unsupported video container prevents a verified selection
+PASS folder import changed final inventory prevents verified selection
+PASS folder import inconsistent deep reread cannot confirm reuse
+PASS folder import real local source repeats without duplication and preserves exported bytes
+PASS folder import reuses unregistered files without modifying or registering foreign paths
+PASS folder import selection subset reuses surviving copy and retains historical multiplicity debt
+PASS folder import matches selected videos including prior additional copies without moving extras
+PASS folder import preserves multiplicity and never uses one prior file twice
+PASS folder import historical USB errors remain visible without becoming selected videos
+PASS folder import corrupt old copy is preserved and repaired in a new file
+PASS folder import repaired same-selection archive defect stays historical and visible on next run
+PASS folder import malformed selected file remains unresolved and other videos continue
+PASS multidevice discovery includes Apple Android and other portable devices
+PASS multidevice discovery preserves nameless devices with visible metadata warning
+PASS multidevice discovery retries truncated batches without selecting another phone
+PASS multidevice discovery rejects duplicate and malformed device IDs
+PASS photo valid JPEG structure is recognized without changing bytes
+PASS photo truncated JPEG cannot pass
+PASS photo valid PNG structure is recognized without changing bytes
+PASS photo truncated PNG cannot pass
+PASS photo valid HEIC structure is recognized without changing bytes
+PASS photo truncated HEIC cannot pass
+PASS photo wrong magic and unsupported formats remain ambiguous
+PASS photo PNG rejects bad checksum lengths ordering and dimensions
+PASS photo PNG validates compressed scanline size filter and checksum
+PASS photo PNG rejects trailing compressed junk even with duplicated Adler checksum
+PASS photo HEIC image grid resolves and validates its tile data
+PASS photo HEIC repeated tile extents share a cumulative parsing budget
+PASS photo JPEG requires frame scan tables entropy and an image ending
+PASS photo JPEG preserves 190 opaque trailing bytes after a valid primary image
+PASS photo JPEG appended payloads stay one photo with exact opaque size and all bytes
+PASS photo JPEG trailer cannot repair malformed or incomplete primary structure
+PASS photo JPEG image ending identifies missing frame scan or components
+PASS photo JPEG total size cap includes appended bytes and cancellation precedes inspection
+PASS photo HEIC rejects bogus brands primary extents config and absent image metadata
+PASS photo inspection observes cancellation
+PASS photo media selection keeps unsupported pictures visible and separates photo video modes
+PASS rc12 mixed album recovers 29 photos preserving 48 earlier copies and every old part
+PASS rc12 changed JPEG trailer does not reuse an old different complete file
+PASS rc12 JPEG with appended video stays one photo and is excluded from Solo video
+PASS media selection copies only the chosen types and preserves all inventory hints
+PASS media legacy observations retain exact JSON bytes and key
+PASS media photo pass preserves prior video catalog and subsequent mixed pass reuses both
+PASS media physical phone folder excludes siblings and keeps recovery forwarding
+PASS media missing ambiguous moved or corrupt folder never expands to the phone
+PASS media phone folder tolerates changed transient IDs but not selection drift
+PASS media identical raw phone IDs do not merge different content histories
+PASS media repeated photo observations preserve two physical copies
+PASS media photo folder imports local bytes and preserves 193 earlier archive files
+PASS media photo catalog permits only generated photo names and bounded namespaces
+PASS media conflicting photo video hints cannot publish or certify a video in photo mode
+PASS media non Apple phones do not inherit Apple paired-name routing hints
+PASS media physical folder displays cannot confuse names with path separators
+PASS media generic unsupported videos remain ambiguous in video modes
+PASS USB navigation opens immediate folders without scanning 60000 unrelated files
+PASS USB navigation resolves remapped object IDs from a fresh physical path
+PASS USB navigation rejects missing selected folders without widening scope
+PASS USB navigation rejects changed-persistent-id selected folders without widening scope
+PASS USB navigation rejects ambiguous selected folders without widening scope
+PASS USB navigation refuses partial folder listings and pre-cancelled operations
+PASS USB navigation scoped enumeration rejects cycles and keeps progress monotonic
+PASS USB navigation worker transports only the requested parent and scope
+PASS USB navigation recovery revalidates the same scope and rejects changed media=False
+PASS USB navigation recovery revalidates the same scope and rejects changed media=True
+PASS USB navigation failed scoped refresh invalidates previous read authorization
+PASS USB navigation stuck folder listing terminates on timeout
+PASS USB navigation stuck folder listing terminates on cancellation
+PASS USB navigation native album 75793148-15f5-4a30-a813-54ed8a37e226 reads only its explicit references
+PASS USB navigation native album 012b0db7-d4c1-45d6-b081-94b87779614f reads only its explicit references
+PASS USB navigation native album 00f0c3ac-a593-49ac-9219-24abca5a2563 reads only its explicit references
+PASS USB navigation whole-device inventory does not descend albums or duplicate their references
+PASS USB navigation native album empty references never widen to folders
+PASS USB navigation native album missing references never widen to folders
+PASS USB navigation native album duplicate references never widen to folders
+PASS USB navigation native album cycle references never widen to folders
+PASS USB navigation native album nested references never widen to folders
+PASS USB navigation native album unknown references never widen to folders
+PASS USB navigation native album missing-member references never widen to folders
+PASS USB navigation native album invalid-type references never widen to folders
+PASS USB navigation album selection rejects a replacement physical folder
+PASS USB navigation native album recovery preserves membership scope; changed=False
+PASS USB navigation native album recovery preserves membership scope; changed=True
+PASS USB navigation combines folders and albums in one native level read and worker call
+PASS rc19 AFC complete chunked reads and EOF with limit 65536
+PASS rc19 AFC complete chunked reads and EOF with limit 262144
+PASS rc19 AFC larger default still rejects oversized response before delivery
+PASS apple TLS uses ephemeral existing credentials and authenticates the pinned device in memory
+PASS apple TLS rejects a different device certificate in memory
+PASS apple TLS rejects pinned server that does not request client authentication
+PASS apple TLS rejects SHA1 handshake signatures without reducing protection
+PASS apple TLS pinned SHA1 device certificate still requires SHA256 handshake signatures
+PASS apple TLS blocked handshake honors cancellation without credentials on disk
+PASS apple plist rejects duplicate keys external entities and malformed binary
+PASS apple binary plist shares repeated objects without materialization explosion
+PASS apple mux validates framing and is cancellable without any network
+PASS apple AFC only reads file with mode one and validates every packet
+PASS apple AFC rejects forbidden paths malformed lengths and sequence drift
+PASS apple AFC malformed UTF8 metadata is normalized and poisons the session
+PASS apple AFC malformed status poisons stat open and read before another command
+PASS apple AFC valid per-file errors preserve the session and exact packet boundary
+PASS apple WAL verifies both checksum endiannesses and applies committed pages only
+PASS apple WAL rejects short header short frame and altered salt header
+PASS apple catalog distinguishes true video from Live Photo and preserves missing paths
+PASS apple catalog reads native album membership without paths and rejects absent selection
+PASS apple catalog uses native parent folders to distinguish identical album names
+PASS apple catalog rejects unsupported schema and malformed membership
+PASS apple catalog rejects duplicate asset UUID and ambiguous album relationship
+PASS apple catalog rejects traversal paths without dropping known media
+PASS apple catalog memory reader rejects truncated database and cancellation
+PASS apple catalog source counts unavailable originals and never exposes Live companion video
+PASS apple video filter avoids stat for ten thousand photos and missing unselected originals
+PASS apple source album does not widen selection and records missing image
+PASS apple unknown catalog type named mov remains unresolved and cannot be read
+PASS apple source recovery reconnects only with matching complete selection
+PASS apple source recovery rejects changed original before reading another file
+PASS apple final recovery failure leaves unopened siblings pending and outer retry succeeds
+PASS apple final recovery cancellation propagates without blaming the unopened file
+PASS apple final recoverable stat error preserves uncertain asset and copies healthy siblings
+PASS apple final poisoned stat failure aborts inventory instead of accepting partial siblings
+PASS apple capture rejects changing database and active rollback journal
+PASS apple rc13 capture reads committed native SQLite WAL with uncommitted tail
+PASS apple rc13 capture accepts settled native SQLite persist journal
+PASS apple rc13 capture rejects active unknown truncated or changing journal headers
+PASS apple rc13 visibility nonzero null and new states preserve membership without opening originals
+PASS apple rc13 visibility zero and missing-column profiles keep original selection identity
+PASS apple rc13 visibility uncertainty of excluded photos does not block video selection
+PASS apple rc13 visibility change rejects read recovery before opening original
+PASS apple rc13 visibility uncertainty is ambiguous while healthy video siblings copy
+PASS apple rc13 visibility change in final catalog prevents verified selection
+PASS apple TLS matrix accepts fragmented SHA256 with root in device certificate chain
+PASS apple TLS matrix accepts exactly pinned SHA1 leaf plus root with SHA256 handshake
+PASS apple TLS matrix accepts SHA384 server and client handshake signatures
+PASS apple TLS matrix accepts client certificate request with SHA384 only
+PASS apple TLS matrix accepts RSA PSS SHA256 server handshake signature
+PASS apple TLS matrix accepts RSA PSS SHA256 client certificate request
+PASS apple TLS matrix accepts SHA512 server and client handshake signatures
+PASS apple TLS matrix accepts RSA PSS SHA384 server and client signatures
+PASS apple TLS matrix accepts RSA PSS SHA512 server and client signatures
+PASS apple TLS matrix rejects wrong pinned device despite strong signatures
+PASS apple TLS matrix rejects a different certificate with the same device key
+PASS apple TLS matrix rejects SHA1-only client certificate request
+PASS apple TLS matrix rejects SHA1 server signature with a two-certificate chain
+PASS apple TLS matrix rejects server omitting mutual authentication
+PASS apple TLS matrix reports peer fatal alert with only a fixed diagnostic code
+PASS apple pairing TLS factory preserves DER metadata copies and default parser policy
+PASS apple pairing TLS factory rejects duplicate extensions in exact paired certificate
+PASS apple pairing TLS accepts empty names and serial zero
+PASS apple pairing TLS accepts empty names and serial one
+PASS apple pairing TLS accepts empty names serial zero SHA1 certificate SHA256 handshake
+PASS apple pairing TLS accepts absent RSA algorithm parameters
+PASS apple pairing TLS rejects wrong pinned certificate with empty names
+PASS apple pairing TLS rejects different paired certificate with identical key
+PASS apple pairing TLS rejects device certificate without digitalSignature usage
+PASS apple pairing TLS rejects SHA1 server handshake
+PASS apple pairing TLS rejects SHA1 client authentication request
+PASS apple pairing TLS rejects missing mutual authentication
+PASS apple pairing TLS rejects exact-pinned malformed certificate
+PASS apple catalog diagnostic reports nonregular database before opening any file
+PASS apple catalog diagnostic reports empty database before opening any file
+PASS apple catalog diagnostic reports oversize database before opening any file
+PASS apple catalog diagnostic reports nonregular WAL before opening any file
+PASS apple catalog diagnostic reports negative WAL length before opening any file
+PASS apple catalog diagnostic reports oversize WAL before opening any file
+PASS apple catalog diagnostic reports combined size overflow before opening any file
+PASS apple catalog diagnostic reports hostile long size without arithmetic overflow before opening any file
+PASS apple catalog diagnostic boundary permits exact database limit with absent WAL
+PASS apple catalog diagnostic boundary permits exact combined limit and empty WAL
+PASS apple catalog diagnostic AFC distinguishes file directory link and unknown without exposing raw types
+PASS apple streaming capture compares every byte with bounded cleared scratch
+PASS apple streaming capture rejects second database byte-change
+PASS apple streaming capture rejects second database truncate
+PASS apple streaming capture rejects second database grow
+PASS apple streaming capture rejects WAL appearance disappearance and modification
+PASS apple streaming capture rejects second WAL byte change even when metadata is stable
+PASS apple streaming capture checks metadata after final verification byte
+PASS apple streaming capture rejects active journal after database verification
+PASS apple streaming capture cancellation closes second stream and clears scratch
+PASS apple memory guard accepts exact physical and commit boundary
+PASS apple memory guard rejects insufficient physical memory or commit
+PASS apple memory guard reads Windows availability without private data
+PASS apple large catalog accepts reported database and WAL sizes without allocating media
+PASS apple large catalog accepts reported database with no WAL
+PASS apple album association isolates a broken album without broadening a healthy selection
+PASS apple album association reports unknown album links without treating them as deleted
+PASS apple album association missing assets remain explicit and cannot masquerade as an empty album
+PASS apple album association healthy source reads only its selected video despite another broken album
+PASS apple album association rejected album and gallery never stat or open any original
+PASS apple album association known hidden and deleted members are exclusions not missing relations
+PASS apple album association duplicate membership remains rejected
+PASS apple album association unresolved system and deleted albums remain globally visible
+PASS apple album association final membership uncertainty preserves copy but blocks successful report
+PASS gallery import unknown asset roles never become videos from filename extensions
+PASS gallery import selects true video and preserves old Live Photo copies
+PASS gallery import empty chosen type reports no matches instead of failure
+PASS gallery import unresolved video remains counted and blocks verified selection
+PASS gallery import changed album membership prevents verified selection
+PASS gallery import retry continues past failed file without duplicating successful copy
+PASS gallery import retry cannot certify a smaller selection after a failed asset disappears
+PASS gallery import retry reports when an already copied asset disappears from the selection
+PASS gallery import retry retains an asset first observed only in the final inventory
+PASS gallery import empty retry cannot erase an earlier selected failure
+PASS gallery import source selection uncertainty is ambiguous without opening the original
+PASS gallery import temporarily disappeared asset can return and finish the same session
+PASS rc19 comparison replays unmatched content without second source read
+PASS rc19 comparison matching old copy preserves multiplicity and same names
+PASS rc19 comparison low space retains hash-only reuse without temporary writes
+PASS rc19 comparison deep mode still detects discordant independent source reads
+PASS rc19 comparison cancellation discards only newly owned replay and resumes
+PASS rc19 comparison rejects truncated replay source before publishing
+PASS rc19 comparison unknown length uses full original verification path
+PASS rc19 comparison disk full during preparation leaves old copies intact
+PASS rc19 comparison process death at after-comparison recovers with old files unchanged
+PASS rc19 comparison process death at after-intent recovers with old files unchanged
+PASS rc19 comparison process death at after-flush recovers with old files unchanged
+PASS rc19 comparison process death at after-ready recovers with old files unchanged
+PASS rc19 comparison process death at after-rename recovers with old files unchanged
+545/553 passed
+=== links-verified.txt ===
+PASS state hard links are rejected without changing unrelated files
+PASS a resumed hard-linked partial never appends to the unrelated file
+PASS final preferences a hard link cannot overwrite an unrelated file
+PASS folder source refuses hard links during inventory and revalidates before reading
+4/4 passed
+PASS final storage preflights every physical path before recovery: journal=False
+PASS final storage preflights every physical path before recovery: journal=True
+2/2 passed
+PASS final preferences linked settings are ignored on load
+1/1 passed
+PASS folder source refuses junction roots and never traverses linked subfolders
+1/1 passed
+=== rc19-final.txt ===
+PASS rc19 AFC complete chunked reads and EOF with limit 65536
+PASS rc19 AFC complete chunked reads and EOF with limit 262144
+PASS rc19 AFC larger default still rejects oversized response before delivery
+PASS rc19 comparison replays unmatched content without second source read
+PASS rc19 comparison matching old copy preserves multiplicity and same names
+PASS rc19 comparison low space retains hash-only reuse without temporary writes
+PASS rc19 comparison deep mode still detects discordant independent source reads
+PASS rc19 comparison cancellation discards only newly owned replay and resumes
+PASS rc19 comparison rejects truncated replay source before publishing
+PASS rc19 comparison unknown length uses full original verification path
+PASS rc19 comparison disk full during preparation leaves old copies intact
+PASS rc19 comparison process death at after-comparison recovers with old files unchanged
+PASS rc19 comparison process death at after-intent recovers with old files unchanged
+PASS rc19 comparison process death at after-flush recovers with old files unchanged
+PASS rc19 comparison process death at after-ready recovers with old files unchanged
+PASS rc19 comparison process death at after-rename recovers with old files unchanged
+16/16 passed
+=== large-rc19.txt ===
+  LARGE replay: 4294971392 bytes copied/verified, 220,21s, working set 60 MiB
+PASS rc19 gallery comparison over 4 GiB reads source once with bounded replay
+  LARGE NTFS: 4294971392 bytes written and reread, 175,27s, working set 61 MiB
+PASS video over 4 GiB actually written verified and published on NTFS
+2/2 passed
+=== large-catalog-rc19.txt ===
+MEASURE synthetic catalog bytes=566362112; WAL=4227152; managed allocated during capture=571738680; process peak working set=1744838656; elapsed_ms=1140
+PASS apple large catalog full capture and integrity check above reported size
+1/1 passed
+=== package-tests.txt ===
+PASS package staging interrupted
+PASS package staging invalid
+PASS package staging existing
+PASS package staging success

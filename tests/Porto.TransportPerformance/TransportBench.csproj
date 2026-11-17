@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><AssemblyName>Porto.Tests</AssemblyName></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/Porto.Apple/Porto.Apple.csproj" />
+    <ProjectReference Include="../../src/Porto.Core/Porto.Core.csproj" />
+  </ItemGroup>
+</Project>

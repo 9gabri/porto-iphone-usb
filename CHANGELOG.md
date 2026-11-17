@@ -1,5 +1,12 @@
 # Novità
 
+## 0.1.0-rc.20
+
+- Richieste Apple AFC fino a 512 KiB, mantenendo l'opzione esplicita di compatibilità a 64 KiB e tutti i controlli del protocollo.
+- Benchmark riproducibile con tre ripetizioni per variante e sei guasti sintetici a 256 e 512 KiB. Nel caso dominato dall'attesa simulata, mediana 1.008,80 -> 504,85 ms per 16 MiB. Nessuna equivalenza con la velocità dell'iPhone reale.
+- Escluso un prototipo che evitava confronti fra dimensioni diverse: meno I/O e CPU, ma nessun guadagno dimostrato nel tempo totale sul PC di prova. Motore di copia rc.19 conservato.
+- Nessuna modifica a hash, copie precedenti, molteplicità, cataloghi, autenticazione o protezioni. Candidata per misurare l'obiettivo 29 GB/ora; risultato hardware ancora da confermare.
+
 ## 0.1.0-rc.19
 
 - Importazione galleria: riuso locale della prima lettura per il confronto dei nuovi file, evitando una seconda lettura completa della sorgente quando è disponibile spazio sufficiente.

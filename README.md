@@ -1,16 +1,16 @@
 # Porto
 
-App locale in italiano per copiare foto e video dal telefono al PC, senza conversioni. **0.1.0-rc.19 candidata**, Windows 11 x64 con runtime incluso. Riduce le riletture nell'importazione iPhone e usa richieste Apple più grandi, conservando i controlli sui file. Prestazioni e compatibilità della nuova versione da confermare sul telefono reale.
+App locale in italiano per copiare foto e video dal telefono al PC, senza conversioni. **0.1.0-rc.20 candidata**, Windows 11 x64 con runtime incluso. Richieste Apple da 512 KiB per ridurre le attese, con i controlli sui file conservati. Prestazioni e compatibilità della nuova versione da confermare sul telefono reale.
 
-[Scarica Windows](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.19/Porto-0.1.0-rc.19-win-x64.zip) · [Checksum](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.19/SHA256SUMS.txt) · [Guida](docs/PHONES-AND-ALBUMS.md)
+[Scarica Windows](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.20/Porto-0.1.0-rc.20-win-x64.zip) · [Checksum](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.20/SHA256SUMS.txt) · [Guida](docs/PHONES-AND-ALBUMS.md)
 
-## Prestazioni iPhone rc.19
+## Prestazioni iPhone rc.20
 
 Quando trova copie precedenti, Porto conserva temporaneamente sul PC i byte letti per il confronto. Se sono nuovi, li usa per creare la copia senza dover rileggere tutto il file dall'iPhone. La rilettura SHA-256 del file salvato resta obbligatoria. Servono spazio per il temporaneo e per la copia; se manca il margine, viene usato il percorso precedente. I file identici già verificati sono riutilizzati; elementi distinti con gli stessi byte mantengono copie distinte.
 
-Il trasporto Apple richiede fino a 256 KiB per lettura invece di 64 KiB. L'opzione **USB iPhone compatibile** ripristina blocchi da 64 KiB se la prova reale incontra errori. Non attivarla per il primo confronto di velocità. La verifica approfondita continua a richiedere una lettura indipendente aggiuntiva.
+Il trasporto Apple richiede fino a 512 KiB per lettura, rispetto ai 256 KiB della rc.19 e ai 64 KiB della rc.18. L'opzione **USB iPhone compatibile** ripristina blocchi da 64 KiB se la prova reale incontra errori. Non attivarla per il primo confronto di velocità. La verifica approfondita continua a richiedere una lettura indipendente aggiuntiva.
 
-I nuovi file locali `performance-*.json` in Report Porto registrano byte letti, aperture e tempi per passaggio. Nessun invio automatico. Non garantiamo 29 GB in un'ora: catalogo, connessione, disco e verifiche continuano a richiedere tempo. [Modifiche e misure](docs/REVIEW-RC19.md).
+I file locali `performance-*.json` in Report Porto registrano byte letti, aperture e tempi per passaggio. Nessun invio automatico. Non garantiamo 29 GB in un'ora: catalogo, connessione, disco e verifiche continuano a richiedere tempo. Nel test AFC con attesa simulata il tempo si dimezza, ma non è una misura dell'importazione reale. Una seconda ottimizzazione locale è stata esclusa perché il guadagno di tempo non era dimostrato. [Modifiche e misure](docs/REVIEW-RC20.md).
 
 ## Scegli origine, contenuti e destinazione
 
@@ -53,7 +53,7 @@ Le nuove foto sono in **Foto Porto**, i video in **Video Porto**. Le vecchie ris
 
 **Candidata per il collaudo, non versione certificata o definitiva.** Le verifiche sintetiche non dimostrano compatibilità hardware. Restano da confermare collegamento Apple reale, schema iOS, album e conteggi sul telefono, trasferimento e ripresa su iPhone/Android.
 
-[Test](docs/TESTS.md) · [Revisione rc.19](docs/REVIEW-RC19.md) · [Architettura](docs/ARCHITECTURE.md) · [Licenze](THIRD-PARTY-NOTICES.md) · [Verifica pubblicazione](docs/RELEASE-VERIFICATION.md).
+[Test](docs/TESTS.md) · [Revisione rc.20](docs/REVIEW-RC20.md) · [Architettura](docs/ARCHITECTURE.md) · [Licenze](THIRD-PARTY-NOTICES.md) · [Verifica pubblicazione](docs/RELEASE-VERIFICATION.md).
 
 SDK .NET 10, runtime incluso 10.0.14. `scripts/dev.ps1 test -Large`, `scripts/dev.ps1 build`, `scripts/dev.ps1 publish`. Test isolati; `--ui-smoke <percorso.png>` non cerca telefoni. Nessuna discovery hardware automatica all'avvio.
 

@@ -1,4 +1,4 @@
-=== full-tests-first.txt ===
+=== full-final.txt ===
 PASS copy and independently reread SHA256
 PASS truncation rejected
 PASS unexpected extra bytes rejected
@@ -116,18 +116,8 @@ PASS final USB tied metadata middle failures rotate past the failed original occ
 PASS final USB tied metadata siblings failures rotate past the failed original occurrence
 PASS final USB tied metadata mixed-singleton failures rotate past the failed original occurrence
 PASS final USB tied metadata mixed-pairs failures rotate past the failed original occurrence
-FAIL state hard links are rejected without changing unrelated files: System.IO.IOException: Synthetic hard link failed
- ---> System.UnauthorizedAccessException: Accesso negato. (0x80070005 (E_ACCESSDENIED))
-   --- End of inner exception stack trace ---
-   at AdversarialStorageTests.HardLink(String link, String existing) in /src/tests/Porto.Tests/AdversarialStorageTests.cs:line 237
-   at AdversarialStorageTests.<>c.<Add>b__0_0() in /src/tests/Porto.Tests/AdversarialStorageTests.cs:line 21
-   at Program.<Main>$(String[] args) in /src/tests/Porto.Tests/Program.cs:line 85
-FAIL a resumed hard-linked partial never appends to the unrelated file: System.IO.IOException: Synthetic hard link failed
- ---> System.UnauthorizedAccessException: Accesso negato. (0x80070005 (E_ACCESSDENIED))
-   --- End of inner exception stack trace ---
-   at AdversarialStorageTests.HardLink(String link, String existing) in /src/tests/Porto.Tests/AdversarialStorageTests.cs:line 237
-   at AdversarialStorageTests.<>c.<Add>b__0_1() in /src/tests/Porto.Tests/AdversarialStorageTests.cs:line 34
-   at Program.<Main>$(String[] args) in /src/tests/Porto.Tests/Program.cs:line 85
+PASS state hard links are rejected without changing unrelated files
+PASS a resumed hard-linked partial never appends to the unrelated file
 PASS foreign SQLite database is rejected before any mutation
 PASS foreign journal alongside a Porto catalog is preserved and rejected
 PASS unattributable journal is preserved: empty
@@ -165,14 +155,8 @@ PASS final storage invalid catalog source is rejected deliberately: {"Id":"1","P
 PASS final storage invalid catalog source is rejected deliberately: {"Id":"1","ParentId":"dcim","Name":"clip.mov","Kind":0,"Unknown":true}
 PASS final storage invalid catalog source is rejected deliberately: {"Id":"1","Id":"2","ParentId":"dcim","Name":"clip.mov","Kind":0}
 PASS final storage validates every row before recovering an earlier valid row
-FAIL final storage preflights every physical path before recovery: journal=False: System.Exception: Could not create the synthetic second-row hard link.
-   at Fixtures.Check(Boolean condition, String message) in /src/tests/Porto.Tests/Fixtures.cs:line 24
-   at FinalStorageTests.<>c__DisplayClass0_2.<Add>b__13() in /src/tests/Porto.Tests/FinalStorageTests.cs:line 137
-   at Program.<Main>$(String[] args) in /src/tests/Porto.Tests/Program.cs:line 85
-FAIL final storage preflights every physical path before recovery: journal=True: System.Exception: Could not create the synthetic second-row hard link.
-   at Fixtures.Check(Boolean condition, String message) in /src/tests/Porto.Tests/Fixtures.cs:line 24
-   at FinalStorageTests.<>c__DisplayClass0_2.<Add>b__13() in /src/tests/Porto.Tests/FinalStorageTests.cs:line 137
-   at Program.<Main>$(String[] args) in /src/tests/Porto.Tests/Program.cs:line 85
+PASS final storage preflights every physical path before recovery: journal=False
+PASS final storage preflights every physical path before recovery: journal=True
 PASS final storage replacement cycles are rejected before any recovery writes
 PASS final storage acyclic replacement history remains recoverable
 PASS final storage NUL suffixes cannot be hidden by SQLite string marshaling
@@ -189,16 +173,8 @@ PASS final storage verified source rename preserves the original published filen
 PASS final storage journal validation leaves no redundant database snapshots: foreign=False
 PASS final storage journal validation leaves no redundant database snapshots: foreign=True
 PASS final preferences normal settings remain optional and readable
-FAIL final preferences a hard link cannot overwrite an unrelated file: System.Exception: Could not create the synthetic NTFS hard link.
-   at Fixtures.Check(Boolean condition, String message) in /src/tests/Porto.Tests/Fixtures.cs:line 24
-   at FinalPreferenceTests.LinkedPreference() in /src/tests/Porto.Tests/FinalPreferenceTests.cs:line 35
-   at FinalPreferenceTests.<>c.<Add>b__0_1() in /src/tests/Porto.Tests/FinalPreferenceTests.cs:line 18
-   at Program.<Main>$(String[] args) in /src/tests/Porto.Tests/Program.cs:line 85
-FAIL final preferences linked settings are ignored on load: System.Exception: Could not create the synthetic NTFS hard link.
-   at Fixtures.Check(Boolean condition, String message) in /src/tests/Porto.Tests/Fixtures.cs:line 24
-   at FinalPreferenceTests.LinkedPreference() in /src/tests/Porto.Tests/FinalPreferenceTests.cs:line 35
-   at FinalPreferenceTests.<>c.<Add>b__0_2() in /src/tests/Porto.Tests/FinalPreferenceTests.cs:line 25
-   at Program.<Main>$(String[] args) in /src/tests/Porto.Tests/Program.cs:line 85
+PASS final preferences a hard link cannot overwrite an unrelated file
+PASS final preferences linked settings are ignored on load
 PASS encoded synthetic media is copied byte for byte: synthetic-h264.mov
 PASS encoded synthetic media is copied byte for byte: synthetic-h264.m4v
 PASS encoded synthetic media is copied byte for byte: synthetic-hevc.mp4
@@ -356,16 +332,8 @@ PASS folder source rejects every ancestor overlap before destination writes
 PASS folder source cancellation never becomes a partial success
 PASS folder source reports a lost root as incomplete instead of silently empty
 PASS folder source reports unreadable files and keeps readable siblings
-FAIL folder source refuses hard links during inventory and revalidates before reading: System.Exception: Could not create synthetic hard link.
-   at Fixtures.Check(Boolean condition, String message) in /src/tests/Porto.Tests/Fixtures.cs:line 24
-   at FolderSourceTests.<>c.<Add>b__0_10() in /src/tests/Porto.Tests/FolderSourceTests.cs:line 129
-   at Program.<Main>$(String[] args) in /src/tests/Porto.Tests/Program.cs:line 85
-FAIL folder source refuses junction roots and never traverses linked subfolders: System.Exception: Synthetic junction creation failed: Accesso negato.
-
-   at Fixtures.Check(Boolean condition, String message) in /src/tests/Porto.Tests/Fixtures.cs:line 24
-   at FolderSourceTests.Junction(String link, String target) in /src/tests/Porto.Tests/FolderSourceTests.cs:line 170
-   at FolderSourceTests.<>c.<Add>b__0_11() in /src/tests/Porto.Tests/FolderSourceTests.cs:line 139
-   at Program.<Main>$(String[] args) in /src/tests/Porto.Tests/Program.cs:line 85
+PASS folder source refuses hard links during inventory and revalidates before reading
+PASS folder source refuses junction roots and never traverses linked subfolders
 PASS folder source rejects nonexistent network and device roots without creating them
 PASS folder source disposal revokes inventory and read access
 PASS folder import unsupported video container prevents a verified selection
@@ -453,7 +421,9 @@ PASS USB navigation native album recovery preserves membership scope; changed=Tr
 PASS USB navigation combines folders and albums in one native level read and worker call
 PASS rc19 AFC complete chunked reads and EOF with limit 65536
 PASS rc19 AFC complete chunked reads and EOF with limit 262144
-PASS rc19 AFC larger default still rejects oversized response before delivery
+PASS rc19 AFC complete chunked reads and EOF with limit 524288
+PASS rc19 AFC explicit 256 KiB rejects oversized response before delivery
+PASS rc20 AFC 512 KiB default rejects a response exceeding the requested size
 PASS apple TLS uses ephemeral existing credentials and authenticates the pinned device in memory
 PASS apple TLS rejects a different device certificate in memory
 PASS apple TLS rejects pinned server that does not request client authentication
@@ -584,50 +554,65 @@ PASS rc19 comparison process death at after-intent recovers with old files uncha
 PASS rc19 comparison process death at after-flush recovers with old files unchanged
 PASS rc19 comparison process death at after-ready recovers with old files unchanged
 PASS rc19 comparison process death at after-rename recovers with old files unchanged
-545/553 passed
-=== links-verified.txt ===
-PASS state hard links are rejected without changing unrelated files
-PASS a resumed hard-linked partial never appends to the unrelated file
-PASS final preferences a hard link cannot overwrite an unrelated file
-PASS folder source refuses hard links during inventory and revalidates before reading
-4/4 passed
-PASS final storage preflights every physical path before recovery: journal=False
-PASS final storage preflights every physical path before recovery: journal=True
-2/2 passed
-PASS final preferences linked settings are ignored on load
-1/1 passed
-PASS folder source refuses junction roots and never traverses linked subfolders
-1/1 passed
-=== rc19-final.txt ===
-PASS rc19 AFC complete chunked reads and EOF with limit 65536
-PASS rc19 AFC complete chunked reads and EOF with limit 262144
-PASS rc19 AFC larger default still rejects oversized response before delivery
-PASS rc19 comparison replays unmatched content without second source read
-PASS rc19 comparison matching old copy preserves multiplicity and same names
-PASS rc19 comparison low space retains hash-only reuse without temporary writes
-PASS rc19 comparison deep mode still detects discordant independent source reads
-PASS rc19 comparison cancellation discards only newly owned replay and resumes
-PASS rc19 comparison rejects truncated replay source before publishing
-PASS rc19 comparison unknown length uses full original verification path
-PASS rc19 comparison disk full during preparation leaves old copies intact
-PASS rc19 comparison process death at after-comparison recovers with old files unchanged
-PASS rc19 comparison process death at after-intent recovers with old files unchanged
-PASS rc19 comparison process death at after-flush recovers with old files unchanged
-PASS rc19 comparison process death at after-ready recovers with old files unchanged
-PASS rc19 comparison process death at after-rename recovers with old files unchanged
-16/16 passed
-=== large-rc19.txt ===
-  LARGE replay: 4294971392 bytes copied/verified, 220,21s, working set 60 MiB
-PASS rc19 gallery comparison over 4 GiB reads source once with bounded replay
-  LARGE NTFS: 4294971392 bytes written and reread, 175,27s, working set 61 MiB
-PASS video over 4 GiB actually written verified and published on NTFS
-2/2 passed
-=== large-catalog-rc19.txt ===
-MEASURE synthetic catalog bytes=566362112; WAL=4227152; managed allocated during capture=571738680; process peak working set=1744838656; elapsed_ms=1140
+555/555 passed
+=== catalog-final.txt ===
+MEASURE synthetic catalog bytes=566362112; WAL=4227152; managed allocated during capture=571731952; process peak working set=1744584704; elapsed_ms=706
 PASS apple large catalog full capture and integrity check above reported size
+1/1 passed
+=== large-stream-final.txt ===
+  LARGE stream: 4294967313 bytes, 2,35s, working set 29 MiB
+PASS stream beyond 4 GiB: 4 GiB + 17 bytes actually read and hashed without disk allocation
 1/1 passed
 === package-tests.txt ===
 PASS package staging interrupted
 PASS package staging invalid
 PASS package staging existing
 PASS package staging success
+=== transport-final.txt ===
+{"kind":"environment","framework":".NET 10.0.14","os":"Microsoft Windows 10.0.26200","cpuCount":12,"core":"0.1.0-rc.20\u002B0dce10de9832edd9a0fba7b361e8038dc6b7fdb1","appleSha":"71460FDC918EEC4FE64C098A67E1B2BD71519E7B7839765B52D44416F281A1A9","note":"Concurrent isolated analysis may contend for CPU; peak working set is cumulative. Fake wait is not real USB latency."}
+{"kind":"benchmark","experiment":"chunk-size","payloadBytes":16777216,"chunkKiB":64,"requestedWaitPerReadMs":0,"combineWrites":false,"trial":1,"elapsedMs":18.3789,"actualWaitMs":0,"cpuMs":15.625,"allocatedBytes":50462352,"peakWorkingSetBytes":112865280,"hashReferenceMs":9.9078,"readRequests":257,"openRequests":1,"closeRequests":1,"transportWriteCalls":518,"transportWriteBytes":14517,"transportReadCalls":517,"transportReadBytes":16787592,"payloadReadBytes":16777216,"MiBps":870.5635266528465,"sha256Matches":true}
+{"kind":"benchmark","experiment":"chunk-size","payloadBytes":16777216,"chunkKiB":256,"requestedWaitPerReadMs":0,"combineWrites":false,"trial":1,"elapsedMs":24.9665,"actualWaitMs":0,"cpuMs":15.625,"allocatedBytes":50372888,"peakWorkingSetBytes":162410496,"hashReferenceMs":9.4458,"readRequests":65,"openRequests":1,"closeRequests":1,"transportWriteCalls":134,"transportWriteBytes":3765,"transportReadCalls":133,"transportReadBytes":16779912,"payloadReadBytes":16777216,"MiBps":640.8587507259729,"sha256Matches":true}
+{"kind":"benchmark","experiment":"chunk-size","payloadBytes":16777216,"chunkKiB":512,"requestedWaitPerReadMs":0,"combineWrites":false,"trial":1,"elapsedMs":24.0093,"actualWaitMs":0,"cpuMs":31.25,"allocatedBytes":50355008,"peakWorkingSetBytes":212754432,"hashReferenceMs":10.0078,"readRequests":33,"openRequests":1,"closeRequests":1,"transportWriteCalls":70,"transportWriteBytes":1973,"transportReadCalls":69,"transportReadBytes":16778632,"payloadReadBytes":16777216,"MiBps":666.4084333987246,"sha256Matches":true}
+{"kind":"benchmark","experiment":"chunk-size","payloadBytes":16777216,"chunkKiB":64,"requestedWaitPerReadMs":0,"combineWrites":false,"trial":2,"elapsedMs":22.4473,"actualWaitMs":0,"cpuMs":31.25,"allocatedBytes":50461840,"peakWorkingSetBytes":212819968,"hashReferenceMs":9.3661,"readRequests":257,"openRequests":1,"closeRequests":1,"transportWriteCalls":518,"transportWriteBytes":14517,"transportReadCalls":517,"transportReadBytes":16787592,"payloadReadBytes":16777216,"MiBps":712.7806016759254,"sha256Matches":true}
+{"kind":"benchmark","experiment":"chunk-size","payloadBytes":16777216,"chunkKiB":256,"requestedWaitPerReadMs":0,"combineWrites":false,"trial":2,"elapsedMs":27.4578,"actualWaitMs":0,"cpuMs":31.25,"allocatedBytes":50365272,"peakWorkingSetBytes":263168000,"hashReferenceMs":9.4046,"readRequests":65,"openRequests":1,"closeRequests":1,"transportWriteCalls":134,"transportWriteBytes":3765,"transportReadCalls":133,"transportReadBytes":16779912,"payloadReadBytes":16777216,"MiBps":582.7123804529132,"sha256Matches":true}
+{"kind":"benchmark","experiment":"chunk-size","payloadBytes":16777216,"chunkKiB":512,"requestedWaitPerReadMs":0,"combineWrites":false,"trial":2,"elapsedMs":25.5567,"actualWaitMs":0,"cpuMs":15.625,"allocatedBytes":50355504,"peakWorkingSetBytes":313511936,"hashReferenceMs":10.9987,"readRequests":33,"openRequests":1,"closeRequests":1,"transportWriteCalls":70,"transportWriteBytes":1973,"transportReadCalls":69,"transportReadBytes":16778632,"payloadReadBytes":16777216,"MiBps":626.0589199701056,"sha256Matches":true}
+{"kind":"benchmark","experiment":"chunk-size","payloadBytes":16777216,"chunkKiB":64,"requestedWaitPerReadMs":0,"combineWrites":false,"trial":3,"elapsedMs":23.1472,"actualWaitMs":0,"cpuMs":62.5,"allocatedBytes":50461792,"peakWorkingSetBytes":314327040,"hashReferenceMs":10.6972,"readRequests":257,"openRequests":1,"closeRequests":1,"transportWriteCalls":518,"transportWriteBytes":14517,"transportReadCalls":517,"transportReadBytes":16787592,"payloadReadBytes":16777216,"MiBps":691.2283127116887,"sha256Matches":true}
+{"kind":"benchmark","experiment":"chunk-size","payloadBytes":16777216,"chunkKiB":256,"requestedWaitPerReadMs":0,"combineWrites":false,"trial":3,"elapsedMs":36.3821,"actualWaitMs":0,"cpuMs":109.375,"allocatedBytes":50370080,"peakWorkingSetBytes":342548480,"hashReferenceMs":10.8237,"readRequests":65,"openRequests":1,"closeRequests":1,"transportWriteCalls":134,"transportWriteBytes":3765,"transportReadCalls":133,"transportReadBytes":16779912,"payloadReadBytes":16777216,"MiBps":439.7767033788594,"sha256Matches":true}
+{"kind":"benchmark","experiment":"chunk-size","payloadBytes":16777216,"chunkKiB":512,"requestedWaitPerReadMs":0,"combineWrites":false,"trial":3,"elapsedMs":20.2015,"actualWaitMs":0,"cpuMs":31.25,"allocatedBytes":50355248,"peakWorkingSetBytes":342548480,"hashReferenceMs":9.5755,"readRequests":33,"openRequests":1,"closeRequests":1,"transportWriteCalls":70,"transportWriteBytes":1973,"transportReadCalls":69,"transportReadBytes":16778632,"payloadReadBytes":16777216,"MiBps":792.020394525159,"sha256Matches":true}
+{"kind":"benchmark","experiment":"chunk-size","payloadBytes":67108864,"chunkKiB":64,"requestedWaitPerReadMs":0,"combineWrites":false,"trial":1,"elapsedMs":75.0784,"actualWaitMs":0,"cpuMs":109.375,"allocatedBytes":201819072,"peakWorkingSetBytes":342548480,"hashReferenceMs":37.3006,"readRequests":1025,"openRequests":1,"closeRequests":1,"transportWriteCalls":2054,"transportWriteBytes":57525,"transportReadCalls":2053,"transportReadBytes":67149960,"payloadReadBytes":67108864,"MiBps":852.4422470377632,"sha256Matches":true}
+{"kind":"benchmark","experiment":"chunk-size","payloadBytes":67108864,"chunkKiB":256,"requestedWaitPerReadMs":0,"combineWrites":false,"trial":1,"elapsedMs":79.0408,"actualWaitMs":0,"cpuMs":140.625,"allocatedBytes":201465072,"peakWorkingSetBytes":346411008,"hashReferenceMs":37.1139,"readRequests":257,"openRequests":1,"closeRequests":1,"transportWriteCalls":518,"transportWriteBytes":14517,"transportReadCalls":517,"transportReadBytes":67119240,"payloadReadBytes":67108864,"MiBps":809.7084037610956,"sha256Matches":true}
+{"kind":"benchmark","experiment":"chunk-size","payloadBytes":67108864,"chunkKiB":512,"requestedWaitPerReadMs":0,"combineWrites":false,"trial":1,"elapsedMs":86.2938,"actualWaitMs":0,"cpuMs":78.125,"allocatedBytes":201394496,"peakWorkingSetBytes":346411008,"hashReferenceMs":36.4744,"readRequests":129,"openRequests":1,"closeRequests":1,"transportWriteCalls":262,"transportWriteBytes":7349,"transportReadCalls":261,"transportReadBytes":67114120,"payloadReadBytes":67108864,"MiBps":741.652355093877,"sha256Matches":true}
+{"kind":"benchmark","experiment":"chunk-size","payloadBytes":67108864,"chunkKiB":64,"requestedWaitPerReadMs":0,"combineWrites":false,"trial":2,"elapsedMs":61.0524,"actualWaitMs":0,"cpuMs":62.5,"allocatedBytes":201753304,"peakWorkingSetBytes":346411008,"hashReferenceMs":37.4135,"readRequests":1025,"openRequests":1,"closeRequests":1,"transportWriteCalls":2054,"transportWriteBytes":57525,"transportReadCalls":2053,"transportReadBytes":67149960,"payloadReadBytes":67108864,"MiBps":1048.279838302835,"sha256Matches":true}
+{"kind":"benchmark","experiment":"chunk-size","payloadBytes":67108864,"chunkKiB":256,"requestedWaitPerReadMs":0,"combineWrites":false,"trial":2,"elapsedMs":78.7384,"actualWaitMs":0,"cpuMs":78.125,"allocatedBytes":201441096,"peakWorkingSetBytes":346411008,"hashReferenceMs":36.3815,"readRequests":257,"openRequests":1,"closeRequests":1,"transportWriteCalls":518,"transportWriteBytes":14517,"transportReadCalls":517,"transportReadBytes":67119240,"payloadReadBytes":67108864,"MiBps":812.8181421009317,"sha256Matches":true}
+{"kind":"benchmark","experiment":"chunk-size","payloadBytes":67108864,"chunkKiB":512,"requestedWaitPerReadMs":0,"combineWrites":false,"trial":2,"elapsedMs":77.7449,"actualWaitMs":0,"cpuMs":78.125,"allocatedBytes":201383424,"peakWorkingSetBytes":346411008,"hashReferenceMs":38.959,"readRequests":129,"openRequests":1,"closeRequests":1,"transportWriteCalls":262,"transportWriteBytes":7349,"transportReadCalls":261,"transportReadBytes":67114120,"payloadReadBytes":67108864,"MiBps":823.2051234228868,"sha256Matches":true}
+{"kind":"benchmark","experiment":"chunk-size","payloadBytes":67108864,"chunkKiB":64,"requestedWaitPerReadMs":0,"combineWrites":false,"trial":3,"elapsedMs":60.9534,"actualWaitMs":0,"cpuMs":62.5,"allocatedBytes":201753008,"peakWorkingSetBytes":346411008,"hashReferenceMs":36.7412,"readRequests":1025,"openRequests":1,"closeRequests":1,"transportWriteCalls":2054,"transportWriteBytes":57525,"transportReadCalls":2053,"transportReadBytes":67149960,"payloadReadBytes":67108864,"MiBps":1049.9824456059876,"sha256Matches":true}
+{"kind":"benchmark","experiment":"chunk-size","payloadBytes":67108864,"chunkKiB":256,"requestedWaitPerReadMs":0,"combineWrites":false,"trial":3,"elapsedMs":83.1944,"actualWaitMs":0,"cpuMs":109.375,"allocatedBytes":201456952,"peakWorkingSetBytes":346411008,"hashReferenceMs":38.4171,"readRequests":257,"openRequests":1,"closeRequests":1,"transportWriteCalls":518,"transportWriteBytes":14517,"transportReadCalls":517,"transportReadBytes":67119240,"payloadReadBytes":67108864,"MiBps":769.2825478637985,"sha256Matches":true}
+{"kind":"benchmark","experiment":"chunk-size","payloadBytes":67108864,"chunkKiB":512,"requestedWaitPerReadMs":0,"combineWrites":false,"trial":3,"elapsedMs":85.4828,"actualWaitMs":0,"cpuMs":93.75,"allocatedBytes":201386416,"peakWorkingSetBytes":346411008,"hashReferenceMs":36.5507,"readRequests":129,"openRequests":1,"closeRequests":1,"transportWriteCalls":262,"transportWriteBytes":7349,"transportReadCalls":261,"transportReadBytes":67114120,"payloadReadBytes":67108864,"MiBps":748.6886250801331,"sha256Matches":true}
+{"kind":"benchmark","experiment":"chunk-size","payloadBytes":16777216,"chunkKiB":64,"requestedWaitPerReadMs":1,"combineWrites":false,"trial":1,"elapsedMs":3669.8574,"actualWaitMs":3636.633600000001,"cpuMs":15.625,"allocatedBytes":50454464,"peakWorkingSetBytes":346411008,"hashReferenceMs":9.2903,"readRequests":257,"openRequests":1,"closeRequests":1,"transportWriteCalls":518,"transportWriteBytes":14517,"transportReadCalls":517,"transportReadBytes":16787592,"payloadReadBytes":16777216,"MiBps":4.359842428754861,"sha256Matches":true}
+{"kind":"benchmark","experiment":"chunk-size","payloadBytes":16777216,"chunkKiB":256,"requestedWaitPerReadMs":1,"combineWrites":false,"trial":1,"elapsedMs":911.4232,"actualWaitMs":885.2026,"cpuMs":62.5,"allocatedBytes":50373888,"peakWorkingSetBytes":346411008,"hashReferenceMs":9.2961,"readRequests":65,"openRequests":1,"closeRequests":1,"transportWriteCalls":134,"transportWriteBytes":3765,"transportReadCalls":133,"transportReadBytes":16779912,"payloadReadBytes":16777216,"MiBps":17.554962392881816,"sha256Matches":true}
+{"kind":"benchmark","experiment":"chunk-size","payloadBytes":16777216,"chunkKiB":512,"requestedWaitPerReadMs":1,"combineWrites":false,"trial":1,"elapsedMs":460.3938,"actualWaitMs":433.6439,"cpuMs":31.25,"allocatedBytes":50357376,"peakWorkingSetBytes":346411008,"hashReferenceMs":9.1012,"readRequests":33,"openRequests":1,"closeRequests":1,"transportWriteCalls":70,"transportWriteBytes":1973,"transportReadCalls":69,"transportReadBytes":16778632,"payloadReadBytes":16777216,"MiBps":34.75285722787753,"sha256Matches":true}
+{"kind":"benchmark","experiment":"chunk-size","payloadBytes":16777216,"chunkKiB":64,"requestedWaitPerReadMs":1,"combineWrites":false,"trial":2,"elapsedMs":3794.5457,"actualWaitMs":3764.8224,"cpuMs":15.625,"allocatedBytes":50454464,"peakWorkingSetBytes":346411008,"hashReferenceMs":9.8123,"readRequests":257,"openRequests":1,"closeRequests":1,"transportWriteCalls":518,"transportWriteBytes":14517,"transportReadCalls":517,"transportReadBytes":16787592,"payloadReadBytes":16777216,"MiBps":4.216578548520315,"sha256Matches":true}
+{"kind":"benchmark","experiment":"chunk-size","payloadBytes":16777216,"chunkKiB":256,"requestedWaitPerReadMs":1,"combineWrites":false,"trial":2,"elapsedMs":1011.849,"actualWaitMs":963.9089,"cpuMs":0,"allocatedBytes":50364016,"peakWorkingSetBytes":346411008,"hashReferenceMs":8.7641,"readRequests":65,"openRequests":1,"closeRequests":1,"transportWriteCalls":134,"transportWriteBytes":3765,"transportReadCalls":133,"transportReadBytes":16779912,"payloadReadBytes":16777216,"MiBps":15.8126360751456,"sha256Matches":true}
+{"kind":"benchmark","experiment":"chunk-size","payloadBytes":16777216,"chunkKiB":512,"requestedWaitPerReadMs":1,"combineWrites":false,"trial":2,"elapsedMs":497.3948,"actualWaitMs":463.66150000000005,"cpuMs":0,"allocatedBytes":50361816,"peakWorkingSetBytes":346411008,"hashReferenceMs":8.725,"readRequests":33,"openRequests":1,"closeRequests":1,"transportWriteCalls":70,"transportWriteBytes":1973,"transportReadCalls":69,"transportReadBytes":16778632,"payloadReadBytes":16777216,"MiBps":32.16760609479633,"sha256Matches":true}
+{"kind":"benchmark","experiment":"chunk-size","payloadBytes":16777216,"chunkKiB":64,"requestedWaitPerReadMs":1,"combineWrites":false,"trial":3,"elapsedMs":3767.7102,"actualWaitMs":3704.825000000001,"cpuMs":125,"allocatedBytes":50454464,"peakWorkingSetBytes":346411008,"hashReferenceMs":12.6649,"readRequests":257,"openRequests":1,"closeRequests":1,"transportWriteCalls":518,"transportWriteBytes":14517,"transportReadCalls":517,"transportReadBytes":16787592,"payloadReadBytes":16777216,"MiBps":4.246611111438455,"sha256Matches":true}
+{"kind":"benchmark","experiment":"chunk-size","payloadBytes":16777216,"chunkKiB":256,"requestedWaitPerReadMs":1,"combineWrites":false,"trial":3,"elapsedMs":994.6493,"actualWaitMs":952.9590000000001,"cpuMs":0,"allocatedBytes":50374056,"peakWorkingSetBytes":346411008,"hashReferenceMs":10.633,"readRequests":65,"openRequests":1,"closeRequests":1,"transportWriteCalls":134,"transportWriteBytes":3765,"transportReadCalls":133,"transportReadBytes":16779912,"payloadReadBytes":16777216,"MiBps":16.086071744081057,"sha256Matches":true}
+{"kind":"benchmark","experiment":"chunk-size","payloadBytes":16777216,"chunkKiB":512,"requestedWaitPerReadMs":1,"combineWrites":false,"trial":3,"elapsedMs":502.1241,"actualWaitMs":472.9893,"cpuMs":0,"allocatedBytes":50349016,"peakWorkingSetBytes":346411008,"hashReferenceMs":10.3167,"readRequests":33,"openRequests":1,"closeRequests":1,"transportWriteCalls":70,"transportWriteBytes":1973,"transportReadCalls":69,"transportReadBytes":16778632,"payloadReadBytes":16777216,"MiBps":31.864632667501922,"sha256Matches":true}
+{"kind":"benchmark","experiment":"coalescing","payloadBytes":67108864,"chunkKiB":64,"requestedWaitPerReadMs":0,"combineWrites":false,"trial":1,"elapsedMs":53.7337,"actualWaitMs":0,"cpuMs":62.5,"allocatedBytes":201752192,"peakWorkingSetBytes":346411008,"hashReferenceMs":40.4713,"readRequests":1025,"openRequests":1,"closeRequests":1,"transportWriteCalls":2054,"transportWriteBytes":57525,"transportReadCalls":2053,"transportReadBytes":67149960,"payloadReadBytes":67108864,"MiBps":1191.0588699456764,"sha256Matches":true}
+{"kind":"benchmark","experiment":"coalescing","payloadBytes":67108864,"chunkKiB":64,"requestedWaitPerReadMs":0,"combineWrites":true,"trial":1,"elapsedMs":54.2991,"actualWaitMs":0,"cpuMs":78.125,"allocatedBytes":201899176,"peakWorkingSetBytes":346411008,"hashReferenceMs":35.575,"readRequests":1025,"openRequests":1,"closeRequests":1,"transportWriteCalls":1027,"transportWriteBytes":57525,"transportReadCalls":2053,"transportReadBytes":67149960,"payloadReadBytes":67108864,"MiBps":1178.6567364836617,"sha256Matches":true}
+{"kind":"benchmark","experiment":"coalescing","payloadBytes":67108864,"chunkKiB":64,"requestedWaitPerReadMs":0,"combineWrites":false,"trial":2,"elapsedMs":57.3795,"actualWaitMs":0,"cpuMs":62.5,"allocatedBytes":201752416,"peakWorkingSetBytes":346411008,"hashReferenceMs":34.6118,"readRequests":1025,"openRequests":1,"closeRequests":1,"transportWriteCalls":2054,"transportWriteBytes":57525,"transportReadCalls":2053,"transportReadBytes":67149960,"payloadReadBytes":67108864,"MiBps":1115.3809287289014,"sha256Matches":true}
+{"kind":"benchmark","experiment":"coalescing","payloadBytes":67108864,"chunkKiB":64,"requestedWaitPerReadMs":0,"combineWrites":true,"trial":2,"elapsedMs":60.7428,"actualWaitMs":0,"cpuMs":62.5,"allocatedBytes":201899176,"peakWorkingSetBytes":346411008,"hashReferenceMs":35.5409,"readRequests":1025,"openRequests":1,"closeRequests":1,"transportWriteCalls":1027,"transportWriteBytes":57525,"transportReadCalls":2053,"transportReadBytes":67149960,"payloadReadBytes":67108864,"MiBps":1053.6228162020848,"sha256Matches":true}
+{"kind":"benchmark","experiment":"coalescing","payloadBytes":67108864,"chunkKiB":64,"requestedWaitPerReadMs":0,"combineWrites":false,"trial":3,"elapsedMs":55.3692,"actualWaitMs":0,"cpuMs":62.5,"allocatedBytes":201752416,"peakWorkingSetBytes":346411008,"hashReferenceMs":35.4216,"readRequests":1025,"openRequests":1,"closeRequests":1,"transportWriteCalls":2054,"transportWriteBytes":57525,"transportReadCalls":2053,"transportReadBytes":67149960,"payloadReadBytes":67108864,"MiBps":1155.8772747303556,"sha256Matches":true}
+{"kind":"benchmark","experiment":"coalescing","payloadBytes":67108864,"chunkKiB":64,"requestedWaitPerReadMs":0,"combineWrites":true,"trial":3,"elapsedMs":53.9715,"actualWaitMs":0,"cpuMs":46.875,"allocatedBytes":201899176,"peakWorkingSetBytes":346411008,"hashReferenceMs":35.1719,"readRequests":1025,"openRequests":1,"closeRequests":1,"transportWriteCalls":1027,"transportWriteBytes":57525,"transportReadCalls":2053,"transportReadBytes":67149960,"payloadReadBytes":67108864,"MiBps":1185.8110298954077,"sha256Matches":true}
+{"kind":"fault-check","chunkKiB":256,"fault":"truncated-payload","exception":"EndOfStreamException","elapsedMs":2.2621,"sessionUsable":false,"verifiedCopyPublished":false,"readRequests":1}
+{"kind":"fault-check","chunkKiB":256,"fault":"disconnected","exception":"IOException","elapsedMs":0.1949,"sessionUsable":false,"verifiedCopyPublished":false,"readRequests":1}
+{"kind":"fault-check","chunkKiB":256,"fault":"bad-sequence","exception":"IOException","elapsedMs":0.146,"sessionUsable":false,"verifiedCopyPublished":false,"readRequests":1}
+{"kind":"fault-check","chunkKiB":256,"fault":"oversized-reply","exception":"IOException","elapsedMs":0.1408,"sessionUsable":false,"verifiedCopyPublished":false,"readRequests":1}
+{"kind":"fault-check","chunkKiB":256,"fault":"early-eof","exception":"InvalidDataException","elapsedMs":2.197,"sessionUsable":true,"verifiedCopyPublished":false,"readRequests":9}
+{"kind":"fault-check","chunkKiB":256,"fault":"cancel","exception":"TaskCanceledException","elapsedMs":59.438,"sessionUsable":false,"verifiedCopyPublished":false,"readRequests":1}
+{"kind":"fault-check","chunkKiB":512,"fault":"truncated-payload","exception":"EndOfStreamException","elapsedMs":0.2284,"sessionUsable":false,"verifiedCopyPublished":false,"readRequests":1}
+{"kind":"fault-check","chunkKiB":512,"fault":"disconnected","exception":"IOException","elapsedMs":0.1444,"sessionUsable":false,"verifiedCopyPublished":false,"readRequests":1}
+{"kind":"fault-check","chunkKiB":512,"fault":"bad-sequence","exception":"IOException","elapsedMs":0.1099,"sessionUsable":false,"verifiedCopyPublished":false,"readRequests":1}
+{"kind":"fault-check","chunkKiB":512,"fault":"oversized-reply","exception":"IOException","elapsedMs":0.1508,"sessionUsable":false,"verifiedCopyPublished":false,"readRequests":1}
+{"kind":"fault-check","chunkKiB":512,"fault":"early-eof","exception":"InvalidDataException","elapsedMs":1.7825,"sessionUsable":true,"verifiedCopyPublished":false,"readRequests":5}
+{"kind":"fault-check","chunkKiB":512,"fault":"cancel","exception":"TaskCanceledException","elapsedMs":60.9038,"sessionUsable":false,"verifiedCopyPublished":false,"readRequests":1}
+ALL SYNTHETIC INTEGRITY AND FAILURE CHECKS PASSED
