@@ -23,9 +23,9 @@ public static class AppleGalleryDiscovery
         catch(IOException){return new([],"Servizio USB Apple non disponibile o non compatibile. Porto non installa né avvia servizi Windows. Usa l'installazione Apple già disponibile e riprova.");}
         catch(SocketException){return new([],"Servizio USB Apple non disponibile. Porto non installa né avvia servizi Windows.");}
     }
-    public static AppleGalleryCatalog ListAlbums(AppleDevice device,CancellationToken cancel)
+    public static AppleGalleryCatalog ListAlbums(AppleDevice device,CancellationToken cancel,bool compatibleUsb=false)
     {
-        using var fileSystem=AppleUsbTransport.Connect(device,cancel);
+        using var fileSystem=AppleUsbTransport.Connect(device,cancel,compatibleUsb);
         return AppleCatalogCapture.Read(fileSystem,cancel);
     }
 }
@@ -52,7 +52,7 @@ internal static class AppleUsbTransport
         }
         return devices;
     }
-    internal static IAppleFileSystem Connect(AppleDevice device,CancellationToken cancel)
+    internal static IAppleFileSystem Connect(AppleDevice device,CancellationToken cancel,bool compatibleUsb=false)
     {
         if(!ValidSerial(device.Id))throw new IOException("Identificativo iPhone non valido.");
         IReadOnlyList<MuxDevice> devices;
@@ -77,7 +77,7 @@ internal static class AppleUsbTransport
                 if(serviceSsl is not bool)throw ApplePlist.Bad();
                 if(serviceSsl is true)afc=identity.Protect(afc,cancel);
             }
-            var result=new AppleAfcFileSystem(afc,lockdown,identity);afc=null;lockdown=null;identity=null;return result;
+            var result=new AppleAfcFileSystem(afc,lockdown,identity){ReadLimit=compatibleUsb?64*1024:256*1024};afc=null;lockdown=null;identity=null;return result;
         }
         catch(AuthenticationException){throw new IOException("Il collegamento Apple non soddisfa le impostazioni TLS di Windows o il certificato abbinato. Nessuna protezione è stata ridotta.");}
         catch(SocketException){throw new IOException("Il collegamento USB Apple si è interrotto.");}

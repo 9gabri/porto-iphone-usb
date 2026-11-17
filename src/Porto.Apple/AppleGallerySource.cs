@@ -21,7 +21,7 @@ public sealed class AppleGallerySource : IGallerySource,IReadFailureRecovery
     public GalleryCoverage? Coverage {get;private set;}
     public bool AppleResourceHints=>false;
     public string SourceDescription {get;private set;}
-    public AppleGallerySource(AppleDevice device,string? albumId=null,ImportMedia media=ImportMedia.PhotosAndVideos):this(device,albumId,cancel=>AppleUsbTransport.Connect(device,cancel),media){}
+    public AppleGallerySource(AppleDevice device,string? albumId=null,ImportMedia media=ImportMedia.PhotosAndVideos,bool compatibleUsb=false):this(device,albumId,cancel=>AppleUsbTransport.Connect(device,cancel,compatibleUsb),media){}
     internal AppleGallerySource(AppleDevice device,string? albumId,Func<CancellationToken,IAppleFileSystem> connect,ImportMedia media=ImportMedia.PhotosAndVideos)
     {
         if(string.IsNullOrWhiteSpace(device.Id)||device.Id.Length>128)throw new ArgumentException("Identificativo iPhone non valido.",nameof(device));

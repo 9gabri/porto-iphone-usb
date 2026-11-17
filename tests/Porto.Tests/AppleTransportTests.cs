@@ -14,6 +14,34 @@ internal static class AppleTransportTests
 {
     internal static void Add(List<(string,Action)> tests)
     {
+        foreach(int limit in new[]{64*1024,256*1024})
+        tests.Add(($"rc19 AFC complete chunked reads and EOF with limit {limit}",()=>
+        {
+            byte[] bytes=new byte[256*1024+17];new Random(19).NextBytes(bytes);
+            var responses=new List<byte>();ulong sequence=1;
+            responses.AddRange(Packet(sequence++,14,U64(42)));
+            for(int offset=0;offset<bytes.Length;offset+=limit)
+                responses.AddRange(Packet(sequence++,2,bytes.AsSpan(offset,Math.Min(limit,bytes.Length-offset)).ToArray()));
+            responses.AddRange(Packet(sequence++,2,[]));responses.AddRange(Packet(sequence,1,U64(0)));
+            using var wire=new ScriptedStream(responses.ToArray());using var fs=new AppleAfcFileSystem(wire){ReadLimit=limit};
+            using(var source=fs.OpenRead("/DCIM/100APPLE/test.MOV",default))
+            {
+                using var saved=new MemoryStream();Porto.Core.VerifiedCopy.Copy(source,saved,bytes.Length,null,null,default);
+                Fixtures.Check(saved.ToArray().SequenceEqual(bytes));
+            }
+            byte[] sent=wire.Sent.ToArray();int reads=0;
+            for(int offset=0;offset<sent.Length;offset+=checked((int)BinaryPrimitives.ReadUInt64LittleEndian(sent.AsSpan(offset+8))))
+                if(BinaryPrimitives.ReadUInt64LittleEndian(sent.AsSpan(offset+32))==15)
+                {Fixtures.Check(BinaryPrimitives.ReadUInt64LittleEndian(sent.AsSpan(offset+48))==(ulong)limit);reads++;}
+            Fixtures.Check(reads==(bytes.Length+limit-1)/limit+1);
+        }));
+        tests.Add(("rc19 AFC larger default still rejects oversized response before delivery",()=>
+        {
+            using var wire=new ScriptedStream([..Packet(1,14,U64(42)),..Packet(2,2,new byte[256*1024+1])]);
+            using var fs=new AppleAfcFileSystem(wire);Fixtures.Check(fs.ReadLimit==256*1024);
+            using var input=fs.OpenRead("/DCIM/100APPLE/test.MOV",default);
+            Fixtures.Throws<IOException>(()=>{_ = input.Read(new byte[1024*1024],0,1024*1024);});Fixtures.Check(!fs.IsUsable);
+        }));
         tests.Add(("apple TLS uses ephemeral existing credentials and authenticates the pinned device in memory",()=>TlsTest(false)));
         tests.Add(("apple TLS rejects a different device certificate in memory",()=>TlsTest(true)));
         tests.Add(("apple TLS rejects pinned server that does not request client authentication",()=>TlsTest(false,false)));

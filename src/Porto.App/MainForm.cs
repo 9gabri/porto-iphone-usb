@@ -23,6 +23,7 @@ public sealed class MainForm:Form
     private readonly TextBox folder=new(){ReadOnly=true,Dock=DockStyle.Fill,PlaceholderText="Scegli dove conservare foto e video"};
     private readonly Button search=Button("Cerca dispositivi"),browse=Button("Scegli cartella"),start=Button("Avvia importazione",true),pause=Button("Pausa"),resume=Button("Riprendi"),reportButton=Button("Apri report");
     private readonly CheckBox deep=new(){Text="Verifica approfondita: rileggi anche la sorgente (richiede più tempo)",AutoSize=true};
+    private readonly CheckBox compatibleUsb=new(){Text="USB iPhone compatibile (più lento): usa se la lettura USB dà errori",AutoSize=true};
     private readonly Label status=Label("Scegli la cartella dei video esportati per iniziare.",13,FontStyle.Bold),detail=Label("Nessuna importazione avviata.",10),counts=Label("Video: —",11),bytes=Label("Spazio richiesto: —   ·   Disponibile: —",10),speed=Label("Velocità: —   ·   Tempo rimanente: —",10);
     private readonly ProgressBar progress=new(){Dock=DockStyle.Fill,Height=12,Maximum=1000};
     private readonly Label summary=Label("L’app non modifica né elimina contenuti sul telefono.",10);
@@ -60,6 +61,7 @@ public sealed class MainForm:Form
         setup.Controls.Add(usbSelection,1,4);setup.SetColumnSpan(usbSelection,2);
         setup.Controls.Add(Label("Archivio PC",10,FontStyle.Bold),0,5);setup.Controls.Add(folder,1,5);setup.Controls.Add(browse,2,5);layout.Controls.Add(setup);
         deep.Dock=DockStyle.Fill;layout.Controls.Add(deep);
+        compatibleUsb.Dock=DockStyle.Fill;layout.Controls.Add(compatibleUsb);
         var activity=new TableLayoutPanel{Dock=DockStyle.Fill,AutoSize=true,BackColor=Color.White,Padding=new(16,10,16,10),ColumnCount=1,RowCount=6};
         activity.ColumnStyles.Add(new(SizeType.Percent,100));
         for(int i=0;i<5;i++)activity.RowStyles.Add(new(SizeType.AutoSize));activity.RowStyles.Add(new(SizeType.Absolute,18));
@@ -206,6 +208,7 @@ public sealed class MainForm:Form
     }
     private void UpdateScope()
     {
+        compatibleUsb.Visible=AppleMode;
         usbScope.Enabled=!busy&&!FolderMode;
         selectUsbFolder.Enabled=!busy&&!FolderMode&&usbScope.SelectedIndex==1;
         usbSelection.Text=FolderMode?"La cartella di origine comprende anche le sottocartelle."
@@ -241,7 +244,8 @@ public sealed class MainForm:Form
         detail.Text="Metadati letti localmente; nessuna foto o video viene copiato in questa fase.";
         try
         {
-            var catalog=await Task.Run(()=>AppleGalleryDiscovery.ListAlbums(device,cancellation.Token));
+            bool compatibility=compatibleUsb.Checked;
+            var catalog=await Task.Run(()=>AppleGalleryDiscovery.ListAlbums(device,cancellation.Token,compatibility));
             cancellation.Token.ThrowIfCancellationRequested();
             using var dialog=new AppleAlbumDialog(catalog.Albums,catalog.UnresolvedAssociationCount);
             if(dialog.ShowDialog(this)==DialogResult.OK){chosenAppleAlbum=dialog.SelectedAlbum;status.Text="Album scelto. Scegli l’archivio PC e avvia.";}
@@ -295,7 +299,7 @@ public sealed class MainForm:Form
         if(FolderMode&&string.IsNullOrWhiteSpace(sourceFolder.Text)){PickSource();if(string.IsNullOrWhiteSpace(sourceFolder.Text))return;}
         if(string.IsNullOrWhiteSpace(folder.Text)){PickFolder();if(string.IsNullOrWhiteSpace(folder.Text))return;}
         if(!FolderMode&&usbScope.SelectedIndex==1&&(AppleMode?chosenAppleAlbum==null:chosenUsbFolder==null&&chosenUsbCollection==null)){status.Text="Scegli prima l’album, la raccolta o la cartella.";return;}
-        string path=folder.Text,origin=sourceFolder.Text;bool deeper=deep.Checked,fromFolder=FolderMode,fromApple=AppleMode;
+        string path=folder.Text,origin=sourceFolder.Text;bool deeper=deep.Checked,fromFolder=FolderMode,fromApple=AppleMode,compatibility=compatibleUsb.Checked;
         var media=(ImportMedia)mediaMode.SelectedIndex;var scope=usbScope.SelectedIndex==1?chosenUsbFolder:null;
         var collection=usbScope.SelectedIndex==1?chosenUsbCollection:null;
         string? albumId=usbScope.SelectedIndex==1?chosenAppleAlbum?.Id:null;
@@ -314,7 +318,7 @@ public sealed class MainForm:Form
                     var engine=new ImportEngine(selectedSource,destination){Media=media,Progress=p=>((IProgress<ImportProgress>)updates).Report(p)};
                     var folderReport=engine.Run(deeper,cancellation.Token);return(report:folderReport,ReportPath:engine.ReportPath);
                 }
-                IVideoSource CreateSource()=>fromApple?new AppleGallerySource(applePhone!,albumId,media):new UsbImportSource(new ReconnectingUsbSource(Environment.ProcessPath!,phone!.Id,
+                IVideoSource CreateSource()=>fromApple?new AppleGallerySource(applePhone!,albumId,media,compatibility):new UsbImportSource(new ReconnectingUsbSource(Environment.ProcessPath!,phone!.Id,
                     n=>((IProgress<ImportProgress>)updates).Report(new("Inventario USB",$"{n:N0} elementi esaminati",0,0,0,null,null))),phone.Id,phone.Name,phone.IsApple,scope,collection);
                 var session=new ImportSession(CreateSource,destination)
                     {Media=media,Progress=p=>((IProgress<ImportProgress>)updates).Report(p)};
@@ -381,7 +385,7 @@ public sealed class MainForm:Form
     }
     private void SetBusy(bool value)
     {
-        busy=value;foreach(Control c in new Control[]{sourceMode,sourceFolder,mediaMode,usbScope,selectUsbFolder,search,browse,start,phones,folder,deep,resume})c.Enabled=!value;pause.Enabled=value;
+        busy=value;foreach(Control c in new Control[]{sourceMode,sourceFolder,mediaMode,usbScope,selectUsbFolder,search,browse,start,phones,folder,deep,compatibleUsb,resume})c.Enabled=!value;pause.Enabled=value;
         UpdateScope();
         if(!value){speed.Text="Velocità: —   ·   Tempo rimanente: —";progress.Value=0;}
     }

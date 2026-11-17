@@ -13,7 +13,7 @@ internal sealed class AppleAfcFileSystem(Stream stream,Stream? session=null,IDis
     private bool disposed;
     private bool poisoned;
     public bool IsUsable=>!disposed&&!poisoned;
-    internal int ReadLimit {get;init;}=64*1024;
+    internal int ReadLimit {get;init;}=256*1024;
     public AppleFileInfo? Stat(string path,CancellationToken cancel)
     {
         ValidatePath(path);var reply=Exchange(10,PathBytes(path),cancel);
