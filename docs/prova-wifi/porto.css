@@ -1,0 +1,10 @@
+:root{font:17px/1.5 system-ui,sans-serif;color:#173438;background:#f3f6f2;color-scheme:light}
+*{box-sizing:border-box}[hidden]{display:none!important}body{margin:0}main{max-width:44rem;margin:auto;padding:1.5rem}
+header{font-size:1.5rem;font-weight:750;border-bottom:1px solid #b5c5bc;padding-bottom:1rem}
+header span{font-size:.88rem;font-weight:450;margin-left:1rem}h1{line-height:1.1;font-size:clamp(2.15rem,6vw,3.4rem);letter-spacing:-.045em;margin:2rem 0 1rem}h2{font-size:1.13rem;margin:1.4rem 0 .4rem}
+p{margin:.6rem 0 1rem}button,select,textarea{font:inherit}button{border:0;border-radius:.5rem;background:#066355;color:white;padding:.7rem 1rem;cursor:pointer;margin:.2rem .25rem .5rem 0;font-weight:600}
+button:disabled{opacity:.55;cursor:default}button:focus-visible,summary:focus-visible{outline:3px solid #b15609;outline-offset:3px}
+label,select,textarea{display:block}select,textarea{width:100%;padding:.5rem;margin:.4rem 0 1rem;border:1px solid #78918a;border-radius:.35rem}
+textarea{height:4.5rem}canvas,video{width:min(100%,24rem);height:auto;display:block;margin:1rem auto;image-rendering:pixelated}details{margin:1rem 0}summary{cursor:pointer}
+.feedback{padding:.2rem 1rem .5rem;border-left:4px solid #348476;background:white;margin-top:1.6rem;overflow-wrap:anywhere}
+#times,#progress{font-variant-numeric:tabular-nums;color:#37524d}
