@@ -11,6 +11,7 @@ public sealed class AppleGallerySource : IGallerySource,IReadFailureRecovery,ISo
     private readonly ImportMedia media;
     private readonly Func<CancellationToken,IAppleFileSystem> connect;
     private readonly string sourceNamespace;
+    private readonly AppleCatalogCache catalogCache;
     private IAppleFileSystem? files;
     private readonly Dictionary<string,(SourceItem Item,string? Path,AppleFileInfo? Info,bool VisibilityUnresolved)> observed=new(StringComparer.Ordinal);
     private bool disposed;
@@ -22,11 +23,12 @@ public sealed class AppleGallerySource : IGallerySource,IReadFailureRecovery,ISo
     public GalleryCoverage? Coverage {get;private set;}
     public bool AppleResourceHints=>false;
     public string SourceDescription {get;private set;}
-    public AppleGallerySource(AppleDevice device,string? albumId=null,ImportMedia media=ImportMedia.PhotosAndVideos,bool compatibleUsb=false):this(device,albumId,null,media,compatibleUsb){}
-    internal AppleGallerySource(AppleDevice device,string? albumId,Func<CancellationToken,IAppleFileSystem>? connect,ImportMedia media=ImportMedia.PhotosAndVideos,bool compatibleUsb=false)
+    public AppleGallerySource(AppleDevice device,string? albumId=null,ImportMedia media=ImportMedia.PhotosAndVideos,bool compatibleUsb=false,AppleCatalogCache? catalogCache=null):this(device,albumId,null,media,compatibleUsb,catalogCache){}
+    internal AppleGallerySource(AppleDevice device,string? albumId,Func<CancellationToken,IAppleFileSystem>? connect,ImportMedia media=ImportMedia.PhotosAndVideos,bool compatibleUsb=false,AppleCatalogCache? catalogCache=null)
     {
         if(string.IsNullOrWhiteSpace(device.Id)||device.Id.Length>128)throw new ArgumentException("Identificativo iPhone non valido.",nameof(device));
         this.device=device;this.albumId=albumId;this.connect=connect??(cancel=>AppleUsbTransport.Connect(device,cancel,compatibleUsb,TransportMetrics));this.media=media;
+        this.catalogCache=catalogCache??new();
         sourceNamespace="apple:"+Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(device.Id)));
         SourceDescription=device.Name+" — Galleria Foto iPhone via USB";
     }
@@ -37,7 +39,7 @@ public sealed class AppleGallerySource : IGallerySource,IReadFailureRecovery,ISo
         files=connect(cancel);
         try
         {
-            var catalog=AppleCatalogCapture.Read(files,cancel);
+            var catalog=AppleCatalogCapture.Read(files,cancel,catalogCache,device.Id,TransportMetrics);
             var selected=catalog.Select(albumId);
             var errors=new List<string>();int unresolved=0;bool unavailableFound=false,unknownFound=false,metadataFailureFound=false,visibilityFailureFound=false;
             foreach(var asset in selected)
@@ -139,20 +141,44 @@ public sealed class AppleGallerySource : IGallerySource,IReadFailureRecovery,ISo
 internal static class AppleCatalogCapture
 {
     private const string Database="/PhotoData/Photos.sqlite";
-    internal static AppleGalleryCatalog Read(IAppleFileSystem files,CancellationToken cancel)
+    internal static AppleGalleryCatalog Read(IAppleFileSystem files,CancellationToken cancel,AppleCatalogCache? cache=null,string? deviceId=null,SourceTransportMetrics? metrics=null)
     {
+        if(cache!=null&&string.IsNullOrWhiteSpace(deviceId))throw new ArgumentException("Identità richiesta per il catalogo verificato.",nameof(deviceId));
         using var deadline=CancellationTokenSource.CreateLinkedTokenSource(cancel);deadline.CancelAfter(TimeSpan.FromMinutes(10));
         AppleCatalogBuffer? db=null,merged=null;byte[]? wal=null;
         try
         {
             AppleFileInfo firstInfo;AppleFileInfo? firstWalInfo,firstJournal;
             (db,wal,firstInfo,firstWalInfo,firstJournal)=Capture(files,deadline.Token);
+            string? dbHash=null,walHash=null;
+            if(cache!=null)
+            {
+                long started=System.Diagnostics.Stopwatch.GetTimestamp();
+                try
+                {
+                    dbHash=Convert.ToHexString(SHA256.HashData(db.Data));
+                    walHash=wal==null?null:Convert.ToHexString(SHA256.HashData(wal));
+                }
+                finally{if(metrics!=null)metrics.CatalogFingerprintMilliseconds+=System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds;}
+                deadline.Token.ThrowIfCancellationRequested();
+                var previous=cache.Match(deviceId!,firstInfo,firstWalInfo,firstJournal,dbHash,walHash);
+                if(previous!=null)
+                {
+                    if(metrics!=null)metrics.CatalogValidatedReuses++;
+                    return previous;
+                }
+            }
             VerifyCapture(files,db,wal,firstInfo,firstWalInfo,firstJournal,deadline.Token);
             merged=AppleSqliteImage.ApplyWal(db,wal,deadline.Token);
-            return AppleCatalogDecoder.Decode(merged,deadline.Token);
+            var catalog=AppleCatalogDecoder.Decode(merged,deadline.Token);
+            deadline.Token.ThrowIfCancellationRequested();
+            if(cache!=null)cache.Store(deviceId!,firstInfo,firstWalInfo,firstJournal,dbHash!,walHash,catalog);
+            if(metrics!=null)metrics.CatalogFullValidations++;
+            return catalog;
         }
-        catch(OperationCanceledException) when(!cancel.IsCancellationRequested){throw new IOException("Lettura del catalogo Foto oltre il limite di dieci minuti.");}
-        catch(OutOfMemoryException){throw new IOException("[APPLE-CATALOG-MEMORY] Memoria insufficiente durante la lettura del catalogo. Chiudi le altre applicazioni e riprova.");}
+        catch(OperationCanceledException) when(!cancel.IsCancellationRequested){cache?.Clear();throw new IOException("Lettura del catalogo Foto oltre il limite di dieci minuti.");}
+        catch(OutOfMemoryException){cache?.Clear();throw new IOException("[APPLE-CATALOG-MEMORY] Memoria insufficiente durante la lettura del catalogo. Chiudi le altre applicazioni e riprova.");}
+        catch{cache?.Clear();throw;}
         finally
         {
             merged?.Dispose();db?.Dispose();if(wal!=null)CryptographicOperations.ZeroMemory(wal);

@@ -1,3 +1,16 @@
+# Verifiche 0.1.0-rc.23
+
+18 novembre 2026. Build Release test/app senza avvisi/errori, runtime .NET 10.0.14. Solo nuove cartelle sintetiche, nessun telefono o file personale consultato/modificato.
+
+- Riproduzione iniziale 0/1 con fallimento atteso: il catalogo invariato richiedeva ancora due letture. Dopo la modifica **14/14 regressioni dedicate passate**, incluse nella suite completa. Due errori di preparazione delle fixture corretti e log iniziali conservati, descritti in REVIEW-RC23.md.
+- Suite finale tramite apphost Porto.Tests.exe: **579/579 passati**, senza casi saltati. Include NTFS/link, processi figli, TLS, guasti, inventari finali, conservazione delle copie precedenti, molteplicità e ripresa.
+- Catalogo grande: **1/1 passato**. SQLite sintetico valido 1.426.288.640 byte, WAL 7.337.752 byte. Prima cattura: quattro aperture, 2.867.252.784 byte, 4.068 ms; allocazioni gestite 9.544.744 byte. Seconda cattura: due aperture, 1.433.626.392 byte, un riutilizzo verificato. Stessi album e hash della sorgente invariati. Picco finale 1.488.330.752 byte, memoria privata prima/dopo 19.062.784/37.019.648 byte: nessuna immagine del catalogo trattenuta dalla cache. Tempi locali, non USB.
+- Benchmark catalogo: **1/1 passato**, tre ripetizioni per variante con ordine alternato. DB 16.928.768 byte, letture fake da 256 KiB e attesa artificiale Sleep(2 ms), tre osservazioni. Mediana 5.624,78 -> 3.702,83 ms, intervalli separati; aperture 6 -> 4, byte 101.572.608 -> 67.715.072. Nessuna stima del trasferimento dei video. Dettagli, variabilità e limiti in REVIEW-RC23.md.
+- Packaging: **4/4 passati**. Confezionamento prevede dodici smoke senza telefoni (due interop/protocollo e dieci schermate sintetiche). Esiti del download pubblico registrati dopo il tag in RELEASE-VERIFICATION.md.
+
+Macchina del benchmark: Windows build 26200 x64, Intel64 Family 6 Model 154 Stepping 4, 12 processori logici. Quantità di RAM installata non rilevata perché CIM non disponibile nel contesto ristretto; la prova grande misura memoria del processo, non requisiti universali. Revisione locale, nessuna revisione indipendente aggiuntiva o servizio a pagamento. Benchmark AFC e media oltre 4 GiB non ripetuti perché il trasporto media e il motore di copia non sono cambiati. Nessuna promessa di 29 GB/ora. Storico test-results-rc22.txt conservato.
+
+---
 # Verifiche 0.1.0-rc.22
 
 18 novembre 2026. Build Release senza avvisi/errori. Solo cartelle sintetiche nuove, nessun telefono o file personale consultato/modificato.

@@ -1,5 +1,12 @@
 # Novità
 
+## 0.1.0-rc.23
+
+- Riutilizzo in RAM dell'ultima osservazione del catalogo completamente verificata, soltanto dopo una nuova lettura integrale di DB/WAL e confronto SHA-256, identità del dispositivo e metadati prima/dopo la cattura.
+- Catalogo invariato: una lettura completa anziché due nei passaggi successivi; prima cattura o contenuti cambiati conservano due letture, WAL e integrity_check. Nessuna cache basata soltanto su data/dimensione o intestazione.
+- Unica osservazione condivisa fra scelta album, importazione e tentativi; eliminata al cambio dispositivo, alla chiusura e agli errori di cattura. Nessun database grezzo conservato o scritto su disco. Originali e selezione verificati nuovamente come prima.
+- Contatori locali CatalogValidatedReuses, CatalogFullValidations e CatalogFingerprintMilliseconds. Test su cambiamenti anche solo nel WAL, errori, cancellazione e catalogo oltre 1,42 GB. Benefici sintetici distinti dai tempi reali dell'iPhone.
+
 ## 0.1.0-rc.22
 
 - Eliminata la seconda copia completa del catalogo durante la verifica SQLite: acquisizione, WAL e lettura sola condividono un buffer RAM con rilascio deterministico e azzeramento.

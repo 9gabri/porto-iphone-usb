@@ -1,8 +1,14 @@
 # Porto
 
-App locale in italiano per copiare foto e video dal telefono al PC, senza conversioni. **0.1.0-rc.22 candidata**, Windows 11 x64 con runtime incluso. Riduce la memoria richiesta dal catalogo Foto mantenendo le verifiche. Prestazioni e compatibilità della nuova versione da confermare sul telefono reale.
+App locale in italiano per copiare foto e video dal telefono al PC, senza conversioni. **0.1.0-rc.23 candidata**, Windows 11 x64 con runtime incluso. Riduce le riletture del catalogo Foto quando tutti i suoi byte risultano ancora uguali a quelli già verificati. Prestazioni e compatibilità della nuova versione da confermare sul telefono reale.
 
-[Scarica Windows](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.22/Porto-0.1.0-rc.22-win-x64.zip) · [Checksum](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.22/SHA256SUMS.txt) · [Guida](docs/PHONES-AND-ALBUMS.md)
+[Scarica Windows](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.23/Porto-0.1.0-rc.23-win-x64.zip) · [Checksum](https://github.com/9gabri/porto-iphone-usb/releases/download/v0.1.0-rc.23/SHA256SUMS.txt) · [Guida](docs/PHONES-AND-ALBUMS.md)
+
+## Riletture del catalogo rc.23
+
+La prima lettura mantiene due acquisizioni complete e la verifica SQLite/WAL. Nei passaggi successivi Porto legge ancora tutto il catalogo corrente una volta: se le impronte SHA-256 di DB e WAL, il dispositivo e i metadati corrispondono alla precedente verifica, riutilizza l'elenco già interpretato. Se qualcosa cambia, ripete anche la seconda lettura e tutti i controlli. Nessun riutilizzo basato soltanto su data o dimensione.
+
+Con catalogo invariato, scelta album + avvio + controllo finale passano da sei letture complete a quattro. Il risparmio riguarda il catalogo, non garantisce la stessa riduzione sul tempo dell'intera importazione. Nessun database conservato su disco; una sola osservazione interpretata in RAM, eliminata alla chiusura o al cambio dispositivo. I metadati dei media vengono riletti e il motore di copia resta invariato. [Prove e limiti](docs/REVIEW-RC23.md).
 
 ## Memoria catalogo rc.22
 

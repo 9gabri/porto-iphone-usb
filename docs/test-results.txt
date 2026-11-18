@@ -1,29 +1,6 @@
---- red.txt
-FAIL rc22 reported free RAM supports catalog without a second full copy: System.IO.IOException: [APPLE-CATALOG-MEMORY] Memoria disponibile insufficiente per leggere il catalogo. Richiesti con margine: 3371982864 byte; RAM disponibile: 2641379328 byte; capacità di allocazione: 3821715456 byte. Chiudi le altre applicazioni e riprova.
-   at Porto.Apple.AppleCatalogMemory.ValidateAvailable(Int64 allocation, UInt64 physical, UInt64 commit) in /src/src/Porto.Apple/AppleCatalogMemory.cs:line 27
-   at Rc22MemoryTests.<>c.<Add>b__0_0() in /src/tests/Porto.Tests/Rc22MemoryTests.cs:line 12
-   at Program.<Main>$(String[] args) in /src/tests/Porto.Tests/Program.cs:line 88
-0/1 passed
---- build-release.txt
-  Porto.Core -> C:\Users\gabri\Desktop\App-trasferimento video\artifacts\rc22-release-tests\Porto.Core.dll
-  Porto.Usb -> C:\Users\gabri\Desktop\App-trasferimento video\artifacts\rc22-release-tests\Porto.Usb.dll
-  Porto.Apple -> C:\Users\gabri\Desktop\App-trasferimento video\artifacts\rc22-release-tests\Porto.Apple.dll
-  Porto.Tests -> C:\Users\gabri\Desktop\App-trasferimento video\artifacts\rc22-release-tests\Porto.Tests.dll
-
-Compilazione completata.
-    Avvisi: 0
-    Errori: 0
-
-Tempo trascorso 00:00:09.40
---- focused-final.txt
-PASS rc22 reported free RAM supports catalog without a second full copy
-PASS rc22 shared SQLite image remains readonly and unchanged after disposal
-PASS rc22 SQLite keeps borrowed RAM alive until connection closes
-PASS rc22 cancelled SQLite construction leaves owned capture valid
-PASS rc22 native capture disposal is idempotent and rejects subsequent access
-PASS rc22 malformed SQLite failure releases borrow and restores WAL header
-6/6 passed
---- full-apphost.txt
+Porto 0.1.0-rc.23 — 18 novembre 2026. Solo dati sintetici. Build app/test Release: 0 avvisi, 0 errori.
+Riproduzione iniziale attesa: 0/1. Fixture intermedie corrette; dettagli in REVIEW-RC23.md.
+SUITE COMPLETA
 PASS copy and independently reread SHA256
 PASS truncation rejected
 PASS unexpected extra bytes rejected
@@ -555,6 +532,20 @@ PASS rc22 SQLite keeps borrowed RAM alive until connection closes
 PASS rc22 cancelled SQLite construction leaves owned capture valid
 PASS rc22 native capture disposal is idempotent and rejects subsequent access
 PASS rc22 malformed SQLite failure releases borrow and restores WAL header
+PASS rc23 repeated validated catalog needs one complete fresh read
+PASS rc23 catalog changed with identical size timestamp and header is revalidated
+PASS rc23 cache is scoped to device and cleared explicitly
+PASS rc23 cached catalog rejects truncate and cannot retain successful validation
+PASS rc23 cached catalog rejects grow and cannot retain successful validation
+PASS rc23 cached catalog rejects corrupt and cannot retain successful validation
+PASS rc23 cached catalog rejects cancel and cannot retain successful validation
+PASS rc23 cached catalog rejects metadata and cannot retain successful validation
+PASS rc23 cached catalog rejects journal and cannot retain successful validation
+PASS rc23 cached catalog rejects wal and cannot retain successful validation
+PASS rc23 WAL presence and metadata changes trigger full validation
+PASS rc23 album preview initial inventory and final inventory read four catalogs instead of six
+PASS rc23 WAL-only album change with identical metadata cannot reuse old members
+PASS rc23 unchanged catalog still refreshes media availability and size
 PASS apple album association isolates a broken album without broadening a healthy selection
 PASS apple album association reports unknown album links without treating them as deleted
 PASS apple album association missing assets remain explicit and cannot masquerade as an empty album
@@ -589,22 +580,40 @@ PASS rc19 comparison process death at after-intent recovers with old files uncha
 PASS rc19 comparison process death at after-flush recovers with old files unchanged
 PASS rc19 comparison process death at after-ready recovers with old files unchanged
 PASS rc19 comparison process death at after-rename recovers with old files unchanged
-565/565 passed
---- large.txt
+579/579 passed
+REGRESSIONI DEDICATE (GIA INCLUSE)
+PASS rc23 repeated validated catalog needs one complete fresh read
+PASS rc23 catalog changed with identical size timestamp and header is revalidated
+PASS rc23 cache is scoped to device and cleared explicitly
+PASS rc23 cached catalog rejects truncate and cannot retain successful validation
+PASS rc23 cached catalog rejects grow and cannot retain successful validation
+PASS rc23 cached catalog rejects corrupt and cannot retain successful validation
+PASS rc23 cached catalog rejects cancel and cannot retain successful validation
+PASS rc23 cached catalog rejects metadata and cannot retain successful validation
+PASS rc23 cached catalog rejects journal and cannot retain successful validation
+PASS rc23 cached catalog rejects wal and cannot retain successful validation
+PASS rc23 WAL presence and metadata changes trigger full validation
+PASS rc23 album preview initial inventory and final inventory read four catalogs instead of six
+PASS rc23 WAL-only album change with identical metadata cannot reuse old members
+PASS rc23 unchanged catalog still refreshes media availability and size
+14/14 passed
+BENCHMARK CON LATENZA ARTIFICIALE, NON IPHONE REALE
+MEASURE rc23 run=1; reuse=False; DB=16928768; bytes=101572608; opens=6; elapsed_ms=5610,38; artificial_delay_ms=2; chunk=262144
+MEASURE rc23 run=1; reuse=True; DB=16928768; bytes=67715072; opens=4; elapsed_ms=3702,83; artificial_delay_ms=2; chunk=262144
+MEASURE rc23 run=2; reuse=True; DB=16928768; bytes=67715072; opens=4; elapsed_ms=3670,05; artificial_delay_ms=2; chunk=262144
+MEASURE rc23 run=2; reuse=False; DB=16928768; bytes=101572608; opens=6; elapsed_ms=5643,19; artificial_delay_ms=2; chunk=262144
+MEASURE rc23 run=3; reuse=False; DB=16928768; bytes=101572608; opens=6; elapsed_ms=5624,78; artificial_delay_ms=2; chunk=262144
+MEASURE rc23 run=3; reuse=True; DB=16928768; bytes=67715072; opens=4; elapsed_ms=3838,88; artificial_delay_ms=2; chunk=262144
+PASS rc23 benchmark three complete catalog observations
+1/1 passed
+CATALOGO GRANDE SINTETICO
 MEASURE synthetic fixture ready DB=1426288640; WAL=7337752; no device accessed
-MEASURE rc21 full catalog DB=1426288640; WAL=7337752; sourceReads=4; bytes=2867252784; elapsed_ms=1455; managed_allocated=9538008; peak_working_set=1481371648
-MEASURE sequential second full capture verified
-MEASURE rc22 two captures private_before=18456576; private_after=37015552; peak_working_set=1491365888
+MEASURE rc21 full catalog DB=1426288640; WAL=7337752; sourceReads=4; bytes=2867252784; elapsed_ms=4068; managed_allocated=9544744; peak_working_set=1481654272
+MEASURE sequential validated reuse opens=2; bytes=1433626392; hits=1
+MEASURE rc22 two captures private_before=19062784; private_after=37019648; peak_working_set=1488330752
 PASS rc21 large catalog full capture above 1.42 GB with reported WAL length
 1/1 passed
---- large-final.txt
-MEASURE synthetic fixture ready DB=1426288640; WAL=7337752; no device accessed
-MEASURE rc21 full catalog DB=1426288640; WAL=7337752; sourceReads=4; bytes=2867252784; elapsed_ms=3001; managed_allocated=9544200; peak_working_set=1481613312
-MEASURE sequential second full capture verified
-MEASURE rc22 two captures private_before=19062784; private_after=43200512; peak_working_set=1491603456
-PASS rc21 large catalog full capture above 1.42 GB with reported WAL length
-1/1 passed
---- package-tests.txt
+PACKAGING SINTETICO
 PASS package staging interrupted
 PASS package staging invalid
 PASS package staging existing

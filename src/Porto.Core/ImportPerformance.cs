@@ -33,6 +33,9 @@ public sealed class SourceTransportMetrics
     public long StatRequests {get;set;}
     public long FailedExchanges {get;set;}
     public long CatalogBytes {get;set;}
+    public long CatalogValidatedReuses {get;set;}
+    public long CatalogFullValidations {get;set;}
+    public double CatalogFingerprintMilliseconds {get;set;}
     public long MediaBytes {get;set;}
     public double CommandMilliseconds {get;set;}
     public int ReadBlockBytes {get;set;}

@@ -66,3 +66,9 @@ La rc.12 accetta JPEG la cui immagine principale è completa ma seguita da dati 
 ## Memoria richiesta nella rc.22
 
 Il catalogo viene ancora letto anche scegliendo un piccolo album. Acquisizione e verifica condividono la stessa immagine in RAM, poi azzerata e liberata. Per il catalogo da circa 1,42 GB della prova, la soglia iniziale è circa 1,95 GB liberi, non installati; un WAL che cambia la dimensione del database può richiedere di più. Mantieni i file della prova e usa la stessa destinazione per riprendere: i conteggi finali, non il solo avvio, confermano il risultato. Nessuna promessa di compatibilità universale.
+
+## Meno riletture nella rc.23
+
+Non cambia la sequenza dei pulsanti. Estrai la nuova versione in una cartella nuova, aprila, scegli iPhone, album e Archivio PC. La prima verifica legge il catalogo due volte. Se non cambia, i passaggi successivi ne leggono una copia completa e confrontano l'impronta con quella già verificata; evitano la seconda copia e la ripetizione dell'interpretazione. Se cambia o non è leggibile, Porto ripete i controlli o segnala il problema. Chiudere l'app o cambiare dispositivo azzera questo vantaggio iniziale.
+
+La fase Catalogo galleria può ancora richiedere tempo: non legge soltanto l'album. Il requisito di memoria rc.22 resta. Nessuna garanzia di un'ora per 29 GB. Per riprendere mantieni lo stesso archivio con .porto e report; i file precedenti non vanno cancellati o rinominati. L'esito finale conferma le copie, non il solo avanzamento della barra. Android e cartelle USB seguono il percorso già esistente, senza questa ottimizzazione specifica del catalogo iPhone.

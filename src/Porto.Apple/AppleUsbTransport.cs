@@ -24,10 +24,10 @@ public static class AppleGalleryDiscovery
         catch(IOException){return new([],"Servizio USB Apple non disponibile o non compatibile. Porto non installa né avvia servizi Windows. Usa l'installazione Apple già disponibile e riprova.");}
         catch(SocketException){return new([],"Servizio USB Apple non disponibile. Porto non installa né avvia servizi Windows.");}
     }
-    public static AppleGalleryCatalog ListAlbums(AppleDevice device,CancellationToken cancel,bool compatibleUsb=false)
+    public static AppleGalleryCatalog ListAlbums(AppleDevice device,CancellationToken cancel,bool compatibleUsb=false,AppleCatalogCache? catalogCache=null)
     {
         using var fileSystem=AppleUsbTransport.Connect(device,cancel,compatibleUsb);
-        return AppleCatalogCapture.Read(fileSystem,cancel);
+        return AppleCatalogCapture.Read(fileSystem,cancel,catalogCache,device.Id);
     }
 }
 

@@ -16,6 +16,7 @@ public sealed class MainForm:Form
     private UsbFolderChoice? chosenUsbFolder;
     private UsbCollectionChoice? chosenUsbCollection;
     private AppleAlbum? chosenAppleAlbum;
+    private readonly AppleCatalogCache appleCatalogCache=new();
     private readonly Label instructions=Label("",10),limits=Label("",9);
     private bool FolderMode=>sourceMode.SelectedIndex==0;
     private bool AppleMode=>sourceMode.SelectedIndex==2;
@@ -73,7 +74,7 @@ public sealed class MainForm:Form
         pause.Enabled=false;resume.Enabled=false;reportButton.Enabled=false;
         sourceMode.SelectedIndexChanged+=(_,_)=>UpdateMode();UpdateMode();
         usbScope.SelectedIndexChanged+=(_,_)=>UpdateScope();
-        phones.SelectedIndexChanged+=(_,_)=>{chosenUsbFolder=null;chosenUsbCollection=null;chosenAppleAlbum=null;UpdateScope();};
+        phones.SelectedIndexChanged+=(_,_)=>{appleCatalogCache.Clear();chosenUsbFolder=null;chosenUsbCollection=null;chosenAppleAlbum=null;UpdateScope();};
         selectUsbFolder.Click+=async(_,_)=>{if(AppleMode)await PickAppleAlbum();else await PickUsbFolder();};
         search.Click+=async(_,_)=>{if(FolderMode)PickSource();else await Discover();};browse.Click+=(_,_)=>PickFolder();
         start.Click+=async(_,_)=>await Import();resume.Click+=async(_,_)=>await Import();
@@ -82,6 +83,7 @@ public sealed class MainForm:Form
         {try{if(reportPath!=null)Process.Start(new ProcessStartInfo(reportPath){UseShellExecute=true});}
             catch(Exception ex)when(ex is IOException or System.ComponentModel.Win32Exception){detail.Text="Report nella cartella Report Porto. Apertura automatica non riuscita.";}};
         FormClosing+=(_,e)=>{if(busy){e.Cancel=true;closing=true;cancellation?.Cancel();status.Text="Chiusura sicura in corso…";}};
+        FormClosed+=(_,_)=>appleCatalogCache.Clear();
         Shown+=async(_,_)=>
         {
             if(smokePath!=null)
@@ -246,7 +248,7 @@ public sealed class MainForm:Form
         try
         {
             bool compatibility=compatibleUsb.Checked;
-            var catalog=await Task.Run(()=>AppleGalleryDiscovery.ListAlbums(device,cancellation.Token,compatibility));
+            var catalog=await Task.Run(()=>AppleGalleryDiscovery.ListAlbums(device,cancellation.Token,compatibility,appleCatalogCache));
             cancellation.Token.ThrowIfCancellationRequested();
             using var dialog=new AppleAlbumDialog(catalog.Albums,catalog.UnresolvedAssociationCount);
             if(dialog.ShowDialog(this)==DialogResult.OK){chosenAppleAlbum=dialog.SelectedAlbum;status.Text="Album scelto. Scegli l’archivio PC e avvia.";}
@@ -319,7 +321,7 @@ public sealed class MainForm:Form
                     var engine=new ImportEngine(selectedSource,destination){Media=media,Progress=p=>((IProgress<ImportProgress>)updates).Report(p)};
                     var folderReport=engine.Run(deeper,cancellation.Token);return(report:folderReport,ReportPath:engine.ReportPath);
                 }
-                IVideoSource CreateSource()=>fromApple?new AppleGallerySource(applePhone!,albumId,media,compatibility):new UsbImportSource(new ReconnectingUsbSource(Environment.ProcessPath!,phone!.Id,
+                IVideoSource CreateSource()=>fromApple?new AppleGallerySource(applePhone!,albumId,media,compatibility,appleCatalogCache):new UsbImportSource(new ReconnectingUsbSource(Environment.ProcessPath!,phone!.Id,
                     n=>((IProgress<ImportProgress>)updates).Report(new("Inventario USB",$"{n:N0} elementi esaminati",0,0,0,null,null))),phone.Id,phone.Name,phone.IsApple,scope,collection);
                 var session=new ImportSession(CreateSource,destination)
                     {Media=media,Progress=p=>((IProgress<ImportProgress>)updates).Report(p)};

@@ -127,3 +127,7 @@ Confrontati il parser X.509 BouncyCastle del tag release-2.7.0 e i generatori di
 ## rc.22 — buffer condiviso del catalogo
 
 [SQLite deserialize](https://www.sqlite.org/c3ref/deserialize.html) e [flag di deserializzazione](https://www.sqlite.org/c3ref/c_deserialize_freeonclose.html), consultati 17–18 novembre 2026. Conservati 32 byte di padding per input malformati, durata del buffer fino alla chiusura e flag READONLY senza FREEONCLOSE/RESIZEABLE. Dettagli implementativi e limiti in REVIEW-RC22.md.
+
+## rc.23 — riutilizzo verificato del catalogo
+
+Consultati il 18 novembre 2026: [formato SQLite e change counter](https://www.sqlite.org/fileformat2.html), [integrity_check completo e parziale](https://www.sqlite.org/pragma.html#pragma_integrity_check), [AFC file seek di libimobiledevice](https://raw.githubusercontent.com/libimobiledevice/libimobiledevice/master/src/afc.c). Il contatore DB non rappresenta necessariamente ogni commit WAL; il controllo parziale non equivale a quello globale. La disponibilità del seek non prova uno snapshot atomico. Scelta implementativa: nuova lettura completa e SHA-256 DB/WAL contro una osservazione interamente verificata, nessun riuso basato soltanto su metadati o intestazione. Codice e benchmark originali Porto; nessuna nuova dipendenza o codice di trasporto copiato. Dettagli in REVIEW-RC23.md.

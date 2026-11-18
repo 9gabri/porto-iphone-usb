@@ -1,4 +1,6 @@
-PORTO 0.1.0-rc.22 — CANDIDATA WINDOWS 11 x64
+PORTO 0.1.0-rc.23 — CANDIDATA WINDOWS 11 x64
+
+rc.23: meno riletture del catalogo iPhone. Dopo la prima verifica, ogni passaggio legge ancora tutti i byte correnti una volta e ne confronta l'impronta completa. Se catalogo, WAL e metadati coincidono, evita la seconda lettura e la nuova interpretazione; se cambiano, ripete i controlli completi. Scelta album + avvio + controllo finale: quattro letture anziché sei quando il catalogo resta uguale. Nessuna promessa sulla durata totale; la velocità reale va misurata. Nessun catalogo su disco; file esistenti e protezioni conservati. Dettagli in REVIEW-RC23.md. Le sezioni seguenti descrivono le versioni precedenti.
 
 rc.22: acquisizione e verifica del catalogo condividono una sola immagine in RAM, azzerata e liberata subito al termine. Nel caso segnalato il requisito iniziale passa da circa 3,37 a 1,95 GB liberi. Il margine, la rilettura integrale, l'integrità SQLite/WAL e il limite di 2047 MiB restano. Un WAL che ridimensiona il database richiede memoria aggiuntiva, controllata prima di allocarla. Nessun database del telefono su disco. La nuova candidata richiede una prova reale; dettagli in REVIEW-RC22.md. I paragrafi seguenti descrivono le versioni precedenti.
 

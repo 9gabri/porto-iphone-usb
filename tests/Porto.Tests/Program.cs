@@ -73,6 +73,8 @@ AppleCatalogMemoryTests.Add(tests);
 AppleLargeCatalogTests.Add(tests);
 Rc21CatalogTests.Add(tests);
 Rc22MemoryTests.Add(tests);
+Rc23CatalogReuseTests.Add(tests);
+if(args.Contains("--catalog-bench"))Rc23CatalogReuseTests.AddBench(tests);
 AppleAlbumAssociationTests.Add(tests);
 if(args.Contains("--large-apple"))AppleLargeCatalogTests.AddLarge(tests);
 if(args.Contains("--large-apple"))Rc21LargeCatalogTests.AddLarge(tests);
