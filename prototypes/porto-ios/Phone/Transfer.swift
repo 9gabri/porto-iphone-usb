@@ -17,6 +17,13 @@ struct Computer: Equatable {
     let ip: String
     let pin: String
 
+    #if PORTO_SMOKE && targetEnvironment(simulator)
+    init(testPin: String) {
+        self.ip = "127.0.0.1"
+        self.pin = testPin.lowercased()
+    }
+    #endif
+
     init?(link: String) {
         guard let c = URLComponents(string: link.trimmingCharacters(in: .whitespacesAndNewlines)),
               c.scheme?.lowercased() == "porto", c.host?.lowercased() == "ricevi",

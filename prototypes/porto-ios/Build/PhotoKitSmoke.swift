@@ -47,10 +47,22 @@ final class SmokeApp: UIResponder, UIApplicationDelegate {
         guard items.count == 2, PHAsset.fetchAssets(in: album, options: Filter.video.options).count == 0
             else { throw PortoError("Conteggio errato per album o filtro") }
         var expected = Set(pngs.map { hex(SHA256.hash(data: $0)) })
+        guard let pin = Bundle.main.object(forInfoDictionaryKey: "SmokePin") as? String else { throw PortoError("Pin del collaudo assente") }
+        let sender = Sender(Computer(testPin: pin))
+        defer { sender.close() }
+        let device = UUID().uuidString
+        let token = try await sender.start(album: name, albumID: album.localIdentifier, count: 2, device: device, filter: .both)
         for i in 0..<items.count {
             let staged = try await Original.stage(items.object(at: i), in: FileManager.default.temporaryDirectory)
             defer { try? FileManager.default.removeItem(at: staged.url) }
             guard expected.remove(staged.hash) != nil else { throw PortoError("Originale alterato") }
+            guard try await sender.send(staged, token: token) == .new else { throw PortoError("Prima copia assente") }
+        }
+        let second = try await sender.start(album: name, albumID: album.localIdentifier, count: 2, device: device, filter: .both)
+        for i in 0..<items.count {
+            let staged = try await Original.stage(items.object(at: i), in: FileManager.default.temporaryDirectory)
+            defer { try? FileManager.default.removeItem(at: staged.url) }
+            guard try await sender.send(staged, token: second) == .present else { throw PortoError("Ripresa errata") }
         }
     }
 }

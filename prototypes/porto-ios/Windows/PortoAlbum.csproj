@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Version>0.1.0-prova.1</Version>
+    <AssemblyName>Porto-Album-PC</AssemblyName>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageDownload Include="QRCoder" Version="[1.7.0]" />
+    <Reference Include="QRCoder" HintPath="$(NuGetPackageRoot)/qrcoder/1.7.0/lib/net6.0/QRCoder.dll" />
+  </ItemGroup>
+</Project>

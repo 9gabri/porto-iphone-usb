@@ -50,6 +50,8 @@ final class AlbumScreen: UIViewController {
     private let send = button("Copia album sul PC", primary: true)
     private let stop = button("Pausa")
     private let state = label("Durante la copia tieni Porto aperto. Gli originali disponibili solo su iCloud vengono segnalati.")
+    private let details = button("Vedi elementi non copiati")
+    private var issues: [String] = []
     private let defaults = UserDefaults.standard
 
     override func viewDidLoad() {
@@ -58,7 +60,7 @@ final class AlbumScreen: UIViewController {
         view.backgroundColor = .systemBackground
         let scroll = UIScrollView()
         let stack = UIStackView(arrangedSubviews: [label("Computer", .headline), machine, enter,
-            label("Album", .headline), selected, choose, filters, send, stop, state])
+            label("Album", .headline), selected, choose, filters, send, stop, state, details])
         stack.axis = .vertical
         stack.spacing = 12
         scroll.translatesAutoresizingMaskIntoConstraints = false
@@ -81,6 +83,8 @@ final class AlbumScreen: UIViewController {
         enter.addAction(UIAction { [weak self] _ in self?.manual() }, for: .touchUpInside)
         choose.addAction(UIAction { [weak self] _ in Task { await self?.chooseAlbum() } }, for: .touchUpInside)
         send.addAction(UIAction { [weak self] _ in self?.begin() }, for: .touchUpInside)
+        details.isHidden = true
+        details.addAction(UIAction { [weak self] _ in self?.showIssues() }, for: .touchUpInside)
         stop.addAction(UIAction { [weak self] _ in
             self?.state.text = "Pausa richiesta. Attendo la chiusura dell’operazione in corso…"
             self?.transfer?.cancel()
@@ -93,6 +97,17 @@ final class AlbumScreen: UIViewController {
         enter.isEnabled = idle; choose.isEnabled = idle; filters.isEnabled = idle
         send.isEnabled = idle && album != nil && computer != nil
         stop.isHidden = idle
+        details.isHidden = !idle || issues.isEmpty
+    }
+    private func showIssues() {
+        let vc = UIViewController()
+        vc.title = "Elementi non copiati"
+        let text = UITextView()
+        text.font = .preferredFont(forTextStyle: .body)
+        text.isEditable = false
+        text.text = issues.joined(separator: "\n\n")
+        vc.view = text
+        navigationController?.pushViewController(vc, animated: true)
     }
     private func manual() {
         let alert = UIAlertController(title: "Collegamento del PC", message: "Incolla il collegamento mostrato da Porto sul tuo PC.", preferredStyle: .alert)
@@ -100,7 +115,7 @@ final class AlbumScreen: UIViewController {
         alert.addAction(UIAlertAction(title: "Annulla", style: .cancel))
         alert.addAction(UIAlertAction(title: "Continua", style: .default) { [weak self, weak alert] _ in
             let text = alert?.textFields?.first?.text ?? ""
-            DispatchQueue.main.async { _ = self?.offer(text) }
+            alert?.dismiss(animated: true) { _ = self?.offer(text) }
         })
         present(alert, animated: true)
     }
@@ -152,6 +167,7 @@ final class AlbumScreen: UIViewController {
 
     private func begin() {
         guard transfer == nil, let pc = computer, let selectedAlbum = album else { return }
+        issues.removeAll()
         let filter = kinds[filters.selectedSegmentIndex]
         defaults.set(filter.rawValue, forKey: "filter")
         transfer = Task { [weak self] in
@@ -193,7 +209,10 @@ final class AlbumScreen: UIViewController {
                 catch {
                     try Task.checkCancellation()
                     skipped += 1
-                    if firstIssue.isEmpty { firstIssue = "Elemento " + String(index + 1) + " · " + error.localizedDescription }
+                    let name = PHAssetResource.assetResources(for: asset).first?.originalFilename ?? "Elemento " + String(index + 1)
+                    let detail = name + " · " + error.localizedDescription
+                    if firstIssue.isEmpty { firstIssue = detail }
+                    issues.append(detail)
                     continue
                 }
                 defer { try? FileManager.default.removeItem(at: item.url) }
