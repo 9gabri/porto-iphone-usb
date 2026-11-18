@@ -11,10 +11,15 @@ final class SmokeApp: UIResponder, UIApplicationDelegate {
         window = UIWindow(frame: UIScreen.main.bounds)
         window?.rootViewController = UIViewController()
         window?.makeKeyAndVisible()
+        let label = UILabel(frame: CGRect(x: 12, y: 80, width: 350, height: 100))
+        label.text = "In corso"
+        label.accessibilityIdentifier = "result"
+        window?.rootViewController?.view.addSubview(label)
         Task { @MainActor in
             let result: String
             do { try await run(); result = "OK" }
             catch { result = "Errore: " + error.localizedDescription }
+            label.text = result
             let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
             try result.write(to: docs.appendingPathComponent("esito.txt"), atomically: true, encoding: .utf8)
         }
@@ -22,7 +27,8 @@ final class SmokeApp: UIResponder, UIApplicationDelegate {
     }
 
     @MainActor func run() async throws {
-        guard PHPhotoLibrary.authorizationStatus(for: .readWrite) == .authorized else { throw PortoError("Accesso simulatore assente") }
+        let access = await PHPhotoLibrary.requestAuthorization(for: .readWrite)
+        guard access == .authorized else { throw PortoError("Accesso sintetico Photos richiesto, stato \(access.rawValue)") }
         let pngs = [UIColor.red, .blue].map { color in
             UIGraphicsImageRenderer(size: CGSize(width: 32, height: 32)).pngData { context in
                 color.setFill(); context.fill(CGRect(x: 0, y: 0, width: 32, height: 32))
