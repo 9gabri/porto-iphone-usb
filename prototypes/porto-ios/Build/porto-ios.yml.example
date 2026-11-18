@@ -1,0 +1,31 @@
+name: Compila Porto Album per iPhone
+on:
+  push:
+    branches:
+      - codex/porto-ios-album-prova-1
+permissions:
+  contents: read
+jobs:
+  iphone:
+    if: github.event.repository.visibility == 'public'
+    runs-on: macos-15
+    timeout-minutes: 25
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
+    steps:
+      - name: Leggi i sorgenti del prototipo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Compila e verifica il pacchetto per il dispositivo
+        run: bash prototypes/porto-ios/Build/build-iphone.sh "$RUNNER_TEMP/porto-ipa"
+      - name: Conserva il pacchetto per la firma sul PC
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: PortoAlbum-per-firma
+          path: ${{ runner.temp }}/porto-ipa/PortoAlbum-per-firma.ipa
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
+      - name: Verifica album sintetico nel simulatore
+        run: bash prototypes/porto-ios/Build/simulator-smoke.sh
