@@ -2,9 +2,11 @@
 const $ = id => document.getElementById(id);
 const statusText = text => { $('status').textContent = text; };
 const offerPrefix = '#porto1=';
-const offerCode = location.hash.startsWith(offerPrefix) ? location.hash.slice(offerPrefix.length) : '';
+const [offerCode,returnSecret] = location.hash.startsWith(offerPrefix)
+  ? location.hash.slice(offerPrefix.length).split('.') : [''];
 const senderMode = Boolean(offerCode);
-let peer, channel, cameraStream, pairingTimer;
+let peer, channel, cameraStream, pairingTimer, stopListening, answerTimer;
+let accepting = false;
 let sessionEnded = false;
 function stopCamera() {
   cameraStream?.getTracks().forEach(track => track.stop());
@@ -17,6 +19,7 @@ function fail(error) {
   sessionEnded = true;
   $('cancel').hidden = true;
   clearTimeout(pairingTimer);
+  clearTimeout(answerTimer); stopListening?.();
   stopCamera();
   Porto.stop();
   peer?.close();
@@ -85,7 +88,7 @@ function bind(dc) {
   if (channel || dc.label !== 'porto-web-v1') { dc.close(); return; }
   channel = dc; dc.binaryType = 'arraybuffer';
   dc.onopen = () => {
-    clearTimeout(pairingTimer); stopCamera();
+    clearTimeout(pairingTimer); clearTimeout(answerTimer); stopListening?.(); stopCamera();
     $('pairing').hidden = $('answerBox').hidden = true;
     $('choose').hidden = !senderMode;
     $('cancel').hidden = false;
@@ -96,6 +99,9 @@ function bind(dc) {
   dc.onerror = () => fail(Error('Errore del canale dati.'));
 }
 async function acceptCode(code) {
+  if (accepting || sessionEnded) return;
+  accepting = true;
+  stopListening?.();
   if (!code.startsWith('PORTO1.')) throw Error('Usa il codice mostrato sul telefono.');
   stopCamera();
   await peer.setRemoteDescription({type:'answer',sdp:await unpack(code.slice(7))});
@@ -126,13 +132,26 @@ async function startPC() {
   if (!window.showDirectoryPicker) { statusText('Per ricevere, apri questa pagina in Edge o Chrome su Windows.'); return; }
   const folder = await showDirectoryPicker({mode:'readwrite'});
   $('start').disabled = true;
+  $('automatic').disabled = true;
   Porto.setFolder(folder);
   statusText('Preparo il codice del computer…');
   initPeer(); bind(peer.createDataChannel('porto-web-v1'));
   const code = await localCode(await peer.createOffer());
-  const url = new URL(location.href); url.hash = 'porto1=' + code;
-  $('link').value = url.href; drawQR($('offerQR'),url.href); $('pairing').hidden = false;
-  statusText('Pronto per collegare l’iPhone.');
+  function showOffer(secret='') {
+    const url=new URL(location.href); url.hash='porto1='+code+(secret?'.'+secret:'');
+    $('link').value=url.href; drawQR($('offerQR'),url.href); $('pairing').hidden=false;
+    $('manual').hidden=Boolean(secret); $('alt').hidden=!secret;
+  }
+  if (!$('automatic').checked) {
+    showOffer(); statusText('Pronto per collegare il telefono.'); return;
+  }
+  const secret=PortoSignal.secret();
+  const signal=await PortoSignal.session(secret,code);
+  stopListening=signal.listen(()=>{
+    showOffer(secret); statusText('Inquadra il QR. Il telefono risponderà automaticamente tramite ntfy.sh.');
+  },answer=>acceptCode(answer).catch(fail),()=>{
+    showOffer(); statusText('Collegamento automatico indisponibile o scaduto. Puoi usare il secondo QR.');
+  });
 }
 async function startPhone() {
   $('pc').hidden = true; $('mobile').hidden = false; $('title').textContent = 'Invia al computer';
@@ -141,11 +160,23 @@ async function startPhone() {
   initPeer(); peer.ondatachannel = e => bind(e.channel);
   await peer.setRemoteDescription({type:'offer',sdp:await unpack(offerCode)});
   const code = 'PORTO1.' + await localCode(await peer.createAnswer());
-  $('answer').value = code; drawQR($('answerQR'),code); $('answerBox').hidden = false;
-  statusText('Sul PC premi “Leggi QR del telefono”.');
+  $('answer').value=code;
+  function showAnswer() {
+    if (sessionEnded || channel?.readyState==='open') return;
+    drawQR($('answerQR'),code); $('answerBox').hidden=false;
+    statusText('Sul PC usa il collegamento manuale e premi “Leggi QR del telefono”.');
+  }
+  if (!returnSecret) { showAnswer(); return; }
+  statusText('Collegamento automatico al computer…');
+  const signal=await PortoSignal.session(returnSecret,offerCode);
+  try {
+    await signal.reply(code);
+    if (channel?.readyState!=='open') answerTimer=setTimeout(showAnswer,15000);
+  } catch { showAnswer(); }
 }
 onButton('start',startPC); onButton('connect',() => acceptCode($('reply').value.trim())); onButton('scan',scan);
 onButton('cancel',()=>fail(Error('Interruzione richiesta.')));
+onButton('alt',()=>{ $('manual').hidden=false; $('alt').hidden=true; });
 onButton('copy',async () => { await navigator.clipboard.writeText($('answer').value); statusText('Codice copiato. Incollalo sul computer.'); });
 Porto.setup();
 window.addEventListener('hashchange', () => {

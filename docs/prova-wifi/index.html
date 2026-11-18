@@ -1,22 +1,25 @@
 <!doctype html>
 <html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src blob:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src blob:; connect-src https://ntfy.sh; base-uri 'none'; form-action 'none'">
 <title>Porto · Copia via Wi-Fi</title><link rel="stylesheet" href="porto.css">
 <script defer src="vendor/qrcode.js"></script><script defer src="vendor/jsQR.js"></script><script defer src="vendor/sha256.js"></script>
-<script defer src="transfer.js"></script><script defer src="pair.js"></script></head>
+<script defer src="transfer.js"></script><script defer src="signal.js"></script><script defer src="pair.js"></script></head>
 <body><main><header>Porto <span>Prova via Wi-Fi</span></header>
 <h1 id="title">Ricevi sul computer</h1>
 <section id="pc"><p>Collega computer e telefono alla stessa rete Wi-Fi. Sul computer usa Edge o Chrome.</p>
+<label><input type="checkbox" id="automatic"> Collega con un solo QR</label>
+<p>Con un solo QR, i browser usano ntfy.sh per scambiarsi una risposta cifrata. Il servizio vede IP, orario e un codice casuale. I file viaggiano direttamente al PC.</p>
 <button id="start">Scegli cartella e mostra QR</button>
-<div id="pairing" hidden><h2>Inquadra con l’iPhone</h2><p>Apri Fotocamera, inquadra il codice e apri il link in Safari.</p>
+<div id="pairing" hidden><h2>Inquadra con il telefono</h2><p>Apri il link in Chrome su Android o in Safari su iPhone.</p>
 <canvas id="offerQR" aria-label="Codice QR del computer"></canvas>
-<h2>Collega il telefono</h2><p>Quando il telefono mostra il secondo QR, leggilo con la webcam del computer.</p>
+<button id="alt" hidden>Usa il collegamento manuale</button>
+<div id="manual"><h2>Collega il telefono</h2><p>Quando il telefono mostra il secondo QR, leggilo con la webcam del computer.</p>
 <button id="scan">Leggi QR del telefono</button><video id="camera" playsinline muted hidden></video>
 <details><summary>Usa i codici come testo</summary><label>Link da aprire sul telefono<textarea id="link" readonly></textarea></label>
-<label>Codice ricevuto dal telefono<textarea id="reply"></textarea></label><button id="connect">Collega</button></details></div>
+<label>Codice ricevuto dal telefono<textarea id="reply"></textarea></label><button id="connect">Collega</button></details></div></div>
 <button id="accept" hidden>Accetta e copia</button></section>
-<section id="mobile" hidden><p>Tieni Safari aperto durante la copia. I file passano direttamente al computer.</p>
+<section id="mobile" hidden><p>Tieni questa pagina aperta durante la copia. I file passano direttamente al computer.</p>
 <div id="answerBox" hidden><h2>Mostra questo QR alla webcam del PC</h2><canvas id="answerQR" aria-label="Codice QR del telefono"></canvas>
 <details><summary>Mostra codice da copiare</summary><textarea id="answer" readonly aria-label="Codice del telefono"></textarea><button id="copy">Copia codice</button></details></div>
 <div id="choose" hidden><label>Cosa copiare<select id="kind"><option value="image/*,video/*">Foto e video</option><option value="video/*">Solo video</option><option value="image/*">Solo foto</option></select></label>
